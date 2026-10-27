@@ -6,7 +6,7 @@ Dokumen ini mencatat pola arsitektur berbasis fitur terisolasi (*Feature-First F
 
 ## 1. Pola Folder Berbasis Halaman / Fitur (*Colocated Architecture*)
 
-Setiap modul halaman mandiri (seperti `bahan`, `suppliers`, `stok-log`, dll.) ditempatkan dalam foldernya sendiri dengan membagi tanggung jawab (*Separation of Concerns*) menjadi 5 lapisan:
+Setiap modul halaman mandiri (seperti `bahan`, `suppliers`, `stok-log`, `purchase-order`, dll.) ditempatkan dalam foldernya sendiri dengan membagi tanggung jawab (*Separation of Concerns*) menjadi 5 lapisan:
 
 ```
 src/app/dashboard/<fitur>/
@@ -32,21 +32,24 @@ src/app/dashboard/<fitur>/
 | Modul | Lokasi | Keterangan Database | Alur Mutasi & Validasi |
 | :--- | :--- | :--- | :--- |
 | **Bahan Baku** | `src/app/dashboard/bahan/` | Tabel `bahan` & `suppliers` | CRUD stok fisik, harga per satuan, ambang batas minimum. |
-| **Suppliers** | `src/app/dashboard/suppliers/` | Tabel `suppliers`, `supplier_categories`, `supplier_riwayat` | Normalisasi kategori pasokan, profil kontak distributor, riwayat pasokan. |
+| **Suppliers** | `src/app/dashboard/suppliers/` | Tabel `suppliers`, `supplier_categories`, `supplier_riwayat` | Normalisasi kategori pasokan terpusat, profil kontak distributor, riwayat pasokan. |
 | **Stok Log & Opname** | `src/app/dashboard/stok-log/` | Tabel `stok_logs` & `bahan` | Audit keluar-masuk (Masuk +, Keluar -), mutasi manual, rekonsiliasi Stock Opname fisik ke database. |
+| **Purchase Order (PO)** | `src/app/dashboard/purchase-order/` | Tabel `purchase_orders`, `po_items`, `bahan`, `stok_logs`, `supplier_riwayat` | Siklus bertahap: Draft $\rightarrow$ Dikirim $\rightarrow$ Diterima (+Auto Stok & Log Mutasi) $\rightarrow$ Tagihan. |
 
 ---
 
-## 3. Alur Pencatatan Mutasi Stok (`stok-log`)
+## 3. Alur Otomasi Purchase Order (PO Lifecycle)
 
-1. **Jejak Audit Real-time**:
-   Setiap perubahan stok mencatat:
-   - `bahan_id`: Bahan yang mengalami perubahan.
-   - `stok_sebelum`: Saldo stok sebelum perubahan.
-   - `perubahan`: Nominal mutasi (positif `+` untuk masuk, negatif `-` untuk keluar).
-   - `stok_sesudah`: Saldo akhir stok setelah kalkulasi.
-   - `sumber`: Kategori sumber (`PO`, `Penjualan`, `Manual`, `Opname`, `Penyesuaian`).
-   - `catatan`: Alasan mutasi (contoh: bahan rusak, retur, selisih fisik gudang).
-2. **Sinkronisasi Dua Arah (*Atomic Update*)**:
-   - Saat input mutasi manual (`masuk` / `keluar`), sistem memvalidasi ketersediaan stok fisik agar tidak bernilai negatif, memperbarui tabel `bahan`, dan menuliskan baris baru di `stok_logs`.
-   - Pada Stock Opname, hanya bahan yang mengalami selisih (`selisih !== 0`) yang disinkronisasi ke tabel `bahan` dan dicatat ke `stok_logs` dengan sumber `Opname`.
+1. **Wizard Pembuatan PO**:
+   - Langkah 1: Pilih supplier tujuan (mengambil data dari tabel `suppliers`) dan input catatan opsional.
+   - Langkah 2: Pilih bahan baku (mengambil data dari tabel `bahan`), input kuantitas diorder dan estimasi harga per satuan.
+   - Langkah 3: Konfirmasi dan simpan sebagai `draft` di tabel `purchase_orders` beserta detail item di `po_items`.
+2. **Siklus Status & Dampak ke Database**:
+   - `draft`: PO baru terbuat.
+   - `dikirim`: PO telah diteruskan ke pihak supplier/distributor.
+   - `diterima`: **Trigger Mutasi Otomatis**:
+     1. Stok bahan di tabel `bahan` otomatis bertambah (`stok = stok + qty`).
+     2. Menuliskan riwayat mutasi masuk ke tabel `stok_logs` (sumber: `'PO'`).
+     3. Menandai item di `po_items` sebagai `diterima = true`.
+     4. Menambahkan histori transaksi ke tabel `supplier_riwayat`.
+   - `tagihan`: PO masuk ke antrean kewajiban pembayaran/keuangan toko.
