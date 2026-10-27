@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   Compass, Package, BarChart2, ChefHat, LogOut,
   Truck, ClipboardList, ShoppingCart, History, BoxSelect,
@@ -47,6 +48,14 @@ const navSections = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <aside className="w-68 min-h-screen bg-[#f3f6fa] border-r border-slate-200/80 flex flex-col flex-shrink-0 select-none overflow-y-auto relative z-20 p-4">
@@ -121,9 +130,14 @@ export default function Sidebar() {
               <p className="text-[10px] text-emerald-600 font-medium mt-0.5">DapurTwin Active</p>
             </div>
           </div>
-          <Link href="/login" title="Keluar" className="text-slate-400 hover:text-rose-500 transition-colors p-2 rounded-xl hover:bg-rose-50">
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Keluar"
+            className="text-slate-400 hover:text-rose-500 transition-colors p-2 rounded-xl hover:bg-rose-50 cursor-pointer"
+          >
             <LogOut className="w-4 h-4" />
-          </Link>
+          </button>
         </div>
       </div>
     </aside>

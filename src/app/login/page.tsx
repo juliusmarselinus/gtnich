@@ -1,18 +1,67 @@
 'use client'
 
-import { Store, Eye, EyeOff } from 'lucide-react'
+import { Store, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('budi@orderhub.id')
   const [password, setPassword] = useState('password123')
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
 
-  const handleLogin = (e: React.FormEvent) => {
+  const supabase = createClient()
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.push('/dashboard')
+    setIsLoading(true)
+    setErrorMessage(null)
+    setMessage(null)
+
+    try {
+      if (isSignUp) {
+        const { error, data } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: email.split('@')[0],
+            },
+          },
+        })
+
+        if (error) {
+          setErrorMessage(error.message)
+        } else if (data.session) {
+          router.push('/dashboard')
+        } else {
+          setMessage('Pendaftaran berhasil! Silakan cek email Anda untuk konfirmasi, atau silakan login jika email confirm dinonaktifkan di dashboard Supabase.')
+          setIsSignUp(false)
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (error) {
+          setErrorMessage(error.message)
+        } else {
+          router.push('/dashboard')
+          router.refresh()
+        }
+      }
+    } catch (err: unknown) {
+      const error = err as Error
+      setErrorMessage(error?.message || 'Terjadi kesalahan saat otentikasi')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -26,14 +75,27 @@ export default function LoginPage() {
               <Store className="w-4 h-4" />
             </div>
             <h1 className="text-lg font-semibold tracking-tight text-[#1F1D1A]">
-              Masuk ke OrderHub
+              {isSignUp ? 'Daftar Akun OrderHub' : 'Masuk ke OrderHub'}
             </h1>
             <p className="text-xs text-[#6B665F] mt-1">
               Pusat kendali pesanan WhatsApp dan operasional toko
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-3.5">
+          {errorMessage && (
+            <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 flex items-start gap-2 text-rose-700 text-xs">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {message && (
+            <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             <div>
               <label className="block text-xs font-medium text-[#6B665F] mb-1">
                 Alamat Email
@@ -73,11 +135,27 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full mt-2 py-2 px-4 bg-[#1F1D1A] hover:bg-[#383531] text-white font-medium text-xs rounded-lg transition-colors"
+              disabled={isLoading}
+              className="w-full mt-2 py-2 px-4 bg-[#1F1D1A] hover:bg-[#383531] disabled:opacity-60 text-white font-medium text-xs rounded-lg transition-colors flex items-center justify-center gap-2"
             >
-              Masuk ke Dashboard
+              {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              <span>{isSignUp ? 'Buat Akun' : 'Masuk ke Dashboard'}</span>
             </button>
           </form>
+
+          <div className="mt-4 pt-4 border-t border-[#EAE5DF] text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp)
+                setErrorMessage(null)
+                setMessage(null)
+              }}
+              className="text-xs text-[#3E6B48] hover:underline font-medium"
+            >
+              {isSignUp ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar sekarang'}
+            </button>
+          </div>
         </div>
 
         <p className="text-center text-[11px] text-[#9C9589] mt-4">
