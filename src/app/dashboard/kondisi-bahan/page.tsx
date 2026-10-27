@@ -14,25 +14,22 @@ function stockStatus(stok: number, min: number): 'habis' | 'rendah' | 'ok' {
 
 const statusConfig = {
   ok: {
-    label: 'OK',
+    label: 'Aman',
     icon: CheckCircle,
-    cardCls: 'border-[#C5DBC9] bg-[#EAF0EC]/40',
-    badgeCls: 'bg-[#EAF0EC] text-[#3E6B48] border-[#C5DBC9]',
-    barCls: 'bg-[#3E6B48]',
+    badgeCls: 'bg-emerald-50 text-emerald-700',
+    barCls: 'bg-emerald-500',
   },
   rendah: {
     label: 'Rendah',
     icon: AlertTriangle,
-    cardCls: 'border-amber-200 bg-amber-50/40',
-    badgeCls: 'bg-amber-50 text-amber-700 border-amber-200',
-    barCls: 'bg-amber-400',
+    badgeCls: 'bg-amber-50 text-amber-700',
+    barCls: 'bg-amber-500',
   },
   habis: {
     label: 'Habis',
     icon: XCircle,
-    cardCls: 'border-red-200 bg-red-50/40',
-    badgeCls: 'bg-red-50 text-red-600 border-red-200',
-    barCls: 'bg-red-500',
+    badgeCls: 'bg-rose-50 text-rose-700',
+    barCls: 'bg-rose-500',
   },
 }
 
@@ -43,33 +40,33 @@ export default function KondisiBahanPage() {
 
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="Kondisi Bahan" subtitle="Pantau status stok semua bahan baku secara visual" />
+      <Topbar title="Kondisi Bahan & Inventory" subtitle="Pantau level persediaan bahan baku secara visual dengan indikator ambang batas" />
 
-      <main className="p-8 space-y-6 max-w-7xl mx-auto">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-4">
+      <main className="p-8 space-y-7 max-w-7xl mx-auto">
+        {/* Summary Clay Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { label: 'Stok OK', count: ok.length, icon: CheckCircle, cls: 'text-[#3E6B48]', bg: 'bg-[#EAF0EC]' },
-            { label: 'Stok Rendah', count: rendah.length, icon: AlertTriangle, cls: 'text-amber-600', bg: 'bg-amber-50' },
-            { label: 'Stok Habis', count: habis.length, icon: XCircle, cls: 'text-red-600', bg: 'bg-red-50' },
+            { label: 'Stok Kondisi Aman', count: ok.length, icon: CheckCircle, colorCls: 'text-emerald-600', pillCls: 'bg-emerald-50' },
+            { label: 'Stok Mendekati Habis', count: rendah.length, icon: AlertTriangle, colorCls: 'text-amber-600', pillCls: 'bg-amber-50' },
+            { label: 'Stok Kosong / Habis', count: habis.length, icon: XCircle, colorCls: 'text-rose-600', pillCls: 'bg-rose-50' },
           ].map(s => {
             const Icon = s.icon
             return (
-              <div key={s.label} className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 flex items-center gap-4">
-                <div className={clsx('w-12 h-12 rounded-xl flex items-center justify-center', s.bg)}>
-                  <Icon className={clsx('w-6 h-6', s.cls)} />
+              <div key={s.label} className="clay-card p-6 flex items-center gap-5">
+                <div className={clsx('w-14 h-14 rounded-2xl flex items-center justify-center clay-pill flex-shrink-0', s.pillCls)}>
+                  <Icon className={clsx('w-7 h-7', s.colorCls)} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-[#1F1D1A]">{s.count}</p>
-                  <p className="text-xs text-[#9C9589] font-medium">{s.label}</p>
+                  <p className="text-3xl font-black text-slate-800 font-mono">{s.count}</p>
+                  <p className="text-xs text-slate-400 font-bold mt-0.5">{s.label}</p>
                 </div>
               </div>
             )
           })}
         </div>
 
-        {/* Ingredient Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {/* Ingredient Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {bahanList.map(b => {
             const st = stockStatus(b.stok, b.stokMinimum)
             const cfg = statusConfig[st]
@@ -78,43 +75,47 @@ export default function KondisiBahanPage() {
             const supplierName = suppliers.find(s => s.id === b.supplierId)?.nama ?? '-'
 
             return (
-              <div key={b.id} className={clsx('rounded-xl border shadow-2xs p-5 space-y-3 transition-all', cfg.cardCls)}>
+              <div key={b.id} className="clay-card p-6 space-y-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-white/80 flex items-center justify-center border border-white/50">
-                      <Package className="w-4 h-4 text-[#9C9589]" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center clay-pill flex-shrink-0">
+                      <Package className="w-5 h-5 text-slate-500" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-[#1F1D1A]">{b.nama}</p>
-                      <p className="text-[10px] text-[#9C9589]">{b.id}</p>
+                      <p className="text-sm font-extrabold text-slate-800">{b.nama}</p>
+                      <p className="text-[10px] text-slate-400 font-mono">{b.id}</p>
                     </div>
                   </div>
-                  <span className={clsx('inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-semibold', cfg.badgeCls)}>
-                    <Icon className="w-3 h-3" /> {cfg.label}
+                  <span className={clsx('inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold clay-pill', cfg.badgeCls)}>
+                    <Icon className="w-3.5 h-3.5" /> {cfg.label}
                   </span>
                 </div>
 
-                {/* Stock Bar */}
-                <div>
-                  <div className="h-1.5 bg-white/60 rounded-full overflow-hidden">
-                    <div className={clsx('h-full rounded-full transition-all', cfg.barCls)} style={{ width: `${pct}%` }} />
+                {/* Progress Level Bar */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    <span>Level Kapasitas</span>
+                    <span>{pct.toFixed(0)}%</span>
+                  </div>
+                  <div className="h-2.5 clay-inset p-0.5 rounded-full overflow-hidden">
+                    <div className={clsx('h-full rounded-full transition-all duration-500', cfg.barCls)} style={{ width: `${pct}%` }} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-center">
-                  <div className="bg-white/60 rounded-lg p-2">
-                    <p className="text-[10px] text-[#9C9589] font-medium">Stok Saat Ini</p>
-                    <p className="text-sm font-bold text-[#1F1D1A] font-mono">{b.stok} <span className="text-[10px] font-normal text-[#9C9589]">{b.satuan}</span></p>
+                  <div className="clay-inset p-2.5 rounded-xl">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Stok Saat Ini</p>
+                    <p className="text-sm font-black text-slate-800 font-mono mt-0.5">{b.stok} <span className="text-[10px] font-bold text-slate-400">{b.satuan}</span></p>
                   </div>
-                  <div className="bg-white/60 rounded-lg p-2">
-                    <p className="text-[10px] text-[#9C9589] font-medium">Minimum</p>
-                    <p className="text-sm font-bold text-[#1F1D1A] font-mono">{b.stokMinimum} <span className="text-[10px] font-normal text-[#9C9589]">{b.satuan}</span></p>
+                  <div className="clay-inset p-2.5 rounded-xl">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Batas Minimum</p>
+                    <p className="text-sm font-black text-slate-800 font-mono mt-0.5">{b.stokMinimum} <span className="text-[10px] font-bold text-slate-400">{b.satuan}</span></p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] text-[#9C9589]">
-                  <span>{formatRupiah(b.hargaPerSatuan)}/{b.satuan}</span>
-                  <span className="truncate max-w-[60%] text-right">{supplierName}</span>
+                <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 font-medium">
+                  <span className="font-mono">{formatRupiah(b.hargaPerSatuan)}/{b.satuan}</span>
+                  <span className="truncate max-w-[55%] text-right text-[11px] text-slate-400">{supplierName}</span>
                 </div>
               </div>
             )

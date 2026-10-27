@@ -4,14 +4,14 @@ import { useState } from 'react'
 import Topbar from '@/components/Topbar'
 import { purchaseOrders as initialPOs, bahanList, suppliers, PurchaseOrder, POItem, POStatus } from '@/lib/dapur-data'
 import { formatRupiah } from '@/lib/mock-data'
-import { Plus, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { Plus, ChevronDown, ChevronUp, X, ShoppingBag } from 'lucide-react'
 import clsx from 'clsx'
 
 const STATUS_CONFIG: Record<POStatus, { label: string; cls: string }> = {
-  draft: { label: 'Draft', cls: 'bg-slate-100 text-slate-600 border-slate-200' },
-  dikirim: { label: 'Dikirim', cls: 'bg-blue-50 text-blue-600 border-blue-200' },
-  diterima: { label: 'Diterima', cls: 'bg-[#EAF0EC] text-[#3E6B48] border-[#C5DBC9]' },
-  tagihan: { label: 'Tagihan', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  draft: { label: 'Draft', cls: 'bg-slate-100 text-slate-600' },
+  dikirim: { label: 'Dikirim', cls: 'bg-blue-50 text-blue-600' },
+  diterima: { label: 'Diterima', cls: 'bg-emerald-50 text-emerald-700' },
+  tagihan: { label: 'Tagihan', cls: 'bg-amber-50 text-amber-700' },
 }
 
 export default function PurchaseOrderPage() {
@@ -59,77 +59,79 @@ export default function PurchaseOrderPage() {
 
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="Purchase Order" subtitle="Buat dan kelola PO pembelian bahan baku dari supplier" />
+      <Topbar title="Purchase Order (PO)" subtitle="Buat PO bertahap: buat pesanan, cek harga, terima barang (verifikasi), dan monitor tagihan" />
 
-      <main className="p-8 space-y-6 max-w-6xl mx-auto">
-        {/* Stats */}
+      <main className="p-8 space-y-7 max-w-6xl mx-auto">
+        {/* Status Flow Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {(['draft', 'dikirim', 'diterima', 'tagihan'] as POStatus[]).map(st => (
-            <div key={st} className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-4 text-center">
-              <p className="text-[10px] font-bold text-[#9C9589] uppercase tracking-wider mb-1">{STATUS_CONFIG[st].label}</p>
-              <p className="text-2xl font-bold text-[#1F1D1A]">{list.filter(p => p.status === st).length}</p>
+            <div key={st} className="clay-card p-5 text-center">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{STATUS_CONFIG[st].label}</p>
+              <p className="text-3xl font-black text-slate-800 font-mono">{list.filter(p => p.status === st).length}</p>
             </div>
           ))}
         </div>
 
         <div className="flex justify-end">
-          <button onClick={openWizard} className="flex items-center gap-2 px-4 py-2 bg-[#3E6B48] text-white text-xs font-semibold rounded-xl hover:bg-[#345a3d] transition-colors">
-            <Plus className="w-4 h-4" /> Buat PO Baru
+          <button onClick={openWizard} className="clay-btn-primary flex items-center gap-2 px-5 py-2.5 text-xs font-bold">
+            <Plus className="w-4 h-4" /> Buat Purchase Order Baru
           </button>
         </div>
 
-        {/* PO List */}
-        <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs overflow-hidden">
+        {/* PO List Clay Card */}
+        <div className="clay-card overflow-hidden">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-[#EAE5DF] bg-[#FAF8F5]">
-                <th className="text-left px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">No. PO</th>
-                <th className="text-left px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Supplier</th>
-                <th className="text-left px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Tanggal</th>
-                <th className="text-center px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Status</th>
-                <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Total</th>
-                <th className="px-5 py-3.5"></th>
+              <tr className="border-b border-slate-100 bg-slate-50/70">
+                <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">No. PO</th>
+                <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Supplier Terkait</th>
+                <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Tanggal</th>
+                <th className="text-center px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Status Proses</th>
+                <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Total Estimasi</th>
+                <th className="px-6 py-4"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F4F0EB]">
+            <tbody className="divide-y divide-slate-100">
               {list.map(po => {
                 const cfg = STATUS_CONFIG[po.status]
                 const exp = expandedId === po.id
                 return (
                   <>
-                    <tr key={po.id} className="hover:bg-[#FAF8F5] transition-colors">
-                      <td className="px-5 py-4">
-                        <p className="font-mono font-semibold text-[#1F1D1A]">{po.noPO}</p>
-                        {po.catatan && <p className="text-[10px] text-[#9C9589] mt-0.5 truncate max-w-[180px]">{po.catatan}</p>}
+                    <tr key={po.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="font-mono font-bold text-slate-800 text-sm">{po.noPO}</p>
+                        {po.catatan && <p className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[180px]">{po.catatan}</p>}
                       </td>
-                      <td className="px-5 py-4 font-medium text-[#1F1D1A]">{po.namaSupplier}</td>
-                      <td className="px-5 py-4 text-[#9C9589]">{po.tanggalBuat}</td>
-                      <td className="px-5 py-4 text-center">
-                        <span className={clsx('inline-flex px-2 py-1 rounded-lg border text-[11px] font-semibold', cfg.cls)}>{cfg.label}</span>
+                      <td className="px-6 py-4 font-semibold text-slate-700">{po.namaSupplier}</td>
+                      <td className="px-6 py-4 text-slate-500 font-mono">{po.tanggalBuat}</td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={clsx('inline-flex px-3 py-1 rounded-full text-[11px] font-bold clay-pill', cfg.cls)}>{cfg.label}</span>
                       </td>
-                      <td className="px-5 py-4 text-right font-mono font-semibold text-[#1F1D1A]">
+                      <td className="px-6 py-4 text-right font-mono font-black text-slate-800 text-sm">
                         {formatRupiah(po.totalAktual > 0 ? po.totalAktual : po.totalEstimasi)}
                       </td>
-                      <td className="px-5 py-4 text-right">
-                        <button onClick={() => setExpandedId(exp ? null : po.id)} className="p-1.5 rounded-lg hover:bg-[#EAE5DF] text-[#9C9589]">
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => setExpandedId(exp ? null : po.id)} className="p-2 rounded-xl clay-btn text-slate-500 hover:text-slate-800">
                           {exp ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
                       </td>
                     </tr>
                     {exp && (
-                      <tr key={`${po.id}-detail`} className="bg-[#FAF8F5]">
-                        <td colSpan={6} className="px-8 py-4">
-                          <p className="text-[10px] font-bold text-[#9C9589] uppercase tracking-wider mb-3">Detail Item</p>
+                      <tr key={`${po.id}-detail`} className="bg-slate-50/70">
+                        <td colSpan={6} className="px-8 py-5">
+                          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Detail Item Bahan</p>
                           <div className="space-y-2">
                             {po.items.map((item, i) => (
-                              <div key={i} className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 border border-[#EAE5DF]">
+                              <div key={i} className="flex items-center justify-between bg-white rounded-2xl px-5 py-3 clay-pill">
                                 <div>
-                                  <p className="text-xs font-medium text-[#1F1D1A]">{item.namaBahan}</p>
-                                  <p className="text-[10px] text-[#9C9589]">{item.qty} {item.satuan} × {formatRupiah(item.hargaEstimasi)}</p>
+                                  <p className="text-xs font-bold text-slate-800">{item.namaBahan}</p>
+                                  <p className="text-[10px] text-slate-400 mt-0.5">{item.qty} {item.satuan} × {formatRupiah(item.hargaEstimasi)}</p>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-xs font-mono font-semibold text-[#1F1D1A]">{formatRupiah(item.qty * item.hargaEstimasi)}</p>
-                                  <span className={clsx('text-[10px] font-medium', item.diterima ? 'text-[#3E6B48]' : 'text-amber-600')}>{item.diterima ? '✓ Diterima' : '○ Menunggu'}</span>
+                                  <p className="text-xs font-mono font-black text-slate-800">{formatRupiah(item.qty * item.hargaEstimasi)}</p>
+                                  <span className={clsx('text-[10px] font-bold', item.diterima ? 'text-emerald-600' : 'text-amber-600')}>
+                                    {item.diterima ? '✓ Sudah Diterima' : '○ Menunggu Kedatangan'}
+                                  </span>
                                 </div>
                               </div>
                             ))}
@@ -147,69 +149,76 @@ export default function PurchaseOrderPage() {
 
       {/* Wizard Modal */}
       {showWizard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="clay-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-5">
             {/* Step Indicator */}
             <div className="flex items-center gap-2">
               {['Pilih Supplier', 'Tambah Item', 'Konfirmasi'].map((s, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <div className={clsx('w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold', step > i + 1 ? 'bg-[#3E6B48] text-white' : step === i + 1 ? 'bg-[#3E6B48] text-white' : 'bg-[#EAE5DF] text-[#9C9589]')}>{i + 1}</div>
-                  <span className={clsx('text-[11px] font-medium', step === i + 1 ? 'text-[#1F1D1A]' : 'text-[#9C9589]')}>{s}</span>
-                  {i < 2 && <div className="flex-1 h-px bg-[#EAE5DF] mx-1" />}
+                  <div className={clsx(
+                    'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold clay-pill',
+                    step >= i + 1 ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'
+                  )}>
+                    {i + 1}
+                  </div>
+                  <span className={clsx('text-xs font-bold', step === i + 1 ? 'text-slate-800' : 'text-slate-400')}>{s}</span>
+                  {i < 2 && <div className="flex-1 h-px bg-slate-200 mx-1" />}
                 </div>
               ))}
             </div>
 
             {step === 1 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#1F1D1A]">Pilih Supplier</h3>
+                <h3 className="text-sm font-extrabold text-slate-800">1. Pilih Supplier Tujuan</h3>
                 <div className="space-y-2">
                   {suppliers.map(s => (
-                    <button key={s.id} onClick={() => setSupplierId(s.id)} className={clsx('w-full text-left px-4 py-3 rounded-xl border transition-all', supplierId === s.id ? 'border-[#3E6B48] bg-[#EAF0EC]' : 'border-[#EAE5DF] hover:bg-[#FAF8F5]')}>
-                      <p className="text-xs font-semibold text-[#1F1D1A]">{s.nama}</p>
-                      <p className="text-[10px] text-[#9C9589]">{s.kategori} • Min. {formatRupiah(s.minimalOrder)}</p>
+                    <button key={s.id} onClick={() => setSupplierId(s.id)} className={clsx('w-full text-left px-4 py-3 rounded-2xl transition-all', supplierId === s.id ? 'clay-btn-primary' : 'clay-btn text-slate-700')}>
+                      <p className="text-xs font-bold">{s.nama}</p>
+                      <p className={clsx('text-[10px] mt-0.5', supplierId === s.id ? 'text-emerald-100' : 'text-slate-400')}>
+                        {s.kategori} • Min. Order {formatRupiah(s.minimalOrder)}
+                      </p>
                     </button>
                   ))}
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#9C9589] mb-1">Catatan (opsional)</label>
-                  <input value={catatan} onChange={e => setCatatan(e.target.value)} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]" placeholder="e.g. Urgent, kirim secepatnya" />
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1">Catatan Tambahan (Opsional)</label>
+                  <input value={catatan} onChange={e => setCatatan(e.target.value)} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800" placeholder="e.g. Tolong kirim pagi hari" />
                 </div>
               </div>
             )}
 
             {step === 2 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#1F1D1A]">Tambah Item</h3>
+                <h3 className="text-sm font-extrabold text-slate-800">2. Tentukan Bahan & Kuantitas</h3>
                 <div className="space-y-2">
                   {items.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between bg-[#FAF8F5] rounded-lg px-3 py-2.5">
+                    <div key={i} className="flex items-center justify-between clay-inset px-4 py-3">
                       <div>
-                        <p className="text-xs font-medium text-[#1F1D1A]">{item.namaBahan}</p>
-                        <p className="text-[10px] text-[#9C9589]">{item.qty} {item.satuan} × {formatRupiah(item.hargaEstimasi)}</p>
+                        <p className="text-xs font-bold text-slate-800">{item.namaBahan}</p>
+                        <p className="text-[10px] text-slate-500 font-mono">{item.qty} {item.satuan} × {formatRupiah(item.hargaEstimasi)}</p>
                       </div>
-                      <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
+                      <button onClick={() => removeItem(i)} className="text-rose-400 hover:text-rose-600 p-1"><X className="w-4 h-4" /></button>
                     </div>
                   ))}
                 </div>
-                <div className="space-y-2 p-3 bg-[#FAF8F5] rounded-xl">
-                  <p className="text-[11px] font-bold text-[#9C9589]">Tambah Bahan</p>
-                  <select value={newItem.bahanId} onChange={e => { const b = bahanList.find(x => x.id === e.target.value); setNewItem(p => ({ ...p, bahanId: e.target.value, hargaEstimasi: b?.hargaPerSatuan ?? 0 })) }} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]">
+                <div className="space-y-3 p-4 clay-inset rounded-2xl">
+                  <p className="text-[11px] font-bold text-slate-600">Pilih Bahan Masuk</p>
+                  <select value={newItem.bahanId} onChange={e => { const b = bahanList.find(x => x.id === e.target.value); setNewItem(p => ({ ...p, bahanId: e.target.value, hargaEstimasi: b?.hargaPerSatuan ?? 0 })) }} className="w-full px-3.5 py-2.5 clay-card text-xs text-slate-800 border-none outline-none">
                     <option value="">-- Pilih Bahan --</option>
-                    {bahanList.map(b => <option key={b.id} value={b.id}>{b.nama} (Stok: {b.stok} {b.satuan})</option>)}
+                    {bahanList.map(b => <option key={b.id} value={b.id}>{b.nama} (Stok Saat Ini: {b.stok} {b.satuan})</option>)}
                   </select>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] text-[#9C9589] font-medium">Qty</label>
-                      <input type="number" value={newItem.qty || ''} onChange={e => setNewItem(p => ({ ...p, qty: Number(e.target.value) }))} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]" />
+                      <label className="text-[10px] text-slate-500 font-bold">Qty Diorder</label>
+                      <input type="number" value={newItem.qty || ''} onChange={e => setNewItem(p => ({ ...p, qty: Number(e.target.value) }))} className="w-full px-3 py-2 clay-card text-xs text-slate-800 font-mono" />
                     </div>
                     <div>
-                      <label className="text-[10px] text-[#9C9589] font-medium">Harga Estimasi</label>
-                      <input type="number" value={newItem.hargaEstimasi || ''} onChange={e => setNewItem(p => ({ ...p, hargaEstimasi: Number(e.target.value) }))} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]" />
+                      <label className="text-[10px] text-slate-500 font-bold">Estimasi Harga Satuan</label>
+                      <input type="number" value={newItem.hargaEstimasi || ''} onChange={e => setNewItem(p => ({ ...p, hargaEstimasi: Number(e.target.value) }))} className="w-full px-3 py-2 clay-card text-xs text-slate-800 font-mono" />
                     </div>
                   </div>
-                  <button onClick={addItem} className="w-full py-2 bg-[#3E6B48] text-white rounded-lg text-xs font-semibold hover:bg-[#345a3d] flex items-center justify-center gap-1">
-                    <Plus className="w-4 h-4" /> Tambah
+                  <button onClick={addItem} className="w-full py-2.5 clay-btn-primary text-xs font-bold flex items-center justify-center gap-1.5">
+                    <Plus className="w-4 h-4" /> Masukkan ke Daftar PO
                   </button>
                 </div>
               </div>
@@ -217,35 +226,35 @@ export default function PurchaseOrderPage() {
 
             {step === 3 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#1F1D1A]">Konfirmasi PO</h3>
-                <div className="p-4 bg-[#FAF8F5] rounded-xl space-y-3">
+                <h3 className="text-sm font-extrabold text-slate-800">3. Verifikasi & Finalisasi PO</h3>
+                <div className="p-4 clay-inset rounded-2xl space-y-3">
                   <div className="flex justify-between text-xs">
-                    <span className="text-[#9C9589]">Supplier</span>
-                    <span className="font-semibold text-[#1F1D1A]">{suppliers.find(s => s.id === supplierId)?.nama}</span>
+                    <span className="text-slate-500">Supplier</span>
+                    <span className="font-bold text-slate-800">{suppliers.find(s => s.id === supplierId)?.nama}</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-[#9C9589]">Jumlah Item</span>
-                    <span className="font-semibold text-[#1F1D1A]">{items.length} bahan</span>
+                    <span className="text-slate-500">Jumlah Item</span>
+                    <span className="font-bold text-slate-800">{items.length} macam bahan</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-[#9C9589]">Total Estimasi</span>
-                    <span className="font-semibold text-[#3E6B48] font-mono">{formatRupiah(items.reduce((s, i) => s + i.qty * i.hargaEstimasi, 0))}</span>
+                  <div className="flex justify-between text-xs pt-2 border-t border-slate-200">
+                    <span className="text-slate-500 font-bold">Total Estimasi</span>
+                    <span className="font-black text-emerald-600 font-mono text-sm">{formatRupiah(items.reduce((s, i) => s + i.qty * i.hargaEstimasi, 0))}</span>
                   </div>
-                  {catatan && <div className="flex justify-between text-xs"><span className="text-[#9C9589]">Catatan</span><span className="text-[#1F1D1A] text-right max-w-[60%]">{catatan}</span></div>}
+                  {catatan && <div className="flex justify-between text-xs"><span className="text-slate-500">Catatan</span><span className="text-slate-700 text-right max-w-[60%]">{catatan}</span></div>}
                 </div>
               </div>
             )}
 
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => { if (step === 1) setShowWizard(false); else setStep(s => s - 1) }} className="flex-1 py-2 border border-[#EAE5DF] rounded-xl text-xs font-semibold text-[#9C9589] hover:bg-[#FAF8F5]">
+            <div className="flex gap-3 pt-3">
+              <button onClick={() => { if (step === 1) setShowWizard(false); else setStep(s => s - 1) }} className="flex-1 py-2.5 clay-btn text-xs font-bold text-slate-600">
                 {step === 1 ? 'Batal' : 'Kembali'}
               </button>
               <button
                 onClick={() => { if (step < 3) setStep(s => s + 1); else savePO() }}
                 disabled={step === 1 && !supplierId || step === 2 && items.length === 0}
-                className="flex-1 py-2 bg-[#3E6B48] text-white rounded-xl text-xs font-semibold hover:bg-[#345a3d] disabled:opacity-50"
+                className="flex-1 py-2.5 clay-btn-primary text-xs font-bold disabled:opacity-50"
               >
-                {step < 3 ? 'Lanjut' : 'Buat PO'}
+                {step < 3 ? 'Lanjut' : 'Terbitkan PO'}
               </button>
             </div>
           </div>

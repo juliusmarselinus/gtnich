@@ -18,7 +18,6 @@ const trendData = [
   { date: '27 Okt', penjualan: 210000, profit: 135675 },
 ]
 
-// Count bahan usage across all resep × penjualan
 function getBahanUsage() {
   const usage: Record<string, number> = {}
   penjualanList.forEach(p => {
@@ -36,7 +35,6 @@ function getBahanUsage() {
     .slice(0, 8)
 }
 
-// Menu breakdown by total sold
 function getMenuBreakdown() {
   const count: Record<string, number> = {}
   penjualanList.forEach(p => {
@@ -47,7 +45,7 @@ function getMenuBreakdown() {
   return Object.entries(count).map(([name, value]) => ({ name, value }))
 }
 
-const COLORS = ['#3E6B48', '#5A8A64', '#7BA680', '#9CC19C', '#C5DBC9', '#EAF0EC']
+const COLORS = ['#10b981', '#06b6d4', '#6366f1', '#f59e0b', '#ec4899', '#84cc16']
 
 const bahanUsage = getBahanUsage()
 const menuBreakdown = getMenuBreakdown()
@@ -59,68 +57,68 @@ const totalTransaksi = penjualanList.length
 export default function LaporanPage() {
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="Laporan" subtitle="Analisis penjualan, kebutuhan bahan, dan pola transaksi" />
+      <Topbar title="Laporan & Statistik Dapur" subtitle="Analisis kinerja omzet, estimasi kebutuhan bahan terpakai, dan pola menu terlaris" />
 
-      <main className="p-8 space-y-6 max-w-7xl mx-auto">
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <main className="p-8 space-y-7 max-w-7xl mx-auto">
+        {/* Summary Clay Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { label: 'Total Penjualan', value: formatRupiah(totalRevenue), sub: `${totalTransaksi} transaksi` },
-            { label: 'Total Profit', value: formatRupiah(totalProfit), sub: `${((totalProfit / totalRevenue) * 100).toFixed(1)}% margin` },
-            { label: 'Rata-rata/Transaksi', value: formatRupiah(Math.round(totalRevenue / totalTransaksi)), sub: 'Per transaksi' },
+            { label: 'Total Omzet Terkumpul', value: formatRupiah(totalRevenue), sub: `${totalTransaksi} transaksi penjualan` },
+            { label: 'Total Estimasi Profit', value: formatRupiah(totalProfit), sub: `${((totalProfit / totalRevenue) * 100).toFixed(1)}% margin rata-rata` },
+            { label: 'Nilai Keranjang Rata-rata', value: formatRupiah(Math.round(totalRevenue / totalTransaksi)), sub: 'Per transaksi pelanggan' },
           ].map(s => (
-            <div key={s.label} className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5">
-              <p className="text-[10px] font-bold text-[#9C9589] uppercase tracking-wider">{s.label}</p>
-              <p className="text-xl font-bold text-[#1F1D1A] mt-1 font-mono">{s.value}</p>
-              <p className="text-[11px] text-[#3E6B48] font-medium mt-0.5">{s.sub}</p>
+            <div key={s.label} className="clay-card p-6">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+              <p className="text-2xl font-black text-slate-800 mt-1.5 font-mono">{s.value}</p>
+              <p className="text-xs text-emerald-600 font-bold mt-1">{s.sub}</p>
             </div>
           ))}
         </div>
 
-        {/* Trend Chart */}
-        <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-3">
-          <h3 className="text-xs font-semibold text-[#1F1D1A] uppercase tracking-wider">Tren Penjualan 7 Hari</h3>
-          <ResponsiveContainer width="100%" height={220}>
+        {/* Trend Chart Clay Card */}
+        <div className="clay-card p-6 space-y-4">
+          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Tren Penjualan & Profit 7 Hari</h3>
+          <ResponsiveContainer width="100%" height={240}>
             <LineChart data={trendData} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#EAE5DF" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9C9589' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#9C9589' }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: number) => formatRupiah(v)} contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #EAE5DF' }} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line type="monotone" dataKey="penjualan" stroke="#3E6B48" strokeWidth={2} dot={{ r: 4 }} name="Penjualan" />
-              <Line type="monotone" dataKey="profit" stroke="#9CC19C" strokeWidth={2} dot={{ r: 4 }} name="Profit" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748b' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: any) => formatRupiah(Number(v) || 0)} contentStyle={{ fontSize: 11, borderRadius: 16, border: '1px solid #cbd5e1', boxShadow: '4px 4px 12px #d8e2ed' }} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
+              <Line type="monotone" dataKey="penjualan" stroke="#10b981" strokeWidth={3} dot={{ r: 5 }} name="Penjualan" />
+              <Line type="monotone" dataKey="profit" stroke="#06b6d4" strokeWidth={3} dot={{ r: 5 }} name="Profit" />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Bar + Pie */}
+        {/* Bar + Pie Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Kebutuhan Bahan */}
-          <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-3">
-            <h3 className="text-xs font-semibold text-[#1F1D1A] uppercase tracking-wider">Kebutuhan Bahan Terpakai</h3>
-            <ResponsiveContainer width="100%" height={220}>
+          <div className="clay-card p-6 space-y-4">
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Kebutuhan Bahan Terpakai Terbanyak</h3>
+            <ResponsiveContainer width="100%" height={240}>
               <BarChart data={bahanUsage} layout="vertical" margin={{ top: 0, right: 10, bottom: 0, left: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#EAE5DF" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#9C9589' }} />
-                <YAxis type="category" dataKey="nama" tick={{ fontSize: 10, fill: '#9C9589' }} width={60} />
-                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #EAE5DF' }} />
-                <Bar dataKey="qty" fill="#3E6B48" radius={[0, 4, 4, 0]} name="Qty Dipakai" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} />
+                <YAxis type="category" dataKey="nama" tick={{ fontSize: 10, fill: '#64748b' }} width={70} />
+                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 16, border: '1px solid #cbd5e1' }} />
+                <Bar dataKey="qty" fill="#10b981" radius={[0, 8, 8, 0]} name="Qty Dipakai" />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Menu Breakdown */}
-          <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-3">
-            <h3 className="text-xs font-semibold text-[#1F1D1A] uppercase tracking-wider">Pola Penjualan per Menu</h3>
-            <ResponsiveContainer width="100%" height={220}>
+          <div className="clay-card p-6 space-y-4">
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Distribusi Pola Penjualan Menu</h3>
+            <ResponsiveContainer width="100%" height={240}>
               <PieChart>
-                <Pie data={menuBreakdown} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value" nameKey="name">
+                <Pie data={menuBreakdown} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value" nameKey="name">
                   {menuBreakdown.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #EAE5DF' }} />
-                <Legend wrapperStyle={{ fontSize: 10 }} />
+                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 16, border: '1px solid #cbd5e1' }} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
           </div>

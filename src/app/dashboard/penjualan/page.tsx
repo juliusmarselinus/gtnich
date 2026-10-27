@@ -5,7 +5,6 @@ import Topbar from '@/components/Topbar'
 import { menuList, Penjualan, PenjualanItem } from '@/lib/dapur-data'
 import { formatRupiah } from '@/lib/mock-data'
 import { ShoppingCart, Plus, Minus, Trash2, CheckCircle } from 'lucide-react'
-import clsx from 'clsx'
 
 interface CartItem extends PenjualanItem { cartQty: number }
 
@@ -57,86 +56,91 @@ export default function PenjualanPage() {
 
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="Input Penjualan" subtitle="Catat transaksi penjualan menu secara langsung" />
+      <Topbar title="Input Penjualan (Kasir Dapur)" subtitle="Pilih menu pesanan pembeli, kalkulasi otomatis keuntungan dan pengurangan bahan" />
 
       <main className="p-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-7">
           {/* Menu Grid */}
           <div className="lg:col-span-2 space-y-4">
-            <h3 className="text-xs font-bold text-[#9C9589] uppercase tracking-wider">Pilih Menu</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Katalog Menu Tersedia</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {menuList.map(m => (
                 <button
                   key={m.id}
                   onClick={() => addToCart(m.id)}
-                  className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-4 text-left hover:border-[#3E6B48] hover:shadow-md transition-all group"
+                  className="clay-card p-5 text-left transition-all group"
                 >
-                  <p className="text-xs font-bold text-[#1F1D1A] group-hover:text-[#3E6B48] transition-colors">{m.nama}</p>
-                  <p className="text-[10px] text-[#9C9589] mt-0.5">{m.kategori}</p>
-                  <p className="text-sm font-bold text-[#3E6B48] mt-2 font-mono">{formatRupiah(m.hargaJual)}</p>
-                  <p className="text-[10px] text-[#9C9589] mt-0.5">HPP: {formatRupiah(m.estimasiHPP)}</p>
+                  <p className="text-sm font-extrabold text-slate-800 group-hover:text-emerald-600 transition-colors">{m.nama}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">{m.kategori}</p>
+                  <p className="text-base font-black text-emerald-600 mt-3 font-mono">{formatRupiah(m.hargaJual)}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Est. HPP: {formatRupiah(m.estimasiHPP)}</p>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Cart / Summary */}
+          {/* Cart / POS Summary */}
           <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-4 sticky top-24">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="w-4 h-4 text-[#3E6B48]" />
-                <h3 className="text-xs font-bold text-[#1F1D1A] uppercase tracking-wider">Keranjang</h3>
-                <span className="ml-auto text-[11px] text-white bg-[#3E6B48] rounded-full w-5 h-5 flex items-center justify-center font-bold">{cart.length}</span>
+            <div className="clay-card p-6 space-y-5 sticky top-24">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center clay-pill">
+                  <ShoppingCart className="w-4 h-4" />
+                </div>
+                <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Keranjang Pesanan</h3>
+                <span className="ml-auto text-xs text-white bg-emerald-500 rounded-full w-6 h-6 flex items-center justify-center font-black clay-pill">{cart.length}</span>
               </div>
 
               {cart.length === 0 ? (
-                <p className="text-center text-[#9C9589] text-xs py-8">Belum ada item dipilih</p>
+                <div className="text-center py-10 clay-inset rounded-2xl">
+                  <p className="text-slate-400 text-xs font-medium">Belum ada menu yang dipilih</p>
+                  <p className="text-slate-300 text-[10px] mt-1">Klik kartu menu di samping</p>
+                </div>
               ) : (
-                <div className="space-y-3 max-h-60 overflow-y-auto">
+                <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
                   {cart.map(c => (
-                    <div key={c.menuId} className="flex items-center justify-between gap-2">
+                    <div key={c.menuId} className="flex items-center justify-between gap-2 clay-inset p-3 rounded-2xl">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-[#1F1D1A] truncate">{c.namaMenu}</p>
-                        <p className="text-[10px] text-[#9C9589] font-mono">{formatRupiah(c.hargaJual)} × {c.cartQty}</p>
+                        <p className="text-xs font-bold text-slate-800 truncate">{c.namaMenu}</p>
+                        <p className="text-[11px] text-emerald-600 font-mono font-bold">{formatRupiah(c.hargaJual)} × {c.cartQty}</p>
                       </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <button onClick={() => updateQty(c.menuId, -1)} className="w-6 h-6 rounded-lg bg-[#FAF8F5] border border-[#EAE5DF] flex items-center justify-center hover:bg-[#EAE5DF] transition-colors"><Minus className="w-3 h-3 text-[#9C9589]" /></button>
-                        <span className="w-6 text-center text-xs font-bold text-[#1F1D1A]">{c.cartQty}</span>
-                        <button onClick={() => updateQty(c.menuId, 1)} className="w-6 h-6 rounded-lg bg-[#FAF8F5] border border-[#EAE5DF] flex items-center justify-center hover:bg-[#EAE5DF] transition-colors"><Plus className="w-3 h-3 text-[#9C9589]" /></button>
-                        <button onClick={() => remove(c.menuId)} className="w-6 h-6 rounded-lg flex items-center justify-center text-red-400 hover:text-red-600"><Trash2 className="w-3 h-3" /></button>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button onClick={() => updateQty(c.menuId, -1)} className="w-7 h-7 rounded-xl clay-btn flex items-center justify-center text-slate-600"><Minus className="w-3.5 h-3.5" /></button>
+                        <span className="w-6 text-center text-xs font-black text-slate-800">{c.cartQty}</span>
+                        <button onClick={() => updateQty(c.menuId, 1)} className="w-7 h-7 rounded-xl clay-btn flex items-center justify-center text-slate-600"><Plus className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => remove(c.menuId)} className="w-7 h-7 rounded-xl clay-btn flex items-center justify-center text-rose-500 hover:bg-rose-50"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="border-t border-[#EAE5DF] pt-3 space-y-1.5">
+              <div className="border-t border-slate-100 pt-4 space-y-2">
                 <div className="flex justify-between text-xs">
-                  <span className="text-[#9C9589]">Total HPP</span>
-                  <span className="font-mono text-[#9C9589]">{formatRupiah(totalHPP)}</span>
+                  <span className="text-slate-400 font-medium">Akumulasi HPP</span>
+                  <span className="font-mono text-slate-500 font-bold">{formatRupiah(totalHPP)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-[#9C9589]">Profit</span>
-                  <span className="font-mono text-[#3E6B48] font-semibold">{formatRupiah(totalProfit)}</span>
+                  <span className="text-slate-400 font-medium">Estimasi Laba Bersih</span>
+                  <span className="font-mono text-emerald-600 font-black">{formatRupiah(totalProfit)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold mt-2">
-                  <span className="text-[#1F1D1A]">Total</span>
-                  <span className="font-mono text-[#1F1D1A]">{formatRupiah(totalJual)}</span>
+                <div className="flex justify-between text-base font-black pt-2 border-t border-slate-100">
+                  <span className="text-slate-800">Total Tagihan</span>
+                  <span className="font-mono text-emerald-600 text-lg">{formatRupiah(totalJual)}</span>
                 </div>
               </div>
 
               {success && (
-                <div className="flex items-center gap-2 p-3 bg-[#EAF0EC] rounded-xl text-xs font-semibold text-[#3E6B48]">
-                  <CheckCircle className="w-4 h-4 flex-shrink-0" /> Transaksi berhasil disimpan!
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-2xl text-xs font-bold text-emerald-700 clay-pill">
+                  <CheckCircle className="w-4 h-4 flex-shrink-0 text-emerald-500" /> Transaksi berhasil disimpan & stok dipotong!
                 </div>
               )}
 
               <button
                 onClick={confirmSale}
                 disabled={cart.length === 0}
-                className="w-full py-3 bg-[#3E6B48] text-white rounded-xl text-sm font-bold hover:bg-[#345a3d] transition-colors disabled:opacity-40"
+                className="w-full py-3.5 clay-btn-primary text-sm font-bold disabled:opacity-40"
               >
-                Konfirmasi Penjualan
+                Simpan & Cetak Pesanan
               </button>
             </div>
           </div>

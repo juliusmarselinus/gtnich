@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Topbar from '@/components/Topbar'
 import { stokLogs as initialLogs, bahanList, StokLog } from '@/lib/dapur-data'
-import { formatRupiah } from '@/lib/mock-data'
 import { Database, ClipboardCheck, TrendingUp, TrendingDown } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -38,62 +37,65 @@ export default function StokLogPage() {
     PO: 'bg-blue-50 text-blue-600',
     Penjualan: 'bg-amber-50 text-amber-700',
     Manual: 'bg-purple-50 text-purple-600',
-    Opname: 'bg-[#EAF0EC] text-[#3E6B48]',
+    Opname: 'bg-emerald-50 text-emerald-700',
   }
 
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="Stok Log & Opname" subtitle="Riwayat pergerakan stok otomatis dan pencatatan stok manual" />
+      <Topbar title="Stok Log & Stock Opname" subtitle="Audit jejak mutasi bahan otomatis dan sinkronisasi perhitungan fisik gudang dapur" />
 
-      <main className="p-8 space-y-6 max-w-5xl mx-auto">
-        {/* Tabs */}
-        <div className="flex gap-2 border-b border-[#EAE5DF]">
+      <main className="p-8 space-y-7 max-w-5xl mx-auto">
+        {/* Clay Tabs */}
+        <div className="flex gap-3">
           {[
-            { key: 'log', label: 'Stok Log', icon: Database },
-            { key: 'opname', label: 'Opname Stok', icon: ClipboardCheck },
+            { key: 'log', label: 'Buku Log Mutasi Stok', icon: Database },
+            { key: 'opname', label: 'Form Stock Opname Fisik', icon: ClipboardCheck },
           ].map(t => {
             const Icon = t.icon
             return (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key as 'log' | 'opname')}
-                className={clsx('flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all -mb-px', tab === t.key ? 'border-[#3E6B48] text-[#3E6B48]' : 'border-transparent text-[#9C9589] hover:text-[#1F1D1A]')}
+                className={clsx(
+                  'flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition-all',
+                  tab === t.key ? 'clay-btn-primary' : 'clay-btn text-slate-600 hover:text-slate-900'
+                )}
               >
-                <Icon className="w-3.5 h-3.5" /> {t.label}
+                <Icon className="w-4 h-4" /> {t.label}
               </button>
             )
           })}
         </div>
 
-        {/* Stok Log Table */}
+        {/* Stok Log Table Clay Card */}
         {tab === 'log' && (
-          <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs overflow-hidden">
+          <div className="clay-card overflow-hidden">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-[#EAE5DF] bg-[#FAF8F5]">
-                  <th className="text-left px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Tanggal</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Bahan</th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Sebelum</th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Perubahan</th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Sesudah</th>
-                  <th className="text-center px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Sumber</th>
+                <tr className="border-b border-slate-100 bg-slate-50/70">
+                  <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Waktu Log</th>
+                  <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Nama Bahan</th>
+                  <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Stok Awal</th>
+                  <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Mutasi</th>
+                  <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Stok Akhir</th>
+                  <th className="text-center px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Sumber Data</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F4F0EB]">
+              <tbody className="divide-y divide-slate-100">
                 {[...logs].sort((a, b) => b.tanggal.localeCompare(a.tanggal)).map(log => (
-                  <tr key={log.id} className="hover:bg-[#FAF8F5] transition-colors">
-                    <td className="px-5 py-3.5 text-[#9C9589] font-mono">{log.tanggal}</td>
-                    <td className="px-5 py-3.5 font-medium text-[#1F1D1A]">{log.namaBahan}</td>
-                    <td className="px-5 py-3.5 text-right font-mono text-[#9C9589]">{log.stokSebelum}</td>
-                    <td className="px-5 py-3.5 text-right">
-                      <span className={clsx('inline-flex items-center gap-1 font-mono font-semibold', log.perubahan > 0 ? 'text-[#3E6B48]' : 'text-red-500')}>
+                  <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 text-slate-500 font-mono text-[11px]">{log.tanggal}</td>
+                    <td className="px-6 py-4 font-bold text-slate-800 text-sm">{log.namaBahan}</td>
+                    <td className="px-6 py-4 text-right font-mono text-slate-400 font-semibold">{log.stokSebelum}</td>
+                    <td className="px-6 py-4 text-right">
+                      <span className={clsx('inline-flex items-center gap-1 font-mono font-black text-xs px-2.5 py-0.5 rounded-full clay-pill', log.perubahan > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600')}>
                         {log.perubahan > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                         {log.perubahan > 0 ? '+' : ''}{log.perubahan}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-right font-mono font-semibold text-[#1F1D1A]">{log.stokSesudah}</td>
-                    <td className="px-5 py-3.5 text-center">
-                      <span className={clsx('px-2 py-1 rounded-lg text-[11px] font-semibold', sourceColor[log.sumber])}>{log.sumber}</span>
+                    <td className="px-6 py-4 text-right font-mono font-black text-slate-800 text-sm">{log.stokSesudah}</td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={clsx('px-3 py-1 rounded-full text-[11px] font-bold clay-pill', sourceColor[log.sumber])}>{log.sumber}</span>
                     </td>
                   </tr>
                 ))}
@@ -102,44 +104,46 @@ export default function StokLogPage() {
           </div>
         )}
 
-        {/* Opname */}
+        {/* Stock Opname */}
         {tab === 'opname' && (
-          <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 text-xs text-amber-700 font-medium">
-              Masukkan jumlah stok aktual hasil hitungan fisik. Selisih akan disorot merah jika ada perbedaan.
+          <div className="space-y-5">
+            <div className="clay-card p-4.5 bg-amber-50/80 border border-amber-200/80 text-xs text-amber-800 font-medium rounded-2xl flex items-center gap-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 flex-shrink-0 animate-ping" />
+              <span>Masukkan jumlah stok fisik riil hasil hitungan gudang. Selisih akan otomatis dihitung dan disorot warna jika terdapat diskrepansi.</span>
             </div>
-            <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs overflow-hidden">
+
+            <div className="clay-card overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-[#EAE5DF] bg-[#FAF8F5]">
-                    <th className="text-left px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Bahan</th>
-                    <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Stok Sistem</th>
-                    <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Stok Aktual</th>
-                    <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Selisih</th>
+                  <tr className="border-b border-slate-100 bg-slate-50/70">
+                    <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Bahan Baku</th>
+                    <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Stok Sistem</th>
+                    <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Stok Hitungan Fisik</th>
+                    <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Disparitas Selisih</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F4F0EB]">
+                <tbody className="divide-y divide-slate-100">
                   {opname.map(o => {
                     const bahan = bahanList.find(b => b.id === o.bahanId)!
                     const hasDisc = o.selisih !== 0
                     return (
-                      <tr key={o.bahanId} className={clsx('transition-colors', hasDisc ? 'bg-red-50/40' : 'hover:bg-[#FAF8F5]')}>
-                        <td className="px-5 py-3.5">
-                          <p className="font-semibold text-[#1F1D1A]">{bahan.nama}</p>
-                          <p className="text-[10px] text-[#9C9589]">{bahan.satuan}</p>
+                      <tr key={o.bahanId} className={clsx('transition-colors', hasDisc ? 'bg-rose-50/30' : 'hover:bg-slate-50/50')}>
+                        <td className="px-6 py-4">
+                          <p className="font-bold text-slate-800 text-sm">{bahan.nama}</p>
+                          <p className="text-[10px] text-slate-400 font-semibold">{bahan.satuan}</p>
                         </td>
-                        <td className="px-5 py-3.5 text-right font-mono font-semibold text-[#9C9589]">{o.stokSystem}</td>
-                        <td className="px-5 py-3.5 text-right">
+                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-500">{o.stokSystem}</td>
+                        <td className="px-6 py-4 text-right">
                           <input
                             type="number"
                             value={o.stokAktual}
                             onChange={e => updateOpname(o.bahanId, Number(e.target.value))}
-                            className={clsx('w-24 px-2 py-1.5 border rounded-lg text-xs text-right font-mono focus:outline-none', hasDisc ? 'border-red-300 bg-red-50 focus:border-red-400' : 'border-[#EAE5DF] focus:border-[#3E6B48]')}
+                            className={clsx('w-28 px-3 py-1.5 clay-inset text-xs text-right font-mono font-bold', hasDisc ? 'border-rose-300 text-rose-700' : 'text-slate-800')}
                           />
                         </td>
-                        <td className="px-5 py-3.5 text-right">
-                          <span className={clsx('font-mono font-semibold text-xs', o.selisih === 0 ? 'text-[#9C9589]' : o.selisih > 0 ? 'text-[#3E6B48]' : 'text-red-600')}>
-                            {o.selisih === 0 ? '-' : `${o.selisih > 0 ? '+' : ''}${o.selisih}`}
+                        <td className="px-6 py-4 text-right">
+                          <span className={clsx('font-mono font-black text-xs px-2.5 py-1 rounded-full clay-pill', o.selisih === 0 ? 'bg-slate-100 text-slate-400' : o.selisih > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600')}>
+                            {o.selisih === 0 ? '0 Sesuai' : `${o.selisih > 0 ? '+' : ''}${o.selisih} ${bahan.satuan}`}
                           </span>
                         </td>
                       </tr>
@@ -148,14 +152,16 @@ export default function StokLogPage() {
                 </tbody>
               </table>
             </div>
+
             {opnameSaved && (
-              <div className="flex items-center gap-2 p-4 bg-[#EAF0EC] rounded-xl text-sm font-semibold text-[#3E6B48]">
-                <ClipboardCheck className="w-5 h-5" /> Opname berhasil disimpan!
+              <div className="flex items-center gap-2.5 p-4 bg-emerald-50 rounded-2xl text-xs font-bold text-emerald-700 clay-pill">
+                <ClipboardCheck className="w-5 h-5 text-emerald-600" /> Hasil Opname berhasil diselaraskan dan stok sistem diperbarui!
               </div>
             )}
+
             <div className="flex justify-end">
-              <button onClick={saveOpname} className="px-6 py-2.5 bg-[#3E6B48] text-white rounded-xl text-xs font-semibold hover:bg-[#345a3d] transition-colors">
-                Simpan Opname
+              <button onClick={saveOpname} className="clay-btn-primary px-7 py-3 text-xs font-bold">
+                Simpan & Rekonsiliasi Opname
               </button>
             </div>
           </div>

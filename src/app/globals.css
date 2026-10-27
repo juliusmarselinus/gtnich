@@ -1,50 +1,139 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f1f5f9;
+  --foreground: #1e293b;
 }
 
 body {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #f1f5f9;
+  color: #1e293b;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   letter-spacing: -0.01em;
+  min-height: 100vh;
 }
 
-/* Tekstur serat kertas bookpaper / novel klasik (Natural Paper Grain) */
-.bookpaper-texture {
-  background-color: #f7f3e8;
+/* Claymorphism White Background with Soft Pastels */
+.clay-bg {
+  background-color: #f3f6fa;
   background-image: 
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(240, 230, 214, 0.2) 80%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperGrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.45   0 0 0 0 0.38   0 0 0 0 0.28  0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperGrain)'/%3E%3C/svg%3E");
+    radial-gradient(circle at 10% 20%, rgba(224, 231, 255, 0.5) 0%, transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(220, 252, 231, 0.5) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(254, 240, 138, 0.25) 0%, transparent 50%);
+  background-attachment: fixed;
 }
 
-/* Bayangan lembut khas lembaran kertas novel yang sedikit terangkat */
-.bookpaper-shadow {
+/* White Clay Card / Container (Timbul, Lembut, Menggembung) */
+.clay-card {
+  background: #ffffff;
+  border-radius: 1.5rem;
   box-shadow: 
-    0 1px 2px rgba(60, 50, 40, 0.06),
-    0 4px 12px rgba(60, 50, 40, 0.08),
-    inset 0 0 24px rgba(180, 160, 130, 0.12);
+    8px 8px 18px #d6dfea,
+    -8px -8px 18px #ffffff,
+    inset 2px 2px 4px rgba(255, 255, 255, 0.9),
+    inset -2px -2px 4px rgba(200, 215, 230, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Garis lipatan halus punggung buku / tepi novel */
-.bookpaper-edge {
-  border-left: 3px solid #e2dac9;
-  border-right: 1px solid #dcd3c1;
+.clay-card:hover {
+  transform: translateY(-3px) scale(1.005);
+  box-shadow: 
+    12px 14px 24px #cbd8e6,
+    -10px -10px 22px #ffffff,
+    inset 2px 2px 4px rgba(255, 255, 255, 0.95);
 }
 
-/* Crisp clean scrollbar */
+/* Clay Button (White & Soft Mint/Emerald Puff) */
+.clay-btn {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 
+    5px 5px 12px #d3dde8,
+    -5px -5px 12px #ffffff,
+    inset 1px 1px 2px #ffffff,
+    inset -1px -1px 2px #d1dbe6;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  transition: all 0.2s ease;
+}
+
+.clay-btn:active {
+  box-shadow: 
+    inset 4px 4px 8px #d3dde8,
+    inset -4px -4px 8px #ffffff;
+  transform: scale(0.98);
+}
+
+.clay-btn-primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff !important;
+  border-radius: 1.25rem;
+  box-shadow: 
+    6px 6px 16px rgba(16, 185, 129, 0.35),
+    -4px -4px 12px #ffffff,
+    inset 2px 2px 3px rgba(255, 255, 255, 0.4),
+    inset -2px -2px 4px rgba(4, 120, 87, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.clay-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    8px 10px 20px rgba(16, 185, 129, 0.45),
+    -4px -4px 14px #ffffff,
+    inset 2px 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+.clay-btn-primary:active {
+  box-shadow: 
+    inset 4px 4px 8px rgba(4, 120, 87, 0.6),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.3);
+  transform: scale(0.97);
+}
+
+/* Clay Inset (Cekung ke Dalam untuk Form Input / Field) */
+.clay-inset {
+  background: #f4f7fb !important;
+  border-radius: 1rem !important;
+  box-shadow: 
+    inset 3px 3px 6px #d8e2ed,
+    inset -3px -3px 6px #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  color: #1e293b !important;
+  transition: all 0.2s ease;
+}
+
+.clay-inset:focus {
+  background: #ffffff !important;
+  box-shadow: 
+    inset 2px 2px 4px #d8e2ed,
+    inset -2px -2px 4px #ffffff,
+    0 0 0 3px rgba(16, 185, 129, 0.25) !important;
+  outline: none !important;
+}
+
+/* Clay Badge / Pill */
+.clay-pill {
+  border-radius: 9999px;
+  box-shadow: 
+    3px 3px 7px #d8e2ed,
+    -3px -3px 7px #ffffff,
+    inset 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Smooth custom scrollbar for white theme */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
+  border: 2px solid #f1f5f9;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;

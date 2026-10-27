@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Topbar from '@/components/Topbar'
-import { menuList, bahanList, suppliers } from '@/lib/dapur-data'
+import { menuList, bahanList } from '@/lib/dapur-data'
 import { formatRupiah } from '@/lib/mock-data'
 import { Sparkles, TrendingUp, Package, Truck } from 'lucide-react'
 import clsx from 'clsx'
@@ -56,24 +56,27 @@ export default function SimulasiPage() {
 
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="Simulasi" subtitle="Simulasikan skenario penjualan, harga supplier, dan kebutuhan supply" />
+      <Topbar title="Simulasi Dapur & Bisnis" subtitle="Eksplorasi proyeksi keuntungan penjualan, perubahan harga bahan baku supplier, dan kecukupan supply" />
 
-      <main className="p-8 space-y-6 max-w-5xl mx-auto">
-        {/* Tabs */}
-        <div className="flex gap-2 border-b border-[#EAE5DF]">
+      <main className="p-8 space-y-7 max-w-5xl mx-auto">
+        {/* Clay Tabs */}
+        <div className="flex gap-3">
           {[
             { key: 'penjualan', label: 'Simulasi Penjualan', icon: TrendingUp },
-            { key: 'supplier', label: 'Simulasi Supplier', icon: Truck },
-            { key: 'supply', label: 'Simulasi Supply', icon: Package },
+            { key: 'supplier', label: 'Simulasi Harga Supplier', icon: Truck },
+            { key: 'supply', label: 'Simulasi Kecukupan Supply', icon: Package },
           ].map(t => {
             const Icon = t.icon
             return (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key as SimTab)}
-                className={clsx('flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all -mb-px', tab === t.key ? 'border-[#3E6B48] text-[#3E6B48]' : 'border-transparent text-[#9C9589] hover:text-[#1F1D1A]')}
+                className={clsx(
+                  'flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition-all',
+                  tab === t.key ? 'clay-btn-primary' : 'clay-btn text-slate-600 hover:text-slate-900'
+                )}
               >
-                <Icon className="w-3.5 h-3.5" /> {t.label}
+                <Icon className="w-4 h-4" /> {t.label}
               </button>
             )
           })}
@@ -82,41 +85,44 @@ export default function SimulasiPage() {
         {/* Simulasi Penjualan */}
         {tab === 'penjualan' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-4">
-              <h3 className="text-xs font-bold text-[#1F1D1A] flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#3E6B48]" /> Parameter Simulasi</h3>
+            <div className="clay-card p-6 space-y-4">
+              <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
+                <Sparkles className="w-4 h-4 text-emerald-500" /> Parameter Simulasi Penjualan
+              </h3>
               <div>
-                <label className="block text-[11px] font-semibold text-[#9C9589] mb-1.5">Pilih Menu</label>
-                <select value={selMenu} onChange={e => setSelMenu(e.target.value)} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]">
+                <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Pilih Target Menu</label>
+                <select value={selMenu} onChange={e => setSelMenu(e.target.value)} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800">
                   {menuList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-[#9C9589] mb-1.5">Jumlah Porsi Dijual</label>
-                <input type="number" min={1} value={qty} onChange={e => setQty(Number(e.target.value))} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]" />
+                <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Target Jumlah Porsi</label>
+                <input type="number" min={1} value={qty} onChange={e => setQty(Number(e.target.value))} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-[#9C9589] mb-2">Bahan yang Dibutuhkan</p>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Bahan Baku yang Akan Terpakai</p>
                 <div className="space-y-1.5">
                   {stockNeeded.map((s, i) => (
-                    <div key={i} className="flex justify-between text-xs p-2 bg-[#FAF8F5] rounded-lg">
-                      <span className="text-[#1F1D1A]">{s.namaBahan}</span>
-                      <span className="text-[#9C9589] font-mono">{s.qty.toFixed(2)} {s.satuan}</span>
+                    <div key={i} className="flex justify-between text-xs p-2.5 clay-inset rounded-xl">
+                      <span className="font-semibold text-slate-700">{s.namaBahan}</span>
+                      <span className="text-emerald-700 font-mono font-bold">{s.qty.toFixed(2)} {s.satuan}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-4">
-              <h3 className="text-xs font-bold text-[#1F1D1A]">Hasil Proyeksi</h3>
+
+            <div className="clay-card p-6 space-y-4">
+              <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Hasil Proyeksi Finansial</h3>
               <div className="space-y-3">
                 {[
-                  { label: 'Proyeksi Pendapatan', value: formatRupiah(projRevenue), cls: 'text-[#1F1D1A]' },
-                  { label: 'Total HPP', value: formatRupiah(projHPP), cls: 'text-[#9C9589]' },
-                  { label: 'Proyeksi Profit', value: formatRupiah(projProfit), cls: 'text-[#3E6B48] font-bold' },
-                  { label: 'Margin', value: `${projRevenue > 0 ? ((projProfit / projRevenue) * 100).toFixed(1) : 0}%`, cls: 'text-[#3E6B48] font-bold' },
+                  { label: 'Proyeksi Omzet Kotor', value: formatRupiah(projRevenue), cls: 'text-slate-800' },
+                  { label: 'Akumulasi Beban HPP', value: formatRupiah(projHPP), cls: 'text-slate-500' },
+                  { label: 'Estimasi Profit Bersih', value: formatRupiah(projProfit), cls: 'text-emerald-600 font-black text-lg' },
+                  { label: 'Margin Keuntungan', value: `${projRevenue > 0 ? ((projProfit / projRevenue) * 100).toFixed(1) : 0}%`, cls: 'text-emerald-600 font-bold' },
                 ].map(r => (
-                  <div key={r.label} className="flex justify-between items-center p-3 bg-[#FAF8F5] rounded-xl">
-                    <span className="text-xs text-[#9C9589]">{r.label}</span>
+                  <div key={r.label} className="flex justify-between items-center p-3.5 clay-inset rounded-2xl">
+                    <span className="text-xs font-bold text-slate-500">{r.label}</span>
                     <span className={clsx('text-sm font-mono', r.cls)}>{r.value}</span>
                   </div>
                 ))}
@@ -128,86 +134,93 @@ export default function SimulasiPage() {
         {/* Simulasi Supplier */}
         {tab === 'supplier' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-4">
-              <h3 className="text-xs font-bold text-[#1F1D1A] flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#3E6B48]" /> Parameter Simulasi</h3>
+            <div className="clay-card p-6 space-y-4">
+              <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
+                <Sparkles className="w-4 h-4 text-emerald-500" /> Skenario Fluktuasi Harga Bahan
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#9C9589] mb-1.5">Pilih Bahan</label>
-                  <select value={selBahan} onChange={e => setSelBahan(e.target.value)} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]">
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Pilih Bahan Baku</label>
+                  <select value={selBahan} onChange={e => setSelBahan(e.target.value)} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800">
                     {bahanList.map(b => <option key={b.id} value={b.id}>{b.nama}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#9C9589] mb-1.5">Perubahan Harga (%)</label>
-                  <input type="number" value={pctChange} onChange={e => setPctChange(Number(e.target.value))} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]" />
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Kenaikan/Penurunan (%)</label>
+                  <input type="number" value={pctChange} onChange={e => setPctChange(Number(e.target.value))} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="p-3 bg-[#FAF8F5] rounded-xl">
-                  <p className="text-[10px] text-[#9C9589]">Harga Lama</p>
-                  <p className="text-sm font-bold text-[#1F1D1A] font-mono">{formatRupiah(oldPrice)}</p>
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="p-3.5 clay-inset rounded-2xl">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Harga Sebelum</p>
+                  <p className="text-base font-black text-slate-700 font-mono mt-0.5">{formatRupiah(oldPrice)}</p>
                 </div>
-                <div className="p-3 bg-[#EAF0EC] rounded-xl">
-                  <p className="text-[10px] text-[#3E6B48]">Harga Baru</p>
-                  <p className="text-sm font-bold text-[#3E6B48] font-mono">{formatRupiah(newPrice)}</p>
+                <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-100">
+                  <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Harga Prediksi Baru</p>
+                  <p className="text-base font-black text-emerald-700 font-mono mt-0.5">{formatRupiah(newPrice)}</p>
                 </div>
               </div>
             </div>
+
             {affectedMenus.length > 0 && (
-              <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-3">
-                <h3 className="text-xs font-bold text-[#1F1D1A]">Dampak pada Menu</h3>
-                <div className="space-y-3">
+              <div className="clay-card p-6 space-y-4">
+                <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Dampak Perubahan Pada Menu</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {affectedMenus.map(m => (
-                    <div key={m.id} className="p-4 bg-[#FAF8F5] rounded-xl">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="text-xs font-bold text-[#1F1D1A]">{m.nama}</p>
-                        <span className={clsx('text-[11px] font-semibold px-2 py-0.5 rounded-full', m.hppChange > 0 ? 'bg-red-50 text-red-600' : 'bg-[#EAF0EC] text-[#3E6B48]')}>
+                    <div key={m.id} className="p-4 clay-inset rounded-2xl space-y-2">
+                      <div className="flex justify-between items-start">
+                        <p className="text-xs font-extrabold text-slate-800">{m.nama}</p>
+                        <span className={clsx('text-[11px] font-bold px-2.5 py-0.5 rounded-full clay-pill', m.hppChange > 0 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600')}>
                           HPP {m.hppChange > 0 ? '+' : ''}{formatRupiah(m.hppChange)}
                         </span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
-                        <div><p className="text-[#9C9589]">HPP Lama</p><p className="font-mono font-semibold text-[#1F1D1A]">{formatRupiah(m.oldHPP)}</p></div>
-                        <div><p className="text-[#9C9589]">HPP Baru</p><p className="font-mono font-semibold text-[#1F1D1A]">{formatRupiah(Math.round(m.newHPP))}</p></div>
-                        <div><p className="text-[#9C9589]">Margin Baru</p><p className={clsx('font-semibold', m.newMargin < 30 ? 'text-red-600' : 'text-[#3E6B48]')}>{m.newMargin.toFixed(1)}%</p></div>
+                      <div className="grid grid-cols-3 gap-2 text-center text-[10px] pt-1">
+                        <div><p className="text-slate-400">HPP Awal</p><p className="font-mono font-bold text-slate-700">{formatRupiah(m.oldHPP)}</p></div>
+                        <div><p className="text-slate-400">HPP Baru</p><p className="font-mono font-bold text-slate-900">{formatRupiah(Math.round(m.newHPP))}</p></div>
+                        <div><p className="text-slate-400">Margin Baru</p><p className={clsx('font-bold', m.newMargin < 30 ? 'text-rose-600' : 'text-emerald-600')}>{m.newMargin.toFixed(1)}%</p></div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-            {affectedMenus.length === 0 && <p className="text-center text-[#9C9589] text-sm py-8">Bahan ini tidak digunakan dalam resep manapun.</p>}
           </div>
         )}
 
         {/* Simulasi Supply */}
         {tab === 'supply' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-4">
-              <h3 className="text-xs font-bold text-[#1F1D1A] flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#3E6B48]" /> Parameter Simulasi</h3>
+            <div className="clay-card p-6 space-y-4">
+              <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
+                <Sparkles className="w-4 h-4 text-emerald-500" /> Target Produksi
+              </h3>
               <div>
-                <label className="block text-[11px] font-semibold text-[#9C9589] mb-1.5">Pilih Menu</label>
-                <select value={selMenuSupply} onChange={e => setSelMenuSupply(e.target.value)} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]">
+                <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Pilih Menu</label>
+                <select value={selMenuSupply} onChange={e => setSelMenuSupply(e.target.value)} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800">
                   {menuList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-[#9C9589] mb-1.5">Target Porsi Produksi</label>
-                <input type="number" min={1} value={servings} onChange={e => setServings(Number(e.target.value))} className="w-full px-3 py-2 border border-[#EAE5DF] rounded-lg text-xs focus:outline-none focus:border-[#3E6B48]" />
+                <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Target Porsi Dibuat</label>
+                <input type="number" min={1} value={servings} onChange={e => setServings(Number(e.target.value))} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono" />
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 space-y-3">
-              <h3 className="text-xs font-bold text-[#1F1D1A]">Kebutuhan Bahan</h3>
-              <div className="space-y-2">
+
+            <div className="clay-card p-6 space-y-3">
+              <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Status Ketersediaan Bahan di Dapur</h3>
+              <div className="space-y-2.5">
                 {supplyNeeded.map((s, i) => (
-                  <div key={i} className={clsx('p-3 rounded-xl border', s.cukup ? 'border-[#C5DBC9] bg-[#EAF0EC]/30' : 'border-red-200 bg-red-50/40')}>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs font-semibold text-[#1F1D1A]">{s.namaBahan}</p>
-                      <span className={clsx('text-[11px] font-bold px-2 py-0.5 rounded-full', s.cukup ? 'bg-[#EAF0EC] text-[#3E6B48]' : 'bg-red-100 text-red-600')}>{s.cukup ? '✓ Cukup' : '✗ Kurang'}</span>
+                  <div key={i} className="p-3.5 clay-inset rounded-2xl">
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="text-xs font-bold text-slate-800">{s.namaBahan}</p>
+                      <span className={clsx('text-[11px] font-bold px-2.5 py-0.5 rounded-full clay-pill', s.cukup ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700')}>
+                        {s.cukup ? '✓ Stok Cukup' : '✗ Kurang'}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mt-2 text-center text-[10px]">
-                      <div><p className="text-[#9C9589]">Dibutuhkan</p><p className="font-mono font-semibold text-[#1F1D1A]">{s.needed.toFixed(2)} {s.satuan}</p></div>
-                      <div><p className="text-[#9C9589]">Stok Tersedia</p><p className="font-mono font-semibold text-[#1F1D1A]">{s.stok} {s.satuan}</p></div>
-                      <div><p className="text-[#9C9589]">Kekurangan</p><p className={clsx('font-mono font-semibold', s.cukup ? 'text-[#3E6B48]' : 'text-red-600')}>{s.cukup ? '-' : `${s.kekurangan.toFixed(2)} ${s.satuan}`}</p></div>
+                      <div><p className="text-slate-400">Dibutuhkan</p><p className="font-mono font-bold text-slate-800">{s.needed.toFixed(2)} {s.satuan}</p></div>
+                      <div><p className="text-slate-400">Stok Ada</p><p className="font-mono font-bold text-slate-800">{s.stok} {s.satuan}</p></div>
+                      <div><p className="text-slate-400">Kekurangan</p><p className={clsx('font-mono font-bold', s.cukup ? 'text-emerald-600' : 'text-rose-600')}>{s.cukup ? '0' : `${s.kekurangan.toFixed(2)} ${s.satuan}`}</p></div>
                     </div>
                   </div>
                 ))}

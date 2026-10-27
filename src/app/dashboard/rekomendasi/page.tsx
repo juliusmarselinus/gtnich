@@ -2,20 +2,20 @@
 
 import { useState } from 'react'
 import Topbar from '@/components/Topbar'
-import { rekomendasiList, Rekomendasi, RekomendasiTipe } from '@/lib/dapur-data'
+import { rekomendasiList, RekomendasiTipe } from '@/lib/dapur-data'
 import { Lightbulb, Package, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react'
 import clsx from 'clsx'
 
-const TIPE_CONFIG: Record<RekomendasiTipe, { icon: React.ElementType; cls: string; badgeCls: string }> = {
-  Stok: { icon: Package, cls: 'bg-blue-50 border-blue-200', badgeCls: 'bg-blue-50 text-blue-700 border-blue-200' },
-  Keuangan: { icon: DollarSign, cls: 'bg-amber-50 border-amber-200', badgeCls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  Penjualan: { icon: TrendingUp, cls: 'bg-[#EAF0EC] border-[#C5DBC9]', badgeCls: 'bg-[#EAF0EC] text-[#3E6B48] border-[#C5DBC9]' },
+const TIPE_CONFIG: Record<RekomendasiTipe, { icon: React.ElementType; colorCls: string; badgeCls: string }> = {
+  Stok: { icon: Package, colorCls: 'text-blue-600', badgeCls: 'bg-blue-50 text-blue-700' },
+  Keuangan: { icon: DollarSign, colorCls: 'text-amber-600', badgeCls: 'bg-amber-50 text-amber-700' },
+  Penjualan: { icon: TrendingUp, colorCls: 'text-emerald-600', badgeCls: 'bg-emerald-50 text-emerald-700' },
 }
 
 const PRIORITY_CONFIG: Record<string, { label: string; cls: string }> = {
-  tinggi: { label: 'Prioritas Tinggi', cls: 'bg-red-100 text-red-700 border-red-200' },
-  sedang: { label: 'Prioritas Sedang', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  rendah: { label: 'Prioritas Rendah', cls: 'bg-slate-100 text-slate-600 border-slate-200' },
+  tinggi: { label: 'Prioritas Tinggi', cls: 'bg-rose-50 text-rose-700' },
+  sedang: { label: 'Prioritas Sedang', cls: 'bg-amber-50 text-amber-700' },
+  rendah: { label: 'Prioritas Rendah', cls: 'bg-slate-100 text-slate-600' },
 }
 
 export default function RekomendasiPage() {
@@ -29,38 +29,41 @@ export default function RekomendasiPage() {
 
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="Rekomendasi" subtitle="Saran cerdas berbasis data untuk optimasi dapur Anda" />
+      <Topbar title="Rekomendasi Pintar Dapur" subtitle="Insight dan anjuran berbasis histori inventori, tren konsumsi, dan kalkulasi profitabilitas" />
 
-      <main className="p-8 space-y-6 max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#EAF0EC] flex items-center justify-center flex-shrink-0">
-            <Lightbulb className="w-6 h-6 text-[#3E6B48]" />
+      <main className="p-8 space-y-7 max-w-5xl mx-auto">
+        {/* Banner Clay Card */}
+        <div className="clay-card p-6 flex flex-col sm:flex-row items-center gap-5">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 clay-pill">
+            <Lightbulb className="w-7 h-7" />
           </div>
           <div>
-            <p className="text-sm font-bold text-[#1F1D1A]">Analisis Otomatis DapurTwin</p>
-            <p className="text-xs text-[#9C9589] mt-0.5">Sistem menemukan <span className="font-semibold text-[#3E6B48]">{rekomendasiList.length} rekomendasi</span> berdasarkan data stok, penjualan, dan keuangan terkini.</p>
+            <p className="text-base font-extrabold text-slate-800">DapurTwin AI Intelligence</p>
+            <p className="text-xs text-slate-500 mt-0.5">Sistem mendeteksi <span className="font-bold text-emerald-600">{rekomendasiList.length} insight prediktif</span> dari kalkulasi log mutasi bahan dan tren pesanan kasir terkini.</p>
           </div>
-          <div className="ml-auto flex items-center gap-2 text-xs text-[#9C9589]">
-            <AlertTriangle className="w-4 h-4 text-red-400" />
-            <span><span className="font-bold text-red-600">{rekomendasiList.filter(r => r.priority === 'tinggi').length}</span> perlu tindakan segera</span>
+          <div className="sm:ml-auto flex items-center gap-2 text-xs font-bold text-rose-600 bg-rose-50 px-3.5 py-1.5 rounded-full clay-pill flex-shrink-0">
+            <AlertTriangle className="w-4 h-4" />
+            <span>{rekomendasiList.filter(r => r.priority === 'tinggi').length} Tindakan Kritis</span>
           </div>
         </div>
 
-        {/* Filter */}
-        <div className="flex gap-2">
+        {/* Filter Clay Tabs */}
+        <div className="flex flex-wrap gap-2.5">
           {(['all', 'Stok', 'Keuangan', 'Penjualan'] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={clsx('px-3 py-1.5 rounded-lg text-xs font-semibold transition-all', filter === f ? 'bg-[#3E6B48] text-white' : 'bg-white border border-[#EAE5DF] text-[#9C9589] hover:bg-[#FAF8F5]')}
+              className={clsx(
+                'px-4 py-2 rounded-2xl text-xs font-bold transition-all',
+                filter === f ? 'clay-btn-primary' : 'clay-btn text-slate-600 hover:text-slate-900'
+              )}
             >
               {f === 'all' ? `Semua (${rekomendasiList.length})` : f === 'Stok' ? `Stok (${rekomendasiList.filter(r => r.tipe === 'Stok').length})` : f === 'Keuangan' ? `Keuangan (${rekomendasiList.filter(r => r.tipe === 'Keuangan').length})` : `Penjualan (${rekomendasiList.filter(r => r.tipe === 'Penjualan').length})`}
             </button>
           ))}
         </div>
 
-        {/* Cards */}
+        {/* Recommendation Cards */}
         <div className="space-y-4">
           {sorted.map(r => {
             const tipeCfg = TIPE_CONFIG[r.tipe]
@@ -68,38 +71,37 @@ export default function RekomendasiPage() {
             const Icon = tipeCfg.icon
 
             return (
-              <div key={r.id} className={clsx('rounded-xl border shadow-2xs p-5 space-y-3 transition-all hover:shadow-md', tipeCfg.cls)}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-white/80 flex items-center justify-center flex-shrink-0 border border-white/50">
-                      <Icon className="w-4.5 h-4.5 text-[#3E6B48]" />
+              <div key={r.id} className="clay-card p-6 space-y-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-2xl bg-slate-50 flex items-center justify-center flex-shrink-0 clay-pill">
+                      <Icon className={clsx('w-5 h-5', tipeCfg.colorCls)} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-[#1F1D1A]">{r.judul}</p>
+                      <p className="text-sm font-extrabold text-slate-800">{r.judul}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className={clsx('inline-flex px-2 py-0.5 rounded-full border text-[10px] font-semibold', tipeCfg.badgeCls)}>{r.tipe}</span>
-                        <span className={clsx('inline-flex px-2 py-0.5 rounded-full border text-[10px] font-semibold', priCfg.cls)}>{priCfg.label}</span>
+                        <span className={clsx('inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold clay-pill', tipeCfg.badgeCls)}>{r.tipe}</span>
+                        <span className={clsx('inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold clay-pill', priCfg.cls)}>{priCfg.label}</span>
                       </div>
                     </div>
                   </div>
-                  {/* Confidence */}
+
+                  {/* Confidence Gauge */}
                   <div className="flex-shrink-0 text-right">
-                    <p className="text-[10px] text-[#9C9589] font-medium">Confidence</p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <div className="w-16 h-1.5 bg-white/60 rounded-full overflow-hidden">
-                        <div className="h-full bg-[#3E6B48] rounded-full" style={{ width: `${r.confidence}%` }} />
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tingkat Keyakinan</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-20 h-2 clay-inset rounded-full overflow-hidden p-0.5">
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${r.confidence}%` }} />
                       </div>
-                      <span className="text-xs font-bold text-[#3E6B48]">{r.confidence}%</span>
+                      <span className="text-xs font-black text-emerald-600 font-mono">{r.confidence}%</span>
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-[#1F1D1A]/80 leading-relaxed pl-12">{r.deskripsi}</p>
+
+                <p className="text-xs text-slate-600 leading-relaxed pl-14 font-medium">{r.deskripsi}</p>
               </div>
             )
           })}
-          {sorted.length === 0 && (
-            <div className="text-center py-12 text-[#9C9589] text-sm">Tidak ada rekomendasi untuk kategori ini.</div>
-          )}
         </div>
       </main>
     </div>

@@ -3,8 +3,7 @@
 import { useState, useRef } from 'react'
 import Topbar from '@/components/Topbar'
 import { formatRupiah } from '@/lib/mock-data'
-import { Upload, Image as ImageIcon, CheckCircle, Loader2, FileText } from 'lucide-react'
-import clsx from 'clsx'
+import { Image as ImageIcon, CheckCircle, Loader2, FileText } from 'lucide-react'
 
 interface ParsedItem {
   nama: string
@@ -14,11 +13,11 @@ interface ParsedItem {
 }
 
 const MOCK_PARSED: ParsedItem[] = [
-  { nama: 'Tepung Terigu Segitiga', qty: 5, satuan: 'kg', harga: 12500 },
-  { nama: 'Gula Pasir Gulaku', qty: 3, satuan: 'kg', harga: 14000 },
-  { nama: 'Minyak Goreng Bimoli', qty: 2, satuan: 'liter', harga: 17000 },
-  { nama: 'Telur Ayam Kampung', qty: 30, satuan: 'butir', harga: 2800 },
-  { nama: 'Cokelat Bubuk Van Houten', qty: 2, satuan: 'sachet 100gr', harga: 28000 },
+  { nama: 'Tepung Terigu Segitiga Biru', qty: 5, satuan: 'kg', harga: 12500 },
+  { nama: 'Gula Pasir Kristal Putih', qty: 3, satuan: 'kg', harga: 14000 },
+  { nama: 'Minyak Goreng Sawit', qty: 2, satuan: 'liter', harga: 17000 },
+  { nama: 'Telur Ayam Segar', qty: 30, satuan: 'butir', harga: 2800 },
+  { nama: 'Cokelat Bubuk Premium', qty: 2, satuan: 'sachet', harga: 28000 },
 ]
 
 type State = 'idle' | 'uploading' | 'done'
@@ -37,7 +36,7 @@ export default function OCRNotaPage() {
     setTimeout(() => {
       setItems(MOCK_PARSED)
       setState('done')
-    }, 2200)
+    }, 2000)
   }
 
   function onDrop(e: React.DragEvent) {
@@ -57,99 +56,101 @@ export default function OCRNotaPage() {
 
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="OCR Nota" subtitle="Upload foto nota pembelian untuk ekstraksi data otomatis" />
+      <Topbar title="Pemindai OCR Nota Pembelian" subtitle="Scan foto nota fisik dari supplier dan ubah menjadi data barang digital secara otomatis" />
 
-      <main className="p-8 space-y-6 max-w-4xl mx-auto">
-        {/* Upload Area */}
+      <main className="p-8 space-y-7 max-w-4xl mx-auto">
+        {/* Upload Area Clay Container */}
         {state === 'idle' && (
           <div
             onDrop={onDrop}
             onDragOver={e => e.preventDefault()}
             onClick={() => inputRef.current?.click()}
-            className="bg-white rounded-2xl border-2 border-dashed border-[#EAE5DF] shadow-2xs p-16 text-center cursor-pointer hover:border-[#3E6B48] hover:bg-[#FAF8F5] transition-all group"
+            className="clay-card p-16 text-center cursor-pointer hover:border-emerald-200 transition-all group"
           >
-            <div className="w-16 h-16 rounded-2xl bg-[#EAF0EC] flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
-              <ImageIcon className="w-8 h-8 text-[#3E6B48]" />
+            <div className="w-20 h-20 rounded-3xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-5 clay-pill group-hover:scale-105 transition-transform">
+              <ImageIcon className="w-10 h-10" />
             </div>
-            <p className="text-sm font-semibold text-[#1F1D1A] mb-1">Upload Foto Nota</p>
-            <p className="text-xs text-[#9C9589]">Drag & drop atau klik untuk memilih file</p>
-            <p className="text-[10px] text-[#9C9589] mt-1">PNG, JPG, PDF — Max 10MB</p>
+            <p className="text-base font-extrabold text-slate-800 mb-1">Ambil Foto atau Upload Nota</p>
+            <p className="text-xs text-slate-400 font-medium">Seret foto nota ke sini atau klik untuk memilih file kamera</p>
+            <p className="text-[10px] text-emerald-600 font-mono font-bold mt-2">Mendukung format JPG, PNG, PDF</p>
             <input ref={inputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={onFileChange} />
           </div>
         )}
 
-        {/* Processing */}
+        {/* Processing State */}
         {state === 'uploading' && (
-          <div className="bg-white rounded-2xl border border-[#EAE5DF] shadow-2xs p-16 text-center space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-[#EAF0EC] flex items-center justify-center mx-auto">
-              <Loader2 className="w-8 h-8 text-[#3E6B48] animate-spin" />
+          <div className="clay-card p-16 text-center space-y-5">
+            <div className="w-20 h-20 rounded-3xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto clay-pill">
+              <Loader2 className="w-10 h-10 animate-spin" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#1F1D1A]">Memproses Nota…</p>
-              <p className="text-xs text-[#9C9589] mt-1">Mengekstrak data dari <span className="font-medium text-[#1F1D1A]">{fileName}</span></p>
+              <p className="text-base font-extrabold text-slate-800">Menganalisis Teks Nota…</p>
+              <p className="text-xs text-slate-400 mt-1 font-mono">Memindai baris item dari <span className="font-bold text-slate-700">{fileName}</span></p>
             </div>
-            <div className="max-w-xs mx-auto h-1.5 bg-[#EAE5DF] rounded-full overflow-hidden">
-              <div className="h-full bg-[#3E6B48] rounded-full animate-pulse w-3/4" />
+            <div className="max-w-xs mx-auto h-2 clay-inset rounded-full overflow-hidden p-0.5">
+              <div className="h-full bg-emerald-500 rounded-full animate-pulse w-3/4" />
             </div>
           </div>
         )}
 
-        {/* Results */}
+        {/* OCR Result Table */}
         {state === 'done' && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#EAF0EC] flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-[#3E6B48]" />
+                <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center clay-pill">
+                  <FileText className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-[#1F1D1A]">{fileName}</p>
-                  <p className="text-[11px] text-[#3E6B48] font-medium">{items.length} item berhasil diekstrak</p>
+                  <p className="text-sm font-extrabold text-slate-800">{fileName}</p>
+                  <p className="text-[11px] text-emerald-600 font-bold">{items.length} rincian bahan berhasil dikenali</p>
                 </div>
               </div>
-              <button onClick={reset} className="text-xs text-[#9C9589] hover:text-red-500 transition-colors">Upload ulang</button>
+              <button onClick={reset} className="text-xs text-slate-400 hover:text-rose-600 font-bold transition-colors">
+                Ganti Nota
+              </button>
             </div>
 
-            <div className="bg-white rounded-xl border border-[#EAE5DF] shadow-2xs overflow-hidden">
+            <div className="clay-card overflow-hidden">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-[#EAE5DF] bg-[#FAF8F5]">
-                    <th className="text-left px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Nama Item</th>
-                    <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Qty</th>
-                    <th className="text-left px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Satuan</th>
-                    <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Harga/Unit</th>
-                    <th className="text-right px-5 py-3.5 font-semibold text-[#9C9589] uppercase tracking-wider">Subtotal</th>
+                  <tr className="border-b border-slate-100 bg-slate-50/70">
+                    <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Nama Item Bahan</th>
+                    <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Kuantitas</th>
+                    <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Satuan</th>
+                    <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Harga Satuan</th>
+                    <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Subtotal</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F4F0EB]">
+                <tbody className="divide-y divide-slate-100">
                   {items.map((item, i) => (
-                    <tr key={i} className="hover:bg-[#FAF8F5]">
-                      <td className="px-5 py-3.5 font-medium text-[#1F1D1A]">{item.nama}</td>
-                      <td className="px-5 py-3.5 text-right font-mono text-[#1F1D1A]">{item.qty}</td>
-                      <td className="px-5 py-3.5 text-[#9C9589]">{item.satuan}</td>
-                      <td className="px-5 py-3.5 text-right font-mono text-[#9C9589]">{formatRupiah(item.harga)}</td>
-                      <td className="px-5 py-3.5 text-right font-mono font-semibold text-[#1F1D1A]">{formatRupiah(item.qty * item.harga)}</td>
+                    <tr key={i} className="hover:bg-slate-50/50">
+                      <td className="px-6 py-4 font-bold text-slate-800 text-sm">{item.nama}</td>
+                      <td className="px-6 py-4 text-right font-mono font-black text-slate-800 text-sm">{item.qty}</td>
+                      <td className="px-6 py-4 text-slate-500 font-semibold">{item.satuan}</td>
+                      <td className="px-6 py-4 text-right font-mono text-slate-500 font-medium">{formatRupiah(item.harga)}</td>
+                      <td className="px-6 py-4 text-right font-mono font-black text-slate-800 text-sm">{formatRupiah(item.qty * item.harga)}</td>
                     </tr>
                   ))}
-                  <tr className="border-t-2 border-[#EAE5DF] bg-[#FAF8F5]">
-                    <td colSpan={4} className="px-5 py-3.5 text-right font-bold text-[#1F1D1A]">Total</td>
-                    <td className="px-5 py-3.5 text-right font-mono font-bold text-[#3E6B48] text-sm">{formatRupiah(total)}</td>
+                  <tr className="border-t-2 border-slate-200 bg-slate-50/80">
+                    <td colSpan={4} className="px-6 py-4 text-right font-extrabold text-slate-800 text-sm">Total Akumulasi Nota</td>
+                    <td className="px-6 py-4 text-right font-mono font-black text-emerald-600 text-base">{formatRupiah(total)}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             {saved ? (
-              <div className="flex items-center gap-2 p-4 bg-[#EAF0EC] rounded-xl text-sm font-semibold text-[#3E6B48]">
-                <CheckCircle className="w-5 h-5 flex-shrink-0" /> Data berhasil disimpan ke riwayat Purchase Order!
+              <div className="flex items-center gap-2.5 p-4 bg-emerald-50 rounded-2xl text-xs font-bold text-emerald-700 clay-pill">
+                <CheckCircle className="w-5 h-5 flex-shrink-0 text-emerald-600" /> Data nota berhasil diimpor ke sistem Purchase Order & update stok!
               </div>
             ) : (
-              <div className="flex gap-3">
-                <button onClick={reset} className="flex-1 py-2.5 border border-[#EAE5DF] rounded-xl text-xs font-semibold text-[#9C9589] hover:bg-[#FAF8F5] transition-colors">
-                  Abaikan
+              <div className="flex gap-4">
+                <button onClick={reset} className="flex-1 py-3 clay-btn text-xs font-bold text-slate-600">
+                  Abaikan & Scan Lagi
                 </button>
-                <button onClick={() => setSaved(true)} className="flex-1 py-2.5 bg-[#3E6B48] text-white rounded-xl text-xs font-semibold hover:bg-[#345a3d] transition-colors">
-                  Simpan ke Purchase Order
+                <button onClick={() => setSaved(true)} className="flex-1 py-3 clay-btn-primary text-xs font-bold">
+                  Konfirmasi & Masukkan ke PO
                 </button>
               </div>
             )}
