@@ -1,22 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Supplier, SupplierFormData } from '../types'
-import { Loader2 } from 'lucide-react'
+import { Supplier, SupplierFormData, SupplierCategory } from '../types'
+import { Loader2, PlusCircle } from 'lucide-react'
 
 interface SupplierModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: (id: string | null, form: SupplierFormData) => Promise<void>
   editingSupplier: Supplier | null
+  categories: SupplierCategory[]
 }
 
 const emptySupplier: SupplierFormData = {
   nama: '',
   telepon: '',
   alamat: '',
-  kategori: '',
-  hargaRataRata: 0,
+  categoryId: '',
+  kategoriBaru: '',
   minimalOrder: 0,
 }
 
@@ -25,8 +26,10 @@ export default function SupplierModal({
   onClose,
   onSave,
   editingSupplier,
+  categories,
 }: SupplierModalProps) {
   const [form, setForm] = useState<SupplierFormData>(emptySupplier)
+  const [isNewCategory, setIsNewCategory] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
 
@@ -36,15 +39,20 @@ export default function SupplierModal({
         nama: editingSupplier.nama,
         telepon: editingSupplier.telepon,
         alamat: editingSupplier.alamat,
-        kategori: editingSupplier.kategori,
-        hargaRataRata: editingSupplier.hargaRataRata,
+        categoryId: editingSupplier.categoryId || '',
+        kategoriBaru: '',
         minimalOrder: editingSupplier.minimalOrder,
       })
+      setIsNewCategory(false)
     } else {
-      setForm(emptySupplier)
+      setForm({
+        ...emptySupplier,
+        categoryId: categories.length > 0 ? categories[0].id : '',
+      })
+      setIsNewCategory(categories.length === 0)
     }
     setModalError(null)
-  }, [editingSupplier, isOpen])
+  }, [editingSupplier, isOpen, categories])
 
   if (!isOpen) return null
 
@@ -55,10 +63,19 @@ export default function SupplierModal({
       return
     }
 
+    if (isNewCategory && !form.kategoriBaru?.trim()) {
+      setModalError('Nama kategori baru wajib diisi')
+      return
+    }
+
     setIsSubmitting(true)
     setModalError(null)
     try {
-      await onSave(editingSupplier ? editingSupplier.id : null, form)
+      await onSave(editingSupplier ? editingSupplier.id : null, {
+        ...form,
+        categoryId: isNewCategory ? null : form.categoryId || null,
+        kategoriBaru: isNewCategory ? form.kategoriBaru?.trim() : '',
+      })
       onClose()
     } catch (err: unknown) {
       const e = err as Error
@@ -122,44 +139,61 @@ export default function SupplierModal({
             />
           </div>
 
+          {/* Kategori Pasokan Dinormalisasi */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 mb-1">
-              Kategori Pasokan
-            </label>
-            <input
-              type="text"
-              value={form.kategori}
-              onChange={e => setForm(p => ({ ...p, kategori: e.target.value }))}
-              placeholder="Contoh: Bahan Pokok, Bumbu, Sayur..."
-              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-bold text-slate-500">
+                Kategori Pasokan
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsNewCategory(!isNewCategory)}
+                className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+              >
+                <PlusCircle className="w-3 h-3" />
+                {isNewCategory ? 'Pilih Kategori Ada' : '+ Kategori Baru'}
+              </button>
+            </div>
+
+            {isNewCategory ? (
+              <input
+                type="text"
+                required
+                value={form.kategoriBaru}
+                onChange={e => setForm(p => ({ ...p, kategoriBaru: e.target.value }))}
+                placeholder="Ketik kategori baru (contoh: Kemasan, Bumbu...)"
+                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+              />
+            ) : (
+              <select
+                value={form.categoryId || ''}
+                onChange={e => setForm(p => ({ ...p, categoryId: e.target.value }))}
+                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+              >
+                {categories.length === 0 ? (
+                  <option value="">Belum ada kategori (klik + Kategori Baru)</option>
+                ) : (
+                  categories.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.nama}
+                    </option>
+                  ))
+                )}
+              </select>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                Harga Rata-rata (Rp)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={form.hargaRataRata}
-                onChange={e => setForm(p => ({ ...p, hargaRataRata: Number(e.target.value) }))}
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                Minimal Order (Rp)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={form.minimalOrder}
-                onChange={e => setForm(p => ({ ...p, minimalOrder: Number(e.target.value) }))}
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
-              />
-            </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1">
+              Minimal Order (Rp)
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={form.minimalOrder}
+              onChange={e => setForm(p => ({ ...p, minimalOrder: Number(e.target.value) }))}
+              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+            />
           </div>
 
           <div className="flex gap-3 pt-3">

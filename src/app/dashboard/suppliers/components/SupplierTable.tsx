@@ -27,10 +27,7 @@ export default function SupplierTable({
               Nama Supplier
             </th>
             <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-              Kategori
-            </th>
-            <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-              Harga Rata-rata
+              Kategori Pasokan
             </th>
             <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
               Min. Order
@@ -52,13 +49,10 @@ export default function SupplierTable({
               </td>
               <td className="px-6 py-4">
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold clay-pill text-[11px]">
-                  <Tag className="w-3 h-3" /> {s.kategori}
+                  <Tag className="w-3 h-3" /> {s.kategoriNama}
                 </span>
               </td>
               <td className="px-6 py-4 text-right font-mono font-bold text-slate-800">
-                {formatRupiah(s.hargaRataRata)}
-              </td>
-              <td className="px-6 py-4 text-right font-mono text-slate-500">
                 {formatRupiah(s.minimalOrder)}
               </td>
               <td className="px-6 py-4 text-center">

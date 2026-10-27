@@ -1,3 +1,11 @@
+export interface SupplierCategory {
+  id: string
+  userId?: string
+  nama: string
+  deskripsi?: string | null
+  createdAt?: string
+}
+
 export interface RiwayatSupplier {
   id?: string
   supplierId?: string
@@ -14,8 +22,9 @@ export interface Supplier {
   nama: string
   telepon: string
   alamat: string
-  kategori: string
-  hargaRataRata: number
+  categoryId?: string | null
+  category?: SupplierCategory | null
+  kategoriNama: string // nama kategori yang ditampilkan (baik dari relasi maupun legacy text)
   minimalOrder: number
   riwayat: RiwayatSupplier[]
   createdAt?: string
@@ -26,7 +35,7 @@ export interface SupplierFormData {
   nama: string
   telepon: string
   alamat: string
-  kategori: string
-  hargaRataRata: number
+  categoryId?: string | null
+  kategoriBaru?: string // Jika user ingin menambah kategori baru langsung dari form
   minimalOrder: number
 }

@@ -13,6 +13,7 @@ import { Loader2, RefreshCw, AlertCircle, LogIn } from 'lucide-react'
 export default function SuppliersPage() {
   const {
     list,
+    categories,
     totalCount,
     loading,
     error,
@@ -47,7 +48,7 @@ export default function SuppliersPage() {
     <div className="flex-1 pb-16">
       <Topbar
         title="Manajemen Supplier"
-        subtitle="Kelola kemitraan distributor, profil kontak, dan riwayat pasokan bahan baku secara langsung di PostgreSQL Supabase"
+        subtitle="Kelola kemitraan distributor, kategori pasokan terpusat, dan riwayat pasokan bahan baku secara langsung di PostgreSQL Supabase"
       />
 
       <main className="p-8 space-y-6 max-w-6xl mx-auto">
@@ -114,6 +115,7 @@ export default function SuppliersPage() {
         onClose={() => setShowModal(false)}
         onSave={saveSupplier}
         editingSupplier={editing}
+        categories={categories}
       />
     </div>
   )

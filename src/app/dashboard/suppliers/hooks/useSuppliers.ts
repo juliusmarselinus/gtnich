@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { supplierService } from '../services/supplierService'
-import { Supplier, SupplierFormData } from '../types'
+import { Supplier, SupplierFormData, SupplierCategory } from '../types'
 
 export function useSuppliers() {
   const [list, setList] = useState<Supplier[]>([])
+  const [categories, setCategories] = useState<SupplierCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
@@ -25,14 +26,20 @@ export function useSuppliers() {
         setError('Sesi belum terdeteksi. Silakan login ke akun Anda untuk melihat dan mengelola data supplier.')
         setUserEmail(null)
         setList([])
+        setCategories([])
         setLoading(false)
         return
       }
 
       setUserEmail(session.user.email || null)
 
-      const data = await supplierService.getAll()
-      setList(data || [])
+      const [suppliersData, categoriesData] = await Promise.all([
+        supplierService.getAll(),
+        supplierService.getCategories(),
+      ])
+
+      setList(suppliersData || [])
+      setCategories(categoriesData || [])
     } catch (err: unknown) {
       const e = err as Error
       console.error('Fetch suppliers error:', e)
@@ -62,7 +69,7 @@ export function useSuppliers() {
     return list.filter(
       s =>
         s.nama.toLowerCase().includes(search.toLowerCase()) ||
-        s.kategori.toLowerCase().includes(search.toLowerCase())
+        s.kategoriNama.toLowerCase().includes(search.toLowerCase())
     )
   }, [list, search])
 
@@ -76,6 +83,9 @@ export function useSuppliers() {
         const created = await supplierService.create(form)
         setList(prev => [created, ...prev])
       }
+      // Re-fetch kategori jika ada kategori baru
+      const refreshedCats = await supplierService.getCategories()
+      setCategories(refreshedCats)
     } catch (err: unknown) {
       const e = err as Error
       setError(e.message)
@@ -97,6 +107,7 @@ export function useSuppliers() {
 
   return {
     list: filteredList,
+    categories,
     totalCount: list.length,
     loading,
     error,
