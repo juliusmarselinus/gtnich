@@ -60,7 +60,7 @@ BEGIN
     NEW.user_id,
     'Penjualan Kasir Baru (' || NEW.invoice_number || ')',
     'Transaksi selesai sebesar Rp ' || TO_CHAR(NEW.total_price, 'FM999,999,999') || 
-    ' melalui ' || COALESCE(NEW.channel, 'Kasir Langsung') || 
+    ' melalui ' || (NEW.channel::text) || 
     ' (' || COALESCE(NEW.payment_method, 'Tunai') || ').',
     'penjualan',
     '/dashboard/riwayat',
