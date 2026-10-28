@@ -6,6 +6,7 @@ import { menuList, bahanList } from '@/lib/dapur-data'
 import { formatRupiah } from '@/lib/mock-data'
 import { Sparkles, TrendingUp, Package, Truck } from 'lucide-react'
 import clsx from 'clsx'
+import CustomSelect from '@/components/ui/CustomSelect'
 
 type SimTab = 'penjualan' | 'supplier' | 'supply'
 
@@ -91,9 +92,11 @@ export default function SimulasiPage() {
               </h3>
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Pilih Target Menu</label>
-                <select value={selMenu} onChange={e => setSelMenu(e.target.value)} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800">
-                  {menuList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
-                </select>
+                <CustomSelect
+                  value={selMenu}
+                  onChange={val => setSelMenu(val)}
+                  options={menuList.map(m => ({ value: m.id, label: m.nama }))}
+                />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Target Jumlah Porsi</label>
@@ -141,9 +144,12 @@ export default function SimulasiPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Pilih Bahan Baku</label>
-                  <select value={selBahan} onChange={e => setSelBahan(e.target.value)} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800">
-                    {bahanList.map(b => <option key={b.id} value={b.id}>{b.nama}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={selBahan}
+                    onChange={val => setSelBahan(val)}
+                    searchable={true}
+                    options={bahanList.map(b => ({ value: b.id, label: b.nama }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Kenaikan/Penurunan (%)</label>
@@ -196,9 +202,11 @@ export default function SimulasiPage() {
               </h3>
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Pilih Menu</label>
-                <select value={selMenuSupply} onChange={e => setSelMenuSupply(e.target.value)} className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800">
-                  {menuList.map(m => <option key={m.id} value={m.id}>{m.nama}</option>)}
-                </select>
+                <CustomSelect
+                  value={selMenuSupply}
+                  onChange={val => setSelMenuSupply(val)}
+                  options={menuList.map(m => ({ value: m.id, label: m.nama }))}
+                />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Target Porsi Dibuat</label>

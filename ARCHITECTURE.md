@@ -6,16 +6,16 @@ Dokumen ini mencatat pola arsitektur berbasis fitur terisolasi (*Feature-First F
 
 ## 1. Pola Folder Berbasis Halaman / Fitur (*Colocated Architecture*)
 
-Setiap modul halaman mandiri (seperti `bahan`, `suppliers`, `stok-log`, `purchase-order`, `kondisi-bahan`, dll.) ditempatkan dalam foldernya sendiri dengan membagi tanggung jawab (*Separation of Concerns*) menjadi 5 lapisan:
+Setiap modul halaman mandiri (seperti `bahan`, `suppliers`, `stok-log`, `purchase-order`, `kondisi-bahan`, `menu`, dll.) ditempatkan dalam foldernya sendiri dengan membagi tanggung jawab (*Separation of Concerns*) menjadi 5 lapisan:
 
 ```
 src/app/dashboard/<fitur>/
 ├── api/                   # API Route handler spesifik (GET, POST, dsb)
 │   └── route.ts
 ├── components/            # Komponen UI spesifik fitur (Tabel, Filter Bar, Modal, Form, Card)
-│   ├── <Fitur>FilterBar.tsx
+│   ├── <Fitur>CardGrid.tsx / <Fitur>Table.tsx
 │   ├── <Fitur>Modal.tsx
-│   └── <Fitur>Table.tsx
+│   └── <Fitur>FilterBar.tsx
 ├── hooks/                 # Custom Hook mengelola lifecycle, filter, search, & error
 │   └── use<Fitur>.ts
 ├── services/              # Komunikasi langsung ke Supabase (Data Access Object / DAO) & AI Service
@@ -36,19 +36,31 @@ src/app/dashboard/<fitur>/
 | **Stok Log & Opname** | `src/app/dashboard/stok-log/` | Tabel `stok_logs` & `bahan` | Audit keluar-masuk (Masuk +, Keluar -), mutasi manual, rekonsiliasi Stock Opname fisik ke database. |
 | **Purchase Order (PO)** | `src/app/dashboard/purchase-order/` | Tabel `purchase_orders`, `po_items`, `bahan`, `stok_logs`, `supplier_riwayat` | Siklus bertahap: Draft $\rightarrow$ Dikirim $\rightarrow$ Diterima (+Auto Stok & Log Mutasi) $\rightarrow$ Tagihan. |
 | **Kondisi Bahan & Expire AI** | `src/app/dashboard/kondisi-bahan/` | Tabel `bahan` & Google Gemini API / Smart Food Shelf-Life Engine | Menganalisis nama bahan dan tanggal masuk $\rightarrow$ memperkirakan tanggal kedaluwarsa, sisa hari, status kesegaran, serta tips penyimpanan. |
+| **Menu & Resep Masakan** | `src/app/dashboard/menu/` | Tabel `menus`, `resep_items`, & `bahan` | Pembuatan menu & komposisi resep bahan (BOM - Bill of Materials), kalkulasi HPP otomatis, dan margin laba riil. |
 
 ---
 
-## 3. Alur Analisis Kedaluwarsa AI (`kondisi-bahan`)
+## 3. Alur Pembuatan Menu & Resep (`menu`)
 
-1. **Input Data**: Nama bahan baku dan tanggal masuk barang (`tanggal_masuk` atau `created_at` dari database Supabase).
-2. **Dual-Engine Analisis**:
-   - **Google Gemini API**: Jika pengguna memasukkan API Key di bar konfigurasi, sistem memanggil model `gemini-1.5-flash` untuk menganalisis sifat biokimiawi bahan makanan, estimasi umur simpan (hari), kategori risiko pembusukan, dan tips penyimpanan.
-   - **Smart Food Shelf-Life Engine (Fallback)**: Jika API Key belum diisi atau kuota habis, sistem otomatis menggunakan knowledge base internal kuliner (bahan basah kadar air tinggi: 3-5 hari; dairy/umbi: 14 hari; tepung/biji-bijian: 180 hari; bumbu/gula/minyak: 365 hari).
-3. **Kalkulasi & Output**:
-   - `aiEstimasiExpire`: Tanggal kedaluwarsa = `tanggalMasuk + perkiraanUmurHari`.
-   - `aiSisaHari`: Selisih hari antara waktu saat ini dengan tanggal kedaluwarsa.
-   - `aiStatusFreshness`:
-     - `segar` (Sisa > 3 hari)
-     - `mendekati_expire` (Sisa $\le$ 3 hari)
-     - `kadaluarsa` (Sisa $\le$ 0 hari)
+1. **Relasi Many-to-Many via Resep (BOM)**:
+   - Satu baris menu di tabel `menus` terhubung ke banyak item bahan di tabel `resep_items` (`menu_id` & `bahan_id`).
+2. **Kalkulasi HPP & Margin Otomatis**:
+   - $\text{HPP} = \sum (\text{Harga per Satuan Bahan} \times \text{Takaran Qty})$.
+   - $\text{Profit} = \text{Harga Jual} - \text{HPP}$.
+   - $\text{Margin Laba (\%)} = (\text{Profit} / \text{Harga Jual}) \times 100$.
+3. **Penyimpanan Transaksional**:
+   - Saat menu disimpan, header disimpan ke tabel `menus`.
+   - Seluruh item komposisi resep disimpan ke tabel `resep_items`.
+   - Nilai `estimasi_hpp` di tabel `menus` disinkronkan secara otomatis.
+   - Saat menu dihapus, seluruh baris `resep_items` terkait otomatis terhapus secara beruntun (*cascade delete*).
+
+---
+
+## 4. Sistem Satuan Standar & Konversi Otomatis (`src/lib/satuan.ts`)
+
+1. **Satuan Master Bahan**:
+   - Master bahan baku (`bahan`) didukung dengan pilihan satuan bawaan standar industri dapur/F&B: `kg`, `gram`, `liter`, `ml`, `butir`, `pcs`, `sachet`, `bungkus`, `kaleng`, `botol`, `pack`, `lembar`, `sdm`, `sdt`.
+   - Mendukung opsi penambahan satuan kustom (*custom unit*) jika pengguna memiliki kemasan unik.
+2. **Fleksibilitas Satuan di Resep Menu**:
+   - Di resep menu, takaran dapat menggunakan pecahan yang relevan (misal: bahan master terdaftar dalam `kg`, namun di resep ditulis `200 gram`, `1 sdm`, atau `1 sdt`).
+   - Sistem melakukan normalisasi rasio konversi secara matematis (`getUnitConversionFactor`) saat menghitung HPP live dan menyimpan kuantitas ke database `resep_items`, memastikan kalkulasi stok dan HPP selalu presisi.

@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Bahan, BahanFormData, Supplier } from '../types'
-import { Loader2 } from 'lucide-react'
+import { DEFAULT_SATUAN_LIST } from '@/lib/satuan'
+import { Loader2, PlusCircle } from 'lucide-react'
+import CustomSelect from '@/components/ui/CustomSelect'
 
 interface BahanModalProps {
   isOpen: boolean
@@ -14,7 +16,7 @@ interface BahanModalProps {
 
 const emptyForm: BahanFormData = {
   nama: '',
-  satuan: '',
+  satuan: 'kg',
   hargaPerSatuan: 0,
   stok: 0,
   stokMinimum: 0,
@@ -29,11 +31,14 @@ export default function BahanModal({
   suppliers,
 }: BahanModalProps) {
   const [form, setForm] = useState<BahanFormData>(emptyForm)
+  const [isCustomSatuan, setIsCustomSatuan] = useState(false)
+  const [customSatuanText, setCustomSatuanText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => {
     if (editingBahan) {
+      const isPredefined = DEFAULT_SATUAN_LIST.includes(editingBahan.satuan as unknown as typeof DEFAULT_SATUAN_LIST[number])
       setForm({
         nama: editingBahan.nama,
         satuan: editingBahan.satuan,
@@ -42,13 +47,32 @@ export default function BahanModal({
         stokMinimum: editingBahan.stokMinimum,
         supplierId: editingBahan.supplierId || '',
       })
+      if (!isPredefined && editingBahan.satuan) {
+        setIsCustomSatuan(true)
+        setCustomSatuanText(editingBahan.satuan)
+      } else {
+        setIsCustomSatuan(false)
+        setCustomSatuanText('')
+      }
     } else {
       setForm(emptyForm)
+      setIsCustomSatuan(false)
+      setCustomSatuanText('')
     }
     setErrorMsg(null)
   }, [editingBahan, isOpen])
 
   if (!isOpen) return null
+
+  const handleSatuanSelect = (val: string) => {
+    if (val === '__custom__') {
+      setIsCustomSatuan(true)
+      setForm(p => ({ ...p, satuan: customSatuanText || '' }))
+    } else {
+      setIsCustomSatuan(false)
+      setForm(p => ({ ...p, satuan: val }))
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,10 +80,20 @@ export default function BahanModal({
       setErrorMsg('Nama bahan wajib diisi')
       return
     }
+
+    const finalSatuan = isCustomSatuan ? customSatuanText.trim() : form.satuan.trim()
+    if (!finalSatuan) {
+      setErrorMsg('Satuan bahan baku wajib diisi')
+      return
+    }
+
     setIsSubmitting(true)
     setErrorMsg(null)
     try {
-      await onSave(editingBahan ? editingBahan.id : null, form)
+      await onSave(editingBahan ? editingBahan.id : null, {
+        ...form,
+        satuan: finalSatuan,
+      })
       onClose()
     } catch (err: unknown) {
       const e = err as Error
@@ -91,29 +125,73 @@ export default function BahanModal({
               type="text"
               value={form.nama}
               onChange={e => setForm(p => ({ ...p, nama: e.target.value }))}
-              placeholder="Contoh: Tepung Terigu"
+              placeholder="Contoh: Tepung Terigu Segitiga Biru"
               required
               className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
             />
           </div>
 
+          {/* Pemilihan Satuan Bahan Baku */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 mb-1">
-              Satuan
-            </label>
-            <input
-              type="text"
-              value={form.satuan}
-              onChange={e => setForm(p => ({ ...p, satuan: e.target.value }))}
-              placeholder="kg, liter, gr, butir, sachet..."
-              required
-              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-bold text-slate-500">
+                Satuan Dasar Bahan
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCustomSatuan(!isCustomSatuan)
+                  if (!isCustomSatuan) {
+                    setCustomSatuanText(form.satuan)
+                  }
+                }}
+                className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
+              >
+                <PlusCircle className="w-3 h-3" />
+                {isCustomSatuan ? 'Pilih Satuan Standar' : '+ Satuan Kustom'}
+              </button>
+            </div>
+
+            {isCustomSatuan ? (
+              <input
+                type="text"
+                required
+                value={customSatuanText}
+                onChange={e => {
+                  setCustomSatuanText(e.target.value)
+                  setForm(p => ({ ...p, satuan: e.target.value }))
+                }}
+                placeholder="Ketik satuan baru (contoh: ikat, karton, galon...)"
+                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+              />
+            ) : (
+              <CustomSelect
+                value={form.satuan}
+                onChange={val => handleSatuanSelect(val)}
+                options={[
+                  ...DEFAULT_SATUAN_LIST.map(u => ({
+                    value: u,
+                    label: u,
+                    sublabel:
+                      u === 'kg'
+                        ? 'Kilogram'
+                        : u === 'gram'
+                        ? 'Gram'
+                        : u === 'liter'
+                        ? 'Liter'
+                        : u === 'ml'
+                        ? 'Mililiter'
+                        : undefined,
+                  })),
+                  { value: '__custom__', label: '+ Satuan Lainnya...' },
+                ]}
+              />
+            )}
           </div>
 
           <div>
             <label className="block text-[11px] font-bold text-slate-500 mb-1">
-              Harga per Satuan (Rp)
+              Harga per Satuan (Rp / {isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
             </label>
             <input
               type="number"
@@ -122,14 +200,14 @@ export default function BahanModal({
               onChange={e =>
                 setForm(p => ({ ...p, hargaPerSatuan: Number(e.target.value) }))
               }
-              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono font-bold"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                Stok Saat Ini
+                Stok Saat Ini ({isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
               </label>
               <input
                 type="number"
@@ -139,12 +217,12 @@ export default function BahanModal({
                 onChange={e =>
                   setForm(p => ({ ...p, stok: Number(e.target.value) }))
                 }
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono font-bold"
               />
             </div>
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                Min. Stok (Alarm)
+                Min. Stok Alarm ({isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
               </label>
               <input
                 type="number"
@@ -154,27 +232,28 @@ export default function BahanModal({
                 onChange={e =>
                   setForm(p => ({ ...p, stokMinimum: Number(e.target.value) }))
                 }
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono"
               />
             </div>
           </div>
 
           <div>
             <label className="block text-[11px] font-bold text-slate-500 mb-1">
-              Supplier Terkait
+              Supplier Terkait (Opsional)
             </label>
-            <select
+            <CustomSelect
               value={form.supplierId}
-              onChange={e => setForm(p => ({ ...p, supplierId: e.target.value }))}
-              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
-            >
-              <option value="">-- Pilih Supplier --</option>
-              {suppliers.map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.nama} {s.kategori ? `(${s.kategori})` : ''}
-                </option>
-              ))}
-            </select>
+              onChange={val => setForm(p => ({ ...p, supplierId: val }))}
+              placeholder="-- Pilih Supplier --"
+              options={[
+                { value: '', label: '-- Tanpa Supplier --' },
+                ...suppliers.map(s => ({
+                  value: s.id,
+                  label: s.nama,
+                  sublabel: s.kategori ? `(${s.kategori})` : undefined,
+                })),
+              ]}
+            />
           </div>
 
           <div className="flex gap-3 pt-3">
@@ -182,14 +261,14 @@ export default function BahanModal({
               type="button"
               disabled={isSubmitting}
               onClick={onClose}
-              className="flex-1 py-2.5 clay-btn text-xs font-bold text-slate-600 disabled:opacity-50"
+              className="flex-1 py-2.5 clay-btn text-xs font-bold text-slate-600 disabled:opacity-50 cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-2.5 clay-btn-primary text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50"
+              className="flex-1 py-2.5 clay-btn-primary text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>Simpan</span>

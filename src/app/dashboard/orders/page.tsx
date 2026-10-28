@@ -7,6 +7,7 @@ import ReceiptDrawer from '@/components/ReceiptDrawer'
 import { orders as initialOrders, Order, OrderStatus } from '@/lib/mock-data'
 import { Plus, Search } from 'lucide-react'
 import clsx from 'clsx'
+import CustomSelect from '@/components/ui/CustomSelect'
 
 const tabs: { label: string; value: 'all' | OrderStatus }[] = [
   { label: 'Semua Pesanan', value: 'all' },
@@ -150,19 +151,19 @@ export default function OrdersPage() {
               </div>
               <div>
                 <label className="text-neutral-700 block mb-1 font-bold">Saluran Pesanan</label>
-                <select className="w-full px-3 py-2 border border-neutral-300 rounded-xl focus:outline-none">
-                  <option>WhatsApp</option>
-                  <option>Toko Offline</option>
-                  <option>Web Store</option>
-                </select>
+                <CustomSelect
+                  value="WhatsApp"
+                  onChange={() => {}}
+                  options={['WhatsApp', 'Toko Offline', 'Web Store']}
+                />
               </div>
               <div>
                 <label className="text-neutral-700 block mb-1 font-bold">Metode Pembayaran</label>
-                <select className="w-full px-3 py-2 border border-neutral-300 rounded-xl focus:outline-none">
-                  <option>Transfer BCA</option>
-                  <option>QRIS</option>
-                  <option>Tunai / Cash</option>
-                </select>
+                <CustomSelect
+                  value="Transfer BCA"
+                  onChange={() => {}}
+                  options={['Transfer BCA', 'QRIS', 'Tunai / Cash']}
+                />
               </div>
             </div>
 

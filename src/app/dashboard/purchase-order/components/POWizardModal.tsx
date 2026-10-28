@@ -5,6 +5,7 @@ import { SupplierOption, BahanOption, CreatePOInput } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import { Plus, X, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
+import CustomSelect from '@/components/ui/CustomSelect'
 
 interface POWizardModalProps {
   isOpen: boolean
@@ -197,25 +198,26 @@ export default function POWizardModal({
             {/* Form Input Item */}
             <div className="space-y-3 p-4 clay-inset rounded-2xl">
               <p className="text-[11px] font-bold text-slate-600">Pilih Bahan Masuk</p>
-              <select
+              <CustomSelect
                 value={newItem.bahanId}
-                onChange={e => {
-                  const b = bahanList.find(x => x.id === e.target.value)
+                onChange={val => {
+                  const b = bahanList.find(x => x.id === val)
                   setNewItem(p => ({
                     ...p,
-                    bahanId: e.target.value,
+                    bahanId: val,
                     hargaEstimasi: b?.hargaPerSatuan ?? 0,
                   }))
                 }}
-                className="w-full px-3.5 py-2.5 clay-card text-xs text-slate-800 border-none outline-none"
-              >
-                <option value="">-- Pilih Bahan --</option>
-                {bahanList.map(b => (
-                  <option key={b.id} value={b.id}>
-                    {b.nama} (Stok: {b.stok} {b.satuan})
-                  </option>
-                ))}
-              </select>
+                variant="card"
+                placeholder="-- Pilih Bahan Baku --"
+                searchable={true}
+                searchPlaceholder="Cari nama bahan..."
+                options={bahanList.map(b => ({
+                  value: b.id,
+                  label: b.nama,
+                  sublabel: `Stok: ${b.stok} ${b.satuan}`,
+                }))}
+              />
 
               <div className="grid grid-cols-2 gap-2">
                 <div>

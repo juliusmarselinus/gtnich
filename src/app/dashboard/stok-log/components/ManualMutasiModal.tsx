@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { BahanSimple, ManualMutasiInput } from '../types'
 import { Loader2, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
+import CustomSelect from '@/components/ui/CustomSelect'
 
 interface ManualMutasiModalProps {
   isOpen: boolean
@@ -106,19 +107,18 @@ export default function ManualMutasiModal({
             <label className="block text-[11px] font-bold text-slate-500 mb-1">
               Bahan Baku
             </label>
-            <select
+            <CustomSelect
               value={bahanId}
-              onChange={e => setBahanId(e.target.value)}
-              required
-              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
-            >
-              <option value="">-- Pilih Bahan --</option>
-              {bahanList.map(b => (
-                <option key={b.id} value={b.id}>
-                  {b.nama} (Stok: {b.stok} {b.satuan})
-                </option>
-              ))}
-            </select>
+              onChange={val => setBahanId(val)}
+              placeholder="-- Pilih Bahan Baku --"
+              searchable={true}
+              searchPlaceholder="Cari bahan..."
+              options={bahanList.map(b => ({
+                value: b.id,
+                label: b.nama,
+                sublabel: `Stok: ${b.stok} ${b.satuan}`,
+              }))}
+            />
           </div>
 
           <div>

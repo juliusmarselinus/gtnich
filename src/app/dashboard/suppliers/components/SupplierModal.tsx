@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Supplier, SupplierFormData, SupplierCategory } from '../types'
 import { Loader2, PlusCircle } from 'lucide-react'
+import CustomSelect from '@/components/ui/CustomSelect'
 
 interface SupplierModalProps {
   isOpen: boolean
@@ -165,21 +166,15 @@ export default function SupplierModal({
                 className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
               />
             ) : (
-              <select
+              <CustomSelect
                 value={form.categoryId || ''}
-                onChange={e => setForm(p => ({ ...p, categoryId: e.target.value }))}
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
-              >
-                {categories.length === 0 ? (
-                  <option value="">Belum ada kategori (klik + Kategori Baru)</option>
-                ) : (
-                  categories.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.nama}
-                    </option>
-                  ))
-                )}
-              </select>
+                onChange={val => setForm(p => ({ ...p, categoryId: val }))}
+                placeholder={categories.length === 0 ? 'Belum ada kategori' : '-- Pilih Kategori --'}
+                options={categories.map(c => ({
+                  value: c.id,
+                  label: c.nama,
+                }))}
+              />
             )}
           </div>
 
