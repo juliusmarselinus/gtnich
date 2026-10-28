@@ -34,7 +34,8 @@ src/app/dashboard/<fitur>/
 | **Bahan Baku** | `src/app/dashboard/bahan/` | Tabel `bahan` & `suppliers` | CRUD stok fisik, harga per satuan, ambang batas minimum. |
 | **Suppliers** | `src/app/dashboard/suppliers/` | Tabel `suppliers`, `supplier_categories`, `supplier_riwayat` | Normalisasi kategori pasokan terpusat, profil kontak distributor, riwayat pasokan. |
 | **Stok Log & Opname** | `src/app/dashboard/stok-log/` | Tabel `stok_logs` & `bahan` | Audit keluar-masuk (Masuk +, Keluar -), mutasi manual, rekonsiliasi Stock Opname fisik ke database. |
-| **Purchase Order (PO)** | `src/app/dashboard/purchase-order/` | Tabel `purchase_orders`, `po_items`, `bahan`, `stok_logs`, `supplier_riwayat` | Siklus bertahap: Draft $\rightarrow$ Dikirim $\rightarrow$ Diterima (+Auto Stok & Log Mutasi) $\rightarrow$ Tagihan. |
+| **Purchase Order (PO)** | `src/app/dashboard/purchase-order/` | Tabel `purchase_orders`, `po_items`, `bahan`, `stok_logs`, `supplier_riwayat` | Siklus bertahap: Draft $\rightarrow$ Dikirim $\rightarrow$ Verifikasi Fisik Penerimaan (+Auto Stok & Log Mutasi) $\rightarrow$ Masuk Tagihan. |
+| **Tagihan Supplier (Invoices)** | `src/app/dashboard/tagihan/` | Tabel `purchase_orders`, `po_items`, `suppliers` | Manajemen terpisah faktur tagihan: pantau hutang/lunas, rincian nota faktur, serta pencatatan bukti pelunasan. |
 | **Kondisi Bahan & Expire AI** | `src/app/dashboard/kondisi-bahan/` | Tabel `bahan` & Google Gemini API / Smart Food Shelf-Life Engine | Menganalisis nama bahan dan tanggal masuk $\rightarrow$ memperkirakan tanggal kedaluwarsa, sisa hari, status kesegaran, serta tips penyimpanan. |
 | **Menu & Resep Masakan** | `src/app/dashboard/menu/` | Tabel `menus`, `resep_items`, & `bahan` | Pembuatan menu & komposisi resep bahan (BOM - Bill of Materials), kalkulasi HPP otomatis, dan margin laba riil. |
 

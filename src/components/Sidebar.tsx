@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import {
   Compass, Package, BarChart2, ChefHat, LogOut,
   Truck, ClipboardList, ShoppingCart, History, BoxSelect,
-  Lightbulb, Image, Database, Sparkles, UtensilsCrossed,
+  Lightbulb, Image, Database, Sparkles, UtensilsCrossed, Receipt,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -17,6 +17,7 @@ const navSections = [
       { href: '/dashboard', label: 'Ringkasan', icon: Compass },
       { href: '/dashboard/penjualan', label: 'Input Penjualan', icon: ShoppingCart },
       { href: '/dashboard/purchase-order', label: 'Purchase Order', icon: ClipboardList },
+      { href: '/dashboard/tagihan', label: 'Tagihan Supplier', icon: Receipt },
     ],
   },
   {

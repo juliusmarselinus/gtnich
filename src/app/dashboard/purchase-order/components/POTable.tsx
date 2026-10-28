@@ -16,24 +16,28 @@ const STATUS_CONFIG: Record<POStatus, { label: string; cls: string; nextStatus?:
 interface POTableProps {
   list: PurchaseOrder[]
   onUpdateStatus: (id: string, newStatus: POStatus) => Promise<void>
+  onRequestVerifyTerima?: (po: PurchaseOrder) => void
 }
 
 export default function POTable({
   list,
   onUpdateStatus,
+  onRequestVerifyTerima,
 }: POTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [loadingActionId, setLoadingActionId] = useState<string | null>(null)
 
-  const handleAction = async (poId: string, nextStatus: POStatus) => {
+  const handleAction = async (po: PurchaseOrder, nextStatus: POStatus) => {
     if (nextStatus === 'diterima') {
-      if (!confirm('Konfirmasi barang telah diterima? Stok bahan baku akan otomatis bertambah ke database dan mutasi dicatat.')) {
+      // Jika ada handler modal verifikasi penerimaan, buka modal verifikasi
+      if (onRequestVerifyTerima) {
+        onRequestVerifyTerima(po)
         return
       }
     }
-    setLoadingActionId(poId)
+    setLoadingActionId(po.id)
     try {
-      await onUpdateStatus(poId, nextStatus)
+      await onUpdateStatus(po.id, nextStatus)
     } finally {
       setLoadingActionId(null)
     }
@@ -84,10 +88,10 @@ export default function POTable({
                   <td className="px-6 py-4 text-right">
                     {cfg.nextStatus ? (
                       <button
-                        onClick={() => handleAction(po.id, cfg.nextStatus!)}
+                        onClick={() => handleAction(po, cfg.nextStatus!)}
                         disabled={isProcessing}
                         className={clsx(
-                          'px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all disabled:opacity-50 shadow-sm',
+                          'px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all disabled:opacity-50 shadow-sm cursor-pointer',
                           cfg.nextStatus === 'diterima'
                             ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                             : 'bg-slate-800 hover:bg-slate-900 text-white'

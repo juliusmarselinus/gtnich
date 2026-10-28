@@ -3,7 +3,14 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { purchaseOrderService } from '../services/purchaseOrderService'
-import { PurchaseOrder, POStatus, CreatePOInput, SupplierOption, BahanOption } from '../types'
+import {
+  PurchaseOrder,
+  POStatus,
+  CreatePOInput,
+  SupplierOption,
+  BahanOption,
+  VerifyPenerimaanInput,
+} from '../types'
 
 export function usePurchaseOrder() {
   const [list, setList] = useState<PurchaseOrder[]>([])
@@ -119,6 +126,19 @@ export function usePurchaseOrder() {
     }
   }
 
+  // Verifikasi Penerimaan Barang
+  const verifyPenerimaan = async (input: VerifyPenerimaanInput) => {
+    setError(null)
+    try {
+      await purchaseOrderService.verifyPenerimaan(input)
+      await fetchAll()
+    } catch (err: unknown) {
+      const e = err as Error
+      setError(e.message)
+      throw e
+    }
+  }
+
   return {
     list: filteredList,
     rawListCount: list.length,
@@ -134,6 +154,7 @@ export function usePurchaseOrder() {
     setStatusFilter,
     createPO,
     updateStatus,
+    verifyPenerimaan,
     refresh: fetchAll,
   }
 }

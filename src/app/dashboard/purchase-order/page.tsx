@@ -5,8 +5,10 @@ import Link from 'next/link'
 import Topbar from '@/components/Topbar'
 import POTable from './components/POTable'
 import POWizardModal from './components/POWizardModal'
+import VerifyPenerimaanModal from './components/VerifyPenerimaanModal'
 import { usePurchaseOrder } from './hooks/usePurchaseOrder'
-import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn } from 'lucide-react'
+import { PurchaseOrder } from './types'
+import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn, ReceiptText, SlidersHorizontal } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function PurchaseOrderPage() {
@@ -24,10 +26,12 @@ export default function PurchaseOrderPage() {
     setStatusFilter,
     createPO,
     updateStatus,
+    verifyPenerimaan,
     refresh,
   } = usePurchaseOrder()
 
   const [showWizard, setShowWizard] = useState(false)
+  const [verifyingPO, setVerifyingPO] = useState<PurchaseOrder | null>(null)
 
   return (
     <div className="flex-1 pb-16">
@@ -94,24 +98,75 @@ export default function PurchaseOrderPage() {
           ))}
         </div>
 
-        {/* Action Header: Search & Tambah PO */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="relative w-72">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Cari no. PO, supplier, atau catatan..."
-              className="w-full pl-10 pr-4 py-2.5 clay-inset text-xs text-slate-700 placeholder:text-slate-400"
-            />
+        {/* Action Header: Search, Filter Tabs & Tambah PO */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari no. PO, supplier, atau catatan..."
+                className="w-full pl-10 pr-4 py-2.5 clay-inset text-xs text-slate-700 placeholder:text-slate-400"
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard/tagihan"
+                className="clay-btn flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 hover:text-emerald-700 cursor-pointer transition-colors"
+              >
+                <ReceiptText className="w-4 h-4 text-amber-500" />
+                <span>Halaman Tagihan ({counts.tagihan})</span>
+              </Link>
+
+              <button
+                onClick={() => setShowWizard(true)}
+                className="clay-btn-primary flex items-center gap-2 px-5 py-2.5 text-xs font-bold cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Buat PO Baru
+              </button>
+            </div>
           </div>
 
-          <button
-            onClick={() => setShowWizard(true)}
-            className="clay-btn-primary flex items-center gap-2 px-5 py-2.5 text-xs font-bold cursor-pointer"
-          >
-            <Plus className="w-4 h-4" /> Buat Purchase Order Baru
-          </button>
+          {/* Filter Bar Alur PO */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mr-1">
+              <SlidersHorizontal className="w-3.5 h-3.5" /> Filter Status:
+            </span>
+            {[
+              { key: 'all', label: 'Semua Status', count: counts.all },
+              { key: 'draft', label: 'Draft', count: counts.draft },
+              { key: 'dikirim', label: 'Dikirim', count: counts.dikirim },
+              { key: 'diterima', label: 'Diterima', count: counts.diterima },
+              { key: 'tagihan', label: 'Tagihan', count: counts.tagihan },
+            ].map(f => {
+              const isActive = statusFilter === f.key
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setStatusFilter(f.key)}
+                  className={clsx(
+                    'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5',
+                    isActive
+                      ? 'clay-btn-primary text-white shadow-sm'
+                      : 'clay-btn text-slate-600 hover:text-slate-900 bg-white'
+                  )}
+                >
+                  <span>{f.label}</span>
+                  <span
+                    className={clsx(
+                      'text-[10px] px-1.5 py-0.2 rounded-full font-mono',
+                      isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                    )}
+                  >
+                    {f.count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Loading / PO List Table */}
@@ -124,6 +179,7 @@ export default function PurchaseOrderPage() {
           <POTable
             list={list}
             onUpdateStatus={updateStatus}
+            onRequestVerifyTerima={po => setVerifyingPO(po)}
           />
         )}
       </main>
@@ -135,6 +191,14 @@ export default function PurchaseOrderPage() {
         onSave={createPO}
         suppliers={suppliers}
         bahanList={bahanList}
+      />
+
+      {/* Modal Verifikasi Penerimaan Barang */}
+      <VerifyPenerimaanModal
+        isOpen={!!verifyingPO}
+        onClose={() => setVerifyingPO(null)}
+        po={verifyingPO}
+        onConfirm={verifyPenerimaan}
       />
     </div>
   )

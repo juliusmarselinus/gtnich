@@ -1,5 +1,13 @@
 import { createClient } from '@/lib/supabase/client'
-import { PurchaseOrder, POItem, POStatus, CreatePOInput, SupplierOption, BahanOption } from '../types'
+import {
+  PurchaseOrder,
+  POItem,
+  POStatus,
+  CreatePOInput,
+  SupplierOption,
+  BahanOption,
+  VerifyPenerimaanInput,
+} from '../types'
 import { getUnitConversionFactor } from '@/lib/satuan'
 
 interface RawPOItemDB {
@@ -294,6 +302,113 @@ export const purchaseOrderService = {
           jumlah: Number(currentPO.total_estimasi) || 0,
         })
       }
+    }
+  },
+
+  // Verifikasi Penerimaan Barang secara Terperinci (Item demi Item)
+  // Menyesuaikan stok masuk aktual, harga aktual, dan mencatat mutasi
+  async verifyPenerimaan(input: VerifyPenerimaanInput): Promise<void> {
+    const supabase = createClient()
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    if (!userId) throw new Error('Sesi auth tidak ditemukan.')
+
+    // 1. Ambil PO saat ini
+    const { data: currentPO, error: fetchErr } = await supabase
+      .from('purchase_orders')
+      .select('*, po_items(*)')
+      .eq('id', input.poId)
+      .single()
+
+    if (fetchErr || !currentPO) {
+      throw new Error('Data Purchase Order tidak ditemukan.')
+    }
+
+    const todayIso = new Date().toISOString()
+
+    // 2. Update Header PO -> status 'diterima', tanggal_terima, total_aktual
+    const { error: poErr } = await supabase
+      .from('purchase_orders')
+      .update({
+        status: 'diterima',
+        tanggal_terima: todayIso,
+        total_aktual: input.totalAktual,
+        catatan: input.catatanPenerimaan
+          ? `${currentPO.catatan ? currentPO.catatan + ' | ' : ''}Verifikasi Terima: ${input.catatanPenerimaan}`
+          : currentPO.catatan,
+        updated_at: todayIso,
+      })
+      .eq('id', input.poId)
+
+    if (poErr) {
+      throw new Error(`Gagal memperbarui status PO: ${poErr.message}`)
+    }
+
+    // 3. Update setiap item PO & mutasi stok bahan
+    for (const vItem of input.items) {
+      // Perbarui item PO dengan harga & kuantitas aktual yang diterima
+      await supabase
+        .from('po_items')
+        .update({
+          qty: vItem.qtyDiterima,
+          harga_aktual: vItem.hargaAktual,
+          diterima: true,
+        })
+        .eq('id', vItem.itemId)
+
+      // Ambil stok & satuan master bahan terkini
+      const { data: bhn } = await supabase
+        .from('bahan')
+        .select('stok, satuan')
+        .eq('id', vItem.bahanId)
+        .single()
+
+      const currentStock = bhn ? Number(bhn.stok) || 0 : 0
+      const baseUnit = bhn?.satuan || vItem.satuan
+      const factor = getUnitConversionFactor(vItem.satuan, baseUnit)
+      const addedStock = Number((vItem.qtyDiterima * factor).toFixed(3))
+      const newStock = Number((currentStock + addedStock).toFixed(3))
+
+      // Update stok fisik di tabel bahan
+      await supabase
+        .from('bahan')
+        .update({ stok: newStock, updated_at: todayIso })
+        .eq('id', vItem.bahanId)
+
+      // Catat ke stok_logs
+      const noteParts = [
+        `Penerimaan diverifikasi: ${vItem.qtyDiterima} ${vItem.satuan}`,
+      ]
+      if (factor !== 1) noteParts.push(`(= ${addedStock} ${baseUnit})`)
+      if (vItem.qtyDiterima !== vItem.qtyPesan) {
+        noteParts.push(`[Selisih dr order ${vItem.qtyPesan} ${vItem.satuan}]`)
+      }
+      if (vItem.catatanItem) {
+        noteParts.push(`Ket: ${vItem.catatanItem}`)
+      }
+
+      await supabase.from('stok_logs').insert({
+        user_id: userId,
+        bahan_id: vItem.bahanId,
+        perubahan: addedStock,
+        stok_sebelum: currentStock,
+        stok_sesudah: newStock,
+        sumber: 'PO',
+        reference_id: input.poId,
+        catatan: `PO ${currentPO.no_po} dari ${currentPO.nama_supplier}: ${noteParts.join(' ')}`,
+      })
+    }
+
+    // 4. Catat riwayat pemasok
+    if (currentPO.supplier_id) {
+      await supabase.from('supplier_riwayat').insert({
+        user_id: userId,
+        supplier_id: currentPO.supplier_id,
+        tanggal: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+        keterangan: `Penerimaan & Verifikasi ${currentPO.no_po} (${input.items.length} item bahan)`,
+        jumlah: input.totalAktual,
+      })
     }
   },
 }

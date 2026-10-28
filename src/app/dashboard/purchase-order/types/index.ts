@@ -58,3 +58,23 @@ export interface CreatePOInput {
     stokSebelum: number
   }>
 }
+
+export interface VerifyItemPenerimaan {
+  itemId: string
+  bahanId: string
+  namaBahan: string
+  satuan: string
+  qtyPesan: number
+  qtyDiterima: number
+  hargaEstimasi: number
+  hargaAktual: number
+  isSesuai: boolean
+  catatanItem?: string
+}
+
+export interface VerifyPenerimaanInput {
+  poId: string
+  items: VerifyItemPenerimaan[]
+  totalAktual: number
+  catatanPenerimaan?: string
+}

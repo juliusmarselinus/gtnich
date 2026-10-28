@@ -83,4 +83,5 @@ import CustomSelect from '@/components/ui/CustomSelect'
 | **Stok Log** | `src/app/dashboard/stok-log/components/ManualMutasiModal.tsx` | Pemilihan bahan baku untuk mutasi masuk/keluar (searchable) |
 | **Menu & Resep** | `src/app/dashboard/menu/components/MenuModal.tsx` | Pemilihan kategori menu, satuan pecahan resep, dan bahan baku |
 | **Simulasi Finansial** | `src/app/dashboard/simulasi/page.tsx` | Target menu simulasi omzet, pemilihan bahan fluktuasi harga, & menu supply |
+| **Tagihan Supplier** | `src/app/dashboard/tagihan/page.tsx` & `TagihanDetailModal.tsx` | Pemilihan filter supplier & metode pembayaran faktur |
 | **Orders** | `src/app/dashboard/orders/page.tsx` | Saluran penjualan & metode pembayaran |
