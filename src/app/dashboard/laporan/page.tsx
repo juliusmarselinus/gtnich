@@ -1,128 +1,137 @@
 'use client'
 
 import Topbar from '@/components/Topbar'
-import { penjualanList, bahanList, menuList } from '@/lib/dapur-data'
-import { formatRupiah } from '@/lib/mock-data'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend,
-} from 'recharts'
+import CustomSelect from '@/components/ui/CustomSelect'
+import { useLaporan } from './hooks/useLaporan'
+import { TimeRangeFilter } from './types'
+import SummaryCards from './components/SummaryCards'
+import TrendChart from './components/TrendChart'
+import UsageAndMenuBreakdown from './components/UsageAndMenuBreakdown'
+import ChannelAndPaymentSection from './components/ChannelAndPaymentSection'
+import RecentSalesTable from './components/RecentSalesTable'
+import { RefreshCw, AlertCircle, Download } from 'lucide-react'
 
-// Compute data from mock
-const trendData = [
-  { date: '22 Okt', penjualan: 0, profit: 0 },
-  { date: '23 Okt', penjualan: 0, profit: 0 },
-  { date: '24 Okt', penjualan: 180000, profit: 113100 },
-  { date: '25 Okt', penjualan: 195000, profit: 128925 },
-  { date: '26 Okt', penjualan: 340000, profit: 213400 },
-  { date: '27 Okt', penjualan: 210000, profit: 135675 },
+const RANGE_OPTIONS = [
+  { label: '7 Hari Terakhir', value: '7d' },
+  { label: '30 Hari Terakhir', value: '30d' },
+  { label: 'Bulan Ini', value: 'this_month' },
+  { label: 'Semua Waktu', value: 'all' },
 ]
 
-function getBahanUsage() {
-  const usage: Record<string, number> = {}
-  penjualanList.forEach(p => {
-    p.items.forEach(item => {
-      const menu = menuList.find(m => m.id === item.menuId)
-      if (!menu) return
-      menu.resep.forEach(r => {
-        usage[r.namaBahan] = (usage[r.namaBahan] || 0) + r.qty * item.qty
-      })
-    })
-  })
-  return Object.entries(usage)
-    .map(([nama, qty]) => ({ nama, qty: Math.round(qty * 100) / 100 }))
-    .sort((a, b) => b.qty - a.qty)
-    .slice(0, 8)
-}
-
-function getMenuBreakdown() {
-  const count: Record<string, number> = {}
-  penjualanList.forEach(p => {
-    p.items.forEach(item => {
-      count[item.namaMenu] = (count[item.namaMenu] || 0) + item.qty
-    })
-  })
-  return Object.entries(count).map(([name, value]) => ({ name, value }))
-}
-
-const COLORS = ['#10b981', '#06b6d4', '#6366f1', '#f59e0b', '#ec4899', '#84cc16']
-
-const bahanUsage = getBahanUsage()
-const menuBreakdown = getMenuBreakdown()
-
-const totalRevenue = penjualanList.reduce((s, p) => s + p.totalJual, 0)
-const totalProfit = penjualanList.reduce((s, p) => s + p.profit, 0)
-const totalTransaksi = penjualanList.length
-
 export default function LaporanPage() {
+  const { data, range, isLoading, error, handleRangeChange, handleRefresh } = useLaporan()
+
+  const currentOption = RANGE_OPTIONS.find(o => o.value === range) || RANGE_OPTIONS[0]
+
+  const handlePrint = () => {
+    window.print()
+  }
+
   return (
     <div className="flex-1 pb-16">
-      <Topbar title="Laporan & Statistik Dapur" subtitle="Analisis kinerja omzet, estimasi kebutuhan bahan terpakai, dan pola menu terlaris" />
+      <Topbar
+        title="Laporan & Statistik Dapur"
+        subtitle="Analisis real-time omzet, estimasi profit bersih, konsumsi bahan baku, dan performa menu dari database"
+      />
 
-      <main className="p-8 space-y-7 max-w-7xl mx-auto">
-        {/* Summary Clay Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          {[
-            { label: 'Total Omzet Terkumpul', value: formatRupiah(totalRevenue), sub: `${totalTransaksi} transaksi penjualan` },
-            { label: 'Total Estimasi Profit', value: formatRupiah(totalProfit), sub: `${((totalProfit / totalRevenue) * 100).toFixed(1)}% margin rata-rata` },
-            { label: 'Nilai Keranjang Rata-rata', value: formatRupiah(Math.round(totalRevenue / totalTransaksi)), sub: 'Per transaksi pelanggan' },
-          ].map(s => (
-            <div key={s.label} className="clay-card p-6">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
-              <p className="text-2xl font-black text-slate-800 mt-1.5 font-mono">{s.value}</p>
-              <p className="text-xs text-emerald-600 font-bold mt-1">{s.sub}</p>
+      <main className="p-6 md:p-8 space-y-7 max-w-7xl mx-auto">
+        {/* Controls Bar: Filter Waktu & Action Buttons */}
+        <div className="clay-card p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+              Periode Laporan:
+            </span>
+            <div className="w-48">
+              <CustomSelect
+                value={currentOption.label}
+                onChange={selectedLabel => {
+                  const match = RANGE_OPTIONS.find(o => o.label === selectedLabel)
+                  if (match) handleRangeChange(match.value as TimeRangeFilter)
+                }}
+                options={RANGE_OPTIONS.map(o => o.label)}
+              />
             </div>
-          ))}
-        </div>
-
-        {/* Trend Chart Clay Card */}
-        <div className="clay-card p-6 space-y-4">
-          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Tren Penjualan & Profit 7 Hari</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={trendData} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748b' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: any) => formatRupiah(Number(v) || 0)} contentStyle={{ fontSize: 11, borderRadius: 16, border: '1px solid #cbd5e1', boxShadow: '4px 4px 12px #d8e2ed' }} />
-              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-              <Line type="monotone" dataKey="penjualan" stroke="#10b981" strokeWidth={3} dot={{ r: 5 }} name="Penjualan" />
-              <Line type="monotone" dataKey="profit" stroke="#06b6d4" strokeWidth={3} dot={{ r: 5 }} name="Profit" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Bar + Pie Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Kebutuhan Bahan */}
-          <div className="clay-card p-6 space-y-4">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Kebutuhan Bahan Terpakai Terbanyak</h3>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={bahanUsage} layout="vertical" margin={{ top: 0, right: 10, bottom: 0, left: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} />
-                <YAxis type="category" dataKey="nama" tick={{ fontSize: 10, fill: '#64748b' }} width={70} />
-                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 16, border: '1px solid #cbd5e1' }} />
-                <Bar dataKey="qty" fill="#10b981" radius={[0, 8, 8, 0]} name="Qty Dipakai" />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
 
-          {/* Menu Breakdown */}
-          <div className="clay-card p-6 space-y-4">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Distribusi Pola Penjualan Menu</h3>
-            <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie data={menuBreakdown} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value" nameKey="name">
-                  {menuBreakdown.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 16, border: '1px solid #cbd5e1' }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="px-3.5 py-2 clay-btn rounded-xl text-xs font-bold text-slate-600 hover:text-slate-800 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh Data</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="px-3.5 py-2 clay-btn rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 flex items-center gap-2 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Cetak / PDF</span>
+            </button>
           </div>
         </div>
+
+        {/* Error State */}
+        {error && (
+          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-bold">Gagal Mengambil Data Laporan</p>
+              <p className="text-[11px] text-rose-600 mt-0.5">{error}</p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              className="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold text-[11px] hover:bg-rose-700"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        )}
+
+        {/* Loading State Skeleton */}
+        {isLoading && !data ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="clay-card p-6 h-28 animate-pulse bg-slate-100" />
+              ))}
+            </div>
+            <div className="clay-card p-6 h-72 animate-pulse bg-slate-100" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="clay-card p-6 h-64 animate-pulse bg-slate-100" />
+              <div className="clay-card p-6 h-64 animate-pulse bg-slate-100" />
+            </div>
+          </div>
+        ) : (
+          data && (
+            <>
+              {/* 1. Summary Cards */}
+              <SummaryCards summary={data.summary} />
+
+              {/* 2. Tren Omzet & Profit */}
+              <TrendChart trend={data.trend} rangeLabel={currentOption.label} />
+
+              {/* 3. Bahan Usage & Menu Terlaris Breakdown */}
+              <UsageAndMenuBreakdown
+                bahanUsage={data.bahanUsage}
+                menuBreakdown={data.menuBreakdown}
+              />
+
+              {/* 4. Saluran Penjualan & Preferensi Pembayaran */}
+              <ChannelAndPaymentSection
+                channelBreakdown={data.channelBreakdown}
+                paymentBreakdown={data.paymentBreakdown}
+              />
+
+              {/* 5. Transaksi Penjualan Terakhir */}
+              <RecentSalesTable sales={data.recentSales} />
+            </>
+          )
+        )}
       </main>
     </div>
   )
