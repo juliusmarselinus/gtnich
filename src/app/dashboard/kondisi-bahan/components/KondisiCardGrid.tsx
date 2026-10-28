@@ -143,9 +143,9 @@ export default function KondisiCardGrid({ list }: KondisiCardGridProps) {
             </div>
 
             {/* Footer Harga & Supplier */}
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 font-medium">
-              <span className="font-mono">{formatRupiah(b.hargaPerSatuan)}/{b.satuan}</span>
-              <span className="truncate max-w-[55%] text-right text-[11px] text-slate-400">
+            <div className="flex items-center justify-between gap-2 text-xs text-slate-500 pt-2 border-t border-slate-100 font-medium">
+              <span className="font-mono whitespace-nowrap">{formatRupiah(b.hargaPerSatuan)}/{b.satuan}</span>
+              <span className="text-right text-[11px] text-slate-400 font-medium truncate" title={b.namaSupplier}>
                 {b.namaSupplier}
               </span>
             </div>

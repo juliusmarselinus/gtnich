@@ -79,13 +79,14 @@ export function usePenjualan() {
     })
   }, [menus, selectedKategori, searchMenu])
 
-  // Operasi Keranjang (Cart)
-  const addToCart = (menu: MenuItem) => {
+  // Operasi Keranjang (Cart) dengan penyesuaian quantity awal
+  const addToCart = (menu: MenuItem, qty: number = 1) => {
+    const addQuantity = Math.max(1, qty)
     setCart(prev => {
       const existing = prev.find(c => c.menuId === menu.id)
       if (existing) {
         return prev.map(c =>
-          c.menuId === menu.id ? { ...c, cartQty: c.cartQty + 1 } : c
+          c.menuId === menu.id ? { ...c, cartQty: c.cartQty + addQuantity } : c
         )
       }
 
@@ -106,7 +107,7 @@ export function usePenjualan() {
           emoji: menu.emoji || '🍽️',
           hargaJual: menu.hargaJual,
           hpp: menu.estimasiHPP,
-          cartQty: 1,
+          cartQty: addQuantity,
           resep: resepList,
         },
       ]

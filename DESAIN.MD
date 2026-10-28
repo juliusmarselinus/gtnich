@@ -84,4 +84,29 @@ import CustomSelect from '@/components/ui/CustomSelect'
 | **Menu & Resep** | `src/app/dashboard/menu/components/MenuModal.tsx` | Pemilihan kategori menu, satuan pecahan resep, dan bahan baku |
 | **Simulasi Finansial** | `src/app/dashboard/simulasi/page.tsx` | Target menu simulasi omzet, pemilihan bahan fluktuasi harga, & menu supply |
 | **Tagihan Supplier** | `src/app/dashboard/tagihan/page.tsx` & `TagihanDetailModal.tsx` | Pemilihan filter supplier & metode pembayaran faktur |
-| **Orders** | `src/app/dashboard/orders/page.tsx` | Saluran penjualan & metode pembayaran |
+| **Input Penjualan (Kasir)** | `src/app/dashboard/penjualan/components/CartPOS.tsx` | Saluran penjualan & metode pembayaran kasir |
+
+---
+
+## 4. Standar Tipografi, Spasi & Anti-Overflow (Anti-Clipping Rules)
+
+Untuk menjaga estetika dan kenyamanan visual di seluruh perangkat (Desktop, Tablet, Mobile), setiap komponen antarmuka wajib mematuhi aturan penempatan teks berikut:
+
+1. **Dilarang Menempatkan Teks Terpotong / Tertimpa (*No Text Clipping or Overlap*)**:
+   - Seluruh teks judul, label, angka harga, dan kuantitas tidak boleh tertimpa oleh ikon, tombol aksi, atau elemen lain.
+   - Hindari penggunaan `truncate` kaku dengan lebar piksel kecil yang memotong informasi penting. Gunakan `line-clamp-2` atau fleksibilitas `flex-wrap` / `min-w-0` agar kata tetap terbaca utuh.
+
+2. **Dilarang Menempatkan Badge / Teks Terlalu di Sudut Luar (*No Off-Card Badges*)**:
+   - Badge kuantitas, status, atau counter tidak boleh menggunakan posisi negatif ekstrem (seperti `-top-2 -right-2` yang menjorok keluar batas kartu) karena menyebabkan tampilan berantakan di layar kecil, terpotong oleh `overflow-hidden`, atau menimpa kartu di sebelahnya.
+   - Badge wajib diletakkan secara rapi **di dalam (*in-flow*) batas kartu** (contoh: di bagian header kartu dengan padding internal yang lega).
+
+3. **Padding Aman Minimal (*Safe Margins*)**:
+   - Setiap teks wajib memiliki jarak minimal `0.5rem` (8px) dari batas terluar kontainer pembungkusnya.
+   - Baris dalam tabel wajib menggunakan padding vertikal minimal `py-3` dan horizontal `px-4` atau `px-5` dengan pembungkus `overflow-x-auto` agar tidak mepet ke tepi layar ponsel.
+
+4. **Kualitas Frasa Status & Keterangan (*Human-friendly Microcopy*)**:
+   - Gunakan frasa yang jelas, formal, dan komunikatif:
+     - ❌ *"4 di keranjang"* ➔ ✔️ *"4 Porsi Terpilih"*
+     - ❌ *"0 produk"* ➔ ✔️ *"Stok Habis (0 pcs)"*
+     - ❌ *"PO"* ➔ ✔️ *"Purchase Order"*
+

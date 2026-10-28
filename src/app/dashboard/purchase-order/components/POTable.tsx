@@ -70,7 +70,7 @@ export default function POTable({
                   <td className="px-6 py-4">
                     <p className="font-mono font-bold text-slate-800 text-sm">{po.noPO}</p>
                     {po.catatan && (
-                      <p className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[180px]" title={po.catatan}>
+                      <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1 max-w-[220px]" title={po.catatan}>
                         {po.catatan}
                       </p>
                     )}

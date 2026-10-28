@@ -46,6 +46,12 @@ export default function PenjualanPage() {
   const [activeTab, setActiveTab] = useState<'katalog' | 'riwayat'>('katalog')
   const [successNotif, setSuccessNotif] = useState<string | null>(null)
 
+  // Map kuantitas keranjang per menuId untuk badge di kartu menu
+  const cartItemCounts = cart.reduce((acc, item) => {
+    acc[item.menuId] = item.cartQty
+    return acc
+  }, {} as Record<string, number>)
+
   const handleCheckout = async (form: any) => {
     const res = await processCheckout(form)
     setSuccessNotif(`Transaksi ${res.invoiceNumber} berhasil disimpan! Bahan baku telah dipotong dari stok.`)
@@ -183,7 +189,11 @@ export default function PenjualanPage() {
                   <p className="text-xs font-semibold">Memuat katalog menu dari database Supabase...</p>
                 </div>
               ) : (
-                <MenuKatalogGrid menus={menus} onAddToCart={addToCart} />
+                <MenuKatalogGrid
+                  menus={menus}
+                  cartItemCounts={cartItemCounts}
+                  onAddToCart={addToCart}
+                />
               )}
             </div>
 
