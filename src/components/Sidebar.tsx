@@ -39,6 +39,12 @@ const navSections = [
       { href: '/dashboard/rekomendasi', label: 'Rekomendasi', icon: Lightbulb },
     ],
   },
+  {
+    label: 'Tools',
+    items: [
+      { href: '/dashboard/ocr-nota', label: 'OCR Nota', icon: Image },
+    ],
+  },
 ]
 
 export default function Sidebar() {
