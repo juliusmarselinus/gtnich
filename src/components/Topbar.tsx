@@ -1,8 +1,9 @@
 'use client'
 
-import { Bell, Search, Sparkles, Check, ExternalLink, Package, ShoppingCart, Receipt, AlertTriangle } from 'lucide-react'
+import { Bell, Search, Sparkles, Check, ExternalLink, Package, ShoppingCart, Receipt, AlertTriangle, Menu } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useSidebar } from '@/context/SidebarContext'
 import Link from 'next/link'
 import clsx from 'clsx'
 
@@ -15,6 +16,7 @@ interface TopbarProps {
 export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const { notifications, unreadCount, markAllRead } = useNotifications()
+  const { toggleSidebar } = useSidebar()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Tutup dropdown saat klik di luar
@@ -44,12 +46,24 @@ export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4 bg-[#f3f6fa]/80 backdrop-blur-md border-b border-slate-200/60">
-      <div>
-        <h2 className="text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
-          {title}
-        </h2>
-        {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+    <header className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 md:px-8 py-3.5 sm:py-4 bg-[#f3f6fa]/90 backdrop-blur-md border-b border-slate-200/60">
+      <div className="flex items-center gap-3">
+        {/* Mobile Hamburger Button */}
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          aria-label="Buka menu navigasi"
+          className="lg:hidden p-2 rounded-xl clay-card text-slate-600 hover:text-slate-900 cursor-pointer"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div>
+          <h2 className="text-base sm:text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+            {title}
+          </h2>
+          {subtitle && <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 line-clamp-1">{subtitle}</p>}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

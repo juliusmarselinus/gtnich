@@ -54,7 +54,7 @@ export default function MenuPage() {
         subtitle="Kelola menu masakan, takaran komposisi bahan baku resep, estimasi HPP riil, dan margin laba langsung di PostgreSQL Supabase"
       />
 
-      <main className="p-8 space-y-6 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
         {/* Banner Akun / Sesi Belum Login */}
         {!userEmail && !loading && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-amber-800 text-xs">

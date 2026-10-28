@@ -66,7 +66,7 @@ export default function DashboardPage() {
         subtitle="Pantau omzet harian, pesanan terbaru, dan batas aman persediaan bahan dari database"
       />
 
-      <main className="p-6 md:p-8 space-y-7 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-7xl mx-auto">
         {/* Error Alert */}
         {error && (
           <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between">

@@ -37,7 +37,7 @@ export default function RiwayatPage() {
         subtitle="Arsip log transaksi penjualan kasir dan riwayat pesanan purchase order ke distributor dari database"
       />
 
-      <main className="p-6 md:p-8 space-y-6 max-w-6xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 max-w-6xl mx-auto">
         {/* Navigation Tabs and Actions */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div className="flex gap-2.5">

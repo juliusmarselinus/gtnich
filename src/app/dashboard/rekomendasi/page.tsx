@@ -46,7 +46,7 @@ export default function RekomendasiPage() {
         subtitle="Insight dan anjuran prediktif berbasis data riil stok gudang, tren penjualan kasir, dan kalkulasi profitabilitas"
       />
 
-      <main className="p-6 md:p-8 space-y-7 max-w-5xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-5xl mx-auto">
         {/* Banner Clay Card */}
         <div className="clay-card p-6 flex flex-col sm:flex-row items-center gap-5">
           <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 clay-pill">

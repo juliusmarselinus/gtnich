@@ -34,7 +34,7 @@ export default function LaporanPage() {
         subtitle="Analisis real-time omzet, estimasi profit bersih, konsumsi bahan baku, dan performa menu dari database"
       />
 
-      <main className="p-6 md:p-8 space-y-7 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-7xl mx-auto">
         {/* Controls Bar: Filter Waktu & Action Buttons */}
         <div className="clay-card p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto">

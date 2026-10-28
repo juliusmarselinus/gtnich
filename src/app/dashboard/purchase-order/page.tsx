@@ -40,7 +40,7 @@ export default function PurchaseOrderPage() {
         subtitle="Buat PO bertahap: rancang pesanan, kirim ke supplier, verifikasi penerimaan barang (+stok otomatis), dan monitor tagihan"
       />
 
-      <main className="p-8 space-y-7 max-w-6xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">
         {/* Banner Akun / Sesi Belum Login */}
         {!userEmail && !loading && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-amber-800 text-xs">

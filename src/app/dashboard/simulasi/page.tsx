@@ -42,7 +42,7 @@ export default function SimulasiPage() {
         subtitle="Eksplorasi proyeksi keuntungan penjualan, perubahan harga bahan baku distributor, dan kecukupan supply berbasis database"
       />
 
-      <main className="p-6 md:p-8 space-y-7 max-w-5xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-5xl mx-auto">
         {/* Navigation Tabs and Refresh Button */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div className="flex flex-wrap gap-2.5">

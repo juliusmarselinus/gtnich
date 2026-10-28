@@ -61,7 +61,7 @@ export default function PenjualanPage() {
         subtitle="Pilih menu pesanan pembeli dari database, hitung keuntungan instan, dan potong stok bahan baku secara otomatis"
       />
 
-      <main className="p-8 max-w-7xl mx-auto space-y-6">
+      <main className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6">
         {/* Banner Akun / Sesi Belum Login */}
         {!userEmail && !loading && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-amber-800 text-xs">

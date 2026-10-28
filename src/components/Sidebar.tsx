@@ -3,10 +3,11 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
+import { useSidebar } from '@/context/SidebarContext'
 import {
   Compass, Package, BarChart2, ChefHat, LogOut,
   Truck, ClipboardList, ShoppingCart, History, BoxSelect,
-  Lightbulb, Image, Database, Sparkles, UtensilsCrossed, Receipt,
+  Lightbulb, Image, Database, Sparkles, UtensilsCrossed, Receipt, X,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -51,6 +52,7 @@ export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { isOpen, closeSidebar } = useSidebar()
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -59,24 +61,52 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-68 min-h-screen bg-[#f3f6fa] border-r border-slate-200/80 flex flex-col flex-shrink-0 select-none overflow-y-auto relative z-20 p-4">
-      {/* Brand Header Clay Card */}
-      <div className="clay-card p-4 flex-shrink-0 mb-5">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/30 transition-transform duration-300 group-hover:scale-105">
-            <UtensilsCrossed className="w-6 h-6 drop-shadow" />
-          </div>
-          <div>
-            <span className="font-extrabold text-lg tracking-tight text-slate-800 block leading-tight flex items-center gap-1.5">
-              DapurTwin
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            </span>
-            <span className="text-[11px] text-slate-400 font-medium">
-              Manajemen Dapur & Stok
-            </span>
-          </div>
-        </Link>
-      </div>
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          onClick={closeSidebar}
+          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-200"
+        />
+      )}
+
+      {/* Sidebar Drawer */}
+      <aside
+        className={clsx(
+          'w-68 min-h-screen bg-[#f3f6fa] border-r border-slate-200/80 flex flex-col flex-shrink-0 select-none overflow-y-auto z-50 p-4 transition-transform duration-300 ease-in-out',
+          // Desktop fixed layout
+          'lg:static lg:translate-x-0',
+          // Mobile fixed off-canvas drawer
+          'fixed inset-y-0 left-0',
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        )}
+      >
+        {/* Brand Header Clay Card */}
+        <div className="clay-card p-4 flex-shrink-0 mb-5 flex items-center justify-between">
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/30 transition-transform duration-300 group-hover:scale-105">
+              <UtensilsCrossed className="w-6 h-6 drop-shadow" />
+            </div>
+            <div>
+              <span className="font-extrabold text-lg tracking-tight text-slate-800 block leading-tight flex items-center gap-1.5">
+                DapurTwin
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium">
+                Manajemen Dapur & Stok
+              </span>
+            </div>
+          </Link>
+
+          {/* Tombol Close di Mobile */}
+          <button
+            type="button"
+            onClick={closeSidebar}
+            className="lg:hidden p-1.5 rounded-xl clay-btn text-slate-400 hover:text-slate-800 cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
       {/* Nav Sections */}
       <nav className="flex-1 space-y-4">
@@ -142,5 +172,6 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   )
 }
