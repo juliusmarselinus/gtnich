@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { SupplierOption, BahanOption, CreatePOInput } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
-import { Plus, X, Loader2 } from 'lucide-react'
+import { Plus, X, Loader2, CheckCircle2, AlertCircle, Building2 } from 'lucide-react'
 import clsx from 'clsx'
 import CustomSelect from '@/components/ui/CustomSelect'
+import { getCompatibleOrderUnits, getUnitConversionFactor, DEFAULT_SATUAN_LIST } from '@/lib/satuan'
 
 interface POWizardModalProps {
   isOpen: boolean
@@ -26,13 +27,50 @@ export default function POWizardModal({
   const [supplierId, setSupplierId] = useState('')
   const [catatan, setCatatan] = useState('')
   const [items, setItems] = useState<CreatePOInput['items']>([])
-  const [newItem, setNewItem] = useState({ bahanId: '', qty: 0, hargaEstimasi: 0 })
+  const [newItem, setNewItem] = useState({
+    bahanId: '',
+    qty: 0,
+    satuan: '',
+    hargaEstimasi: 0,
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   if (!isOpen) return null
 
   const selectedSupplier = suppliers.find(s => s.id === supplierId)
+  const currentBahan = bahanList.find(b => b.id === newItem.bahanId)
+  const availableUnits = currentBahan
+    ? getCompatibleOrderUnits(currentBahan.satuan)
+    : [...DEFAULT_SATUAN_LIST]
+
+  const handleBahanSelect = (id: string) => {
+    const b = bahanList.find(x => x.id === id)
+    if (b) {
+      const units = getCompatibleOrderUnits(b.satuan)
+      const defaultUnit = units[0] || b.satuan || 'kg'
+      const factor = getUnitConversionFactor(defaultUnit, b.satuan)
+      setNewItem({
+        bahanId: id,
+        qty: 1,
+        satuan: defaultUnit,
+        hargaEstimasi: Math.round(b.hargaPerSatuan * factor),
+      })
+    } else {
+      setNewItem({ bahanId: '', qty: 0, satuan: '', hargaEstimasi: 0 })
+    }
+  }
+
+  const handleUnitChange = (newUnit: string) => {
+    if (!currentBahan) return
+    const factor = getUnitConversionFactor(newUnit, currentBahan.satuan)
+    // Otomatis sesuaikan estimasi harga per satuan yang dipilih
+    setNewItem(p => ({
+      ...p,
+      satuan: newUnit,
+      hargaEstimasi: Math.round(currentBahan.hargaPerSatuan * factor),
+    }))
+  }
 
   const addItem = () => {
     if (!newItem.bahanId) {
@@ -47,19 +85,21 @@ export default function POWizardModal({
     const bahan = bahanList.find(b => b.id === newItem.bahanId)
     if (!bahan) return
 
+    const unit = newItem.satuan || bahan.satuan
     const price = newItem.hargaEstimasi || bahan.hargaPerSatuan
+
     setItems(prev => [
       ...prev,
       {
         bahanId: bahan.id,
         namaBahan: bahan.nama,
-        satuan: bahan.satuan,
+        satuan: unit,
         qty: newItem.qty,
         hargaEstimasi: price,
         stokSebelum: bahan.stok,
       },
     ])
-    setNewItem({ bahanId: '', qty: 0, hargaEstimasi: 0 })
+    setNewItem({ bahanId: '', qty: 0, satuan: '', hargaEstimasi: 0 })
     setErrorMsg(null)
   }
 
@@ -126,32 +166,90 @@ export default function POWizardModal({
 
         {/* STEP 1: Pilih Supplier */}
         {step === 1 && (
-          <div className="space-y-3">
-            <h3 className="text-sm font-extrabold text-slate-800">1. Pilih Supplier Tujuan</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-              {suppliers.map(s => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => {
-                    setSupplierId(s.id)
-                    setErrorMsg(null)
-                  }}
-                  className={clsx(
-                    'w-full text-left px-4 py-3 rounded-2xl transition-all cursor-pointer',
-                    supplierId === s.id ? 'clay-btn-primary' : 'clay-btn text-slate-700'
-                  )}
-                >
-                  <p className="text-xs font-bold">{s.nama}</p>
-                  <p className={clsx('text-[10px] mt-0.5', supplierId === s.id ? 'text-emerald-100' : 'text-slate-400')}>
-                    {s.kategori ? `${s.kategori} • ` : ''}Min. Order {formatRupiah(s.minimalOrder || 0)}
-                  </p>
-                </button>
-              ))}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-1">
+                <Building2 className="w-4 h-4 text-emerald-600" />
+                1. Pilih Supplier Tujuan
+              </h3>
+              <p className="text-xs text-slate-500">
+                Tentukan distributor atau pemasok bahan baku untuk penerbitan PO ini.
+              </p>
+            </div>
+
+            {/* Status Indikator Pilihan Supplier */}
+            {selectedSupplier ? (
+              <div className="p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-200 flex items-center justify-between shadow-[inset_1px_1px_2px_#ffffff]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-emerald-900 leading-tight">
+                      {selectedSupplier.nama}
+                    </p>
+                    <p className="text-[10px] text-emerald-700 font-medium">
+                      {selectedSupplier.kategori ? `${selectedSupplier.kategori} • ` : ''}Min. Order: {formatRupiah(selectedSupplier.minimalOrder || 0)}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-full">
+                  Terpilih ✓
+                </span>
+              </div>
+            ) : (
+              <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-center gap-2 text-amber-800 text-xs">
+                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <span>Silakan klik salah satu kartu supplier di bawah untuk memilih:</span>
+              </div>
+            )}
+
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              {suppliers.map(s => {
+                const isSelected = supplierId === s.id
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => {
+                      setSupplierId(s.id)
+                      setErrorMsg(null)
+                    }}
+                    className={clsx(
+                      'w-full text-left px-4 py-3 rounded-2xl transition-all cursor-pointer relative',
+                      isSelected
+                        ? 'clay-btn-primary ring-2 ring-emerald-500 ring-offset-2'
+                        : 'clay-btn text-slate-700 hover:border-emerald-300'
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold leading-tight">{s.nama}</p>
+                        <p
+                          className={clsx(
+                            'text-[10px] mt-1',
+                            isSelected ? 'text-emerald-100 font-medium' : 'text-slate-400'
+                          )}
+                        >
+                          {s.kategori ? `${s.kategori} • ` : ''}Min. Order {formatRupiah(s.minimalOrder || 0)}
+                        </p>
+                      </div>
+                      {isSelected ? (
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      ) : (
+                        <span className="w-4 h-4 rounded-full border border-slate-300 flex-shrink-0" />
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
               {suppliers.length === 0 && (
-                <p className="text-xs text-slate-400 italic">Belum ada supplier di database. Tambahkan supplier terlebih dahulu di menu Supplier.</p>
+                <p className="text-xs text-slate-400 italic text-center py-4">
+                  Belum ada supplier di database. Tambahkan supplier terlebih dahulu di menu Supplier.
+                </p>
               )}
             </div>
+
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
                 Catatan Tambahan (Opsional)
@@ -197,17 +295,17 @@ export default function POWizardModal({
 
             {/* Form Input Item */}
             <div className="space-y-3 p-4 clay-inset rounded-2xl">
-              <p className="text-[11px] font-bold text-slate-600">Pilih Bahan Masuk</p>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold text-slate-600">Pilih Bahan Masuk</p>
+                {currentBahan && (
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Master: {formatRupiah(currentBahan.hargaPerSatuan)}/{currentBahan.satuan}
+                  </span>
+                )}
+              </div>
               <CustomSelect
                 value={newItem.bahanId}
-                onChange={val => {
-                  const b = bahanList.find(x => x.id === val)
-                  setNewItem(p => ({
-                    ...p,
-                    bahanId: val,
-                    hargaEstimasi: b?.hargaPerSatuan ?? 0,
-                  }))
-                }}
+                onChange={val => handleBahanSelect(val)}
                 variant="card"
                 placeholder="-- Pilih Bahan Baku --"
                 searchable={true}
@@ -219,9 +317,9 @@ export default function POWizardModal({
                 }))}
               />
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold">Qty Diorder</label>
+                  <label className="text-[10px] text-slate-500 font-bold block mb-1">Qty Diorder</label>
                   <input
                     type="number"
                     min="0.01"
@@ -232,7 +330,20 @@ export default function POWizardModal({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold">Estimasi Harga Satuan (Rp)</label>
+                  <label className="text-[10px] text-slate-500 font-bold block mb-1">Satuan Order</label>
+                  <CustomSelect
+                    value={newItem.satuan || currentBahan?.satuan || 'item'}
+                    onChange={val => handleUnitChange(val)}
+                    disabled={!currentBahan}
+                    variant="card"
+                    size="sm"
+                    options={availableUnits.map(u => ({ value: u, label: u }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold block mb-1">
+                    Harga / Satuan (Rp)
+                  </label>
                   <input
                     type="number"
                     min="0"
@@ -242,6 +353,15 @@ export default function POWizardModal({
                   />
                 </div>
               </div>
+
+              {newItem.bahanId && newItem.qty > 0 && newItem.hargaEstimasi > 0 && (
+                <div className="flex justify-between items-center px-3 py-1.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-[11px]">
+                  <span className="text-emerald-700 font-medium">Subtotal Estimasi:</span>
+                  <span className="font-mono font-black text-emerald-800">
+                    {formatRupiah(newItem.qty * newItem.hargaEstimasi)}
+                  </span>
+                </div>
+              )}
 
               <button
                 type="button"
@@ -300,6 +420,7 @@ export default function POWizardModal({
           {step < 3 ? (
             <button
               type="button"
+              disabled={step === 1 && !supplierId}
               onClick={() => {
                 if (step === 1 && !supplierId) {
                   setErrorMsg('Pilih salah satu supplier terlebih dahulu')
@@ -312,7 +433,10 @@ export default function POWizardModal({
                 setErrorMsg(null)
                 setStep(s => s + 1)
               }}
-              className="flex-1 py-2.5 clay-btn-primary text-xs font-bold cursor-pointer"
+              className={clsx(
+                'flex-1 py-2.5 clay-btn-primary text-xs font-bold cursor-pointer transition-all',
+                step === 1 && !supplierId ? 'opacity-40 cursor-not-allowed grayscale' : ''
+              )}
             >
               Lanjut
             </button>

@@ -41,9 +41,10 @@ export default function POTable({
 
   return (
     <div className="clay-card overflow-hidden">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-slate-100 bg-slate-50/70">
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs min-w-[760px]">
+          <thead>
+            <tr className="border-b border-slate-100 bg-slate-50/70 whitespace-nowrap">
             <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">No. PO</th>
             <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Supplier Tujuan</th>
             <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Tanggal Buat</th>
@@ -61,7 +62,7 @@ export default function POTable({
 
             return (
               <Fragment key={po.id}>
-                <tr className="hover:bg-slate-50/50 transition-colors">
+                <tr className="hover:bg-slate-50/50 transition-colors whitespace-nowrap">
                   <td className="px-6 py-4">
                     <p className="font-mono font-bold text-slate-800 text-sm">{po.noPO}</p>
                     {po.catatan && (
@@ -168,6 +169,7 @@ export default function POTable({
           })}
         </tbody>
       </table>
+      </div>
 
       {list.length === 0 && (
         <div className="text-center py-12 text-slate-400 text-sm font-medium">

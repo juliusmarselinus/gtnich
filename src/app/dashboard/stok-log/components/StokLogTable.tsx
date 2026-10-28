@@ -61,9 +61,10 @@ export default function StokLogTable({
 
       {/* Table */}
       <div className="clay-card overflow-hidden">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-slate-100 bg-slate-50/70">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs min-w-[760px]">
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50/70 whitespace-nowrap">
               <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
                 Waktu Transaksi
               </th>
@@ -145,6 +146,7 @@ export default function StokLogTable({
             })}
           </tbody>
         </table>
+        </div>
 
         {logs.length === 0 && (
           <div className="text-center py-12 text-slate-400 text-sm font-medium">

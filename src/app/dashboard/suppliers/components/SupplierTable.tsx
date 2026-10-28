@@ -20,27 +20,28 @@ export default function SupplierTable({
 
   return (
     <div className="clay-card overflow-hidden">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-slate-100 bg-slate-50/70">
-            <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-              Nama Supplier
-            </th>
-            <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-              Kategori Pasokan
-            </th>
-            <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-              Min. Order
-            </th>
-            <th className="text-center px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-              Riwayat
-            </th>
-            <th className="px-6 py-4"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {list.map(s => (
-            <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs min-w-[650px]">
+          <thead>
+            <tr className="border-b border-slate-100 bg-slate-50/70 whitespace-nowrap">
+              <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                Nama Supplier
+              </th>
+              <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                Kategori Pasokan
+              </th>
+              <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                Min. Order
+              </th>
+              <th className="text-center px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+                Riwayat
+              </th>
+              <th className="px-6 py-4"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map(s => (
+              <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors whitespace-nowrap">
               <td className="px-6 py-4">
                 <p className="font-bold text-slate-800 text-sm">{s.nama}</p>
                 <p className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -90,6 +91,7 @@ export default function SupplierTable({
           ))}
         </tbody>
       </table>
+      </div>
 
       {/* Riwayat Detail Expand View */}
       {expandedId && (

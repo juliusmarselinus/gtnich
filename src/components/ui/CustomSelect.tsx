@@ -161,7 +161,7 @@ export default function CustomSelect({
         <div
           role="listbox"
           tabIndex={-1}
-          className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white rounded-2xl border border-slate-100/80 shadow-[0_12px_30px_rgba(0,0,0,0.12),0_4px_12px_rgba(16,185,129,0.08)] backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-150 max-h-60 overflow-hidden flex flex-col"
+          className="absolute z-[9999] left-0 right-0 mt-1.5 p-1.5 bg-white rounded-2xl border border-slate-100/80 shadow-[0_12px_30px_rgba(0,0,0,0.15),0_4px_12px_rgba(16,185,129,0.1)] backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-150 max-h-60 overflow-hidden flex flex-col"
         >
           {searchable && (
             <div className="p-1 mb-1 border-b border-slate-100 flex items-center gap-2 px-2.5">

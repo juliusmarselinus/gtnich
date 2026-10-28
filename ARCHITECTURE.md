@@ -64,3 +64,8 @@ src/app/dashboard/<fitur>/
 2. **Fleksibilitas Satuan di Resep Menu**:
    - Di resep menu, takaran dapat menggunakan pecahan yang relevan (misal: bahan master terdaftar dalam `kg`, namun di resep ditulis `200 gram`, `1 sdm`, atau `1 sdt`).
    - Sistem melakukan normalisasi rasio konversi secara matematis (`getUnitConversionFactor`) saat menghitung HPP live dan menyimpan kuantitas ke database `resep_items`, memastikan kalkulasi stok dan HPP selalu presisi.
+
+3. **Fleksibilitas Satuan Pembelian di Purchase Order (PO)**:
+   - Pembuatan PO memungkinkan pemesanan dalam satuan kemasan / grosir (misal: `karung (25kg)`, `jerigen (5L)`, `dus/karton`, `tray (30 butir)`, `pack (50 pcs)` atau satuan turunan `gram`, `ml`).
+   - Saat satuan diganti di modal PO, sistem otomatis menyesuaikan taksiran harga satuan sesuai rasio pengali.
+   - Saat status PO ditandai **Diterima**, sistem mengonversi kuantitas order secara akurat ke kuantitas satuan master bahan di database dan mencatat rinciannya di log mutasi `stok_logs`.

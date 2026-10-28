@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { PurchaseOrder, POItem, POStatus, CreatePOInput, SupplierOption, BahanOption } from '../types'
+import { getUnitConversionFactor } from '@/lib/satuan'
 
 interface RawPOItemDB {
   id: string
@@ -242,16 +243,21 @@ export const purchaseOrderService = {
     if (newStatus === 'diterima' && currentPO.status !== 'diterima') {
       const items = currentPO.po_items as RawPOItemDB[]
       for (const item of items) {
-        // Ambil stok terkini
+        // Ambil stok dan satuan master terkini
         const { data: bhn } = await supabase
           .from('bahan')
-          .select('stok')
+          .select('stok, satuan')
           .eq('id', item.bahan_id)
           .single()
 
         const currentStock = bhn ? Number(bhn.stok) || 0 : 0
+        const baseUnit = bhn?.satuan || item.satuan
         const itemQty = Number(item.qty) || 0
-        const newStock = Number((currentStock + itemQty).toFixed(3))
+
+        // Konversi kuantitas order ke satuan master bahan jika berbeda
+        const factor = getUnitConversionFactor(item.satuan, baseUnit)
+        const addedStock = Number((itemQty * factor).toFixed(3))
+        const newStock = Number((currentStock + addedStock).toFixed(3))
 
         // Update stok fisik di tabel bahan
         await supabase
@@ -263,12 +269,12 @@ export const purchaseOrderService = {
         await supabase.from('stok_logs').insert({
           user_id: userId,
           bahan_id: item.bahan_id,
-          perubahan: itemQty,
+          perubahan: addedStock,
           stok_sebelum: currentStock,
           stok_sesudah: newStock,
           sumber: 'PO',
           reference_id: poId,
-          catatan: `Penerimaan barang PO: ${currentPO.no_po} dari ${currentPO.nama_supplier}`,
+          catatan: `Penerimaan barang PO: ${currentPO.no_po} (${itemQty} ${item.satuan}${factor !== 1 ? ` = ${addedStock} ${baseUnit}` : ''}) dari ${currentPO.nama_supplier}`,
         })
 
         // Tandai item diterima
