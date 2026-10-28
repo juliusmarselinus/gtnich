@@ -38,6 +38,7 @@ src/app/dashboard/<fitur>/
 | **Tagihan Supplier (Invoices)** | `src/app/dashboard/tagihan/` | Tabel `purchase_orders`, `po_items`, `suppliers` | Manajemen terpisah faktur tagihan: pantau hutang/lunas, rincian nota faktur, serta pencatatan bukti pelunasan. |
 | **Kondisi Bahan & Expire AI** | `src/app/dashboard/kondisi-bahan/` | Tabel `bahan` & Google Gemini API / Smart Food Shelf-Life Engine | Menganalisis nama bahan dan tanggal masuk $\rightarrow$ memperkirakan tanggal kedaluwarsa, sisa hari, status kesegaran, serta tips penyimpanan. |
 | **Menu & Resep Masakan** | `src/app/dashboard/menu/` | Tabel `menus`, `resep_items`, & `bahan` | Pembuatan menu & komposisi resep bahan (BOM - Bill of Materials), kalkulasi HPP otomatis, dan margin laba riil. |
+| **Input Penjualan (Kasir POS)** | `src/app/dashboard/penjualan/` | Tabel `orders`, `order_items`, `menus`, `resep_items`, `bahan`, `stok_logs` | Kasir F&B: ambil katalog menu aktif, hitung laba/omzet riil, simpan nota, potong otomatis stok bahan baku sesuai resep & porsi, catat audit log mutasi keluar. |
 
 ---
 
