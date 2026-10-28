@@ -15,6 +15,8 @@ export function useOCRNota() {
 
   // State OCR flow
   const [state, setState] = useState<'idle' | 'uploading' | 'done'>('idle')
+  const [ocrProgress, setOcrProgress] = useState(0)
+  const [ocrStatusText, setOcrStatusText] = useState('')
   const [fileName, setFileName] = useState('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [scanResult, setScanResult] = useState<OCRScanResult | null>(null)
@@ -88,12 +90,14 @@ export function useOCRNota() {
     loadContext()
   }, [loadContext])
 
-  // Process File Upload & OCR
+  // Process File Upload & OCR via Tesseract.js (Vercel-ready, No API Key Needed)
   const handleScanFile = async (file: File) => {
     try {
       setError(null)
       setFileName(file.name)
       setState('uploading')
+      setOcrProgress(5)
+      setOcrStatusText('Membuka file...')
       setSavedPO(null)
 
       // Buat preview thumbnail jika file adalah gambar
@@ -104,11 +108,9 @@ export function useOCRNota() {
         setImagePreview(null)
       }
 
-      const existingNames = bahanList.map(b => b.nama)
-      const res = await ocrService.parseReceiptImage(file, apiKey, existingNames, {
-        routerUrl,
-        routerKey,
-        routerModel,
+      const res = await ocrService.parseReceiptImage(file, bahanList, (pct, status) => {
+        setOcrProgress(pct)
+        setOcrStatusText(status)
       })
 
       setScanResult(res)
@@ -119,15 +121,7 @@ export function useOCRNota() {
       )
       setSupplierId(matchedSup?.id || suppliers[0]?.id || '')
 
-      // Coba match tiap item ke bahan baku yang ada
-      const mappedItems = res.items.map(item => {
-        const found = bahanList.find(b => b.nama.toLowerCase() === item.nama.toLowerCase())
-        return {
-          ...item,
-          matchedBahanId: found?.id,
-        }
-      })
-      setItems(mappedItems)
+      setItems(res.items)
       setState('done')
     } catch (err: any) {
       console.error('Scan error:', err)
@@ -211,6 +205,8 @@ export function useOCRNota() {
     bahanList,
     isLoadingContext,
     state,
+    ocrProgress,
+    ocrStatusText,
     fileName,
     imagePreview,
     scanResult,

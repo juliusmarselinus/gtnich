@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/client'
 import { ParsedItem, OCRScanResult, SupplierOption, BahanOption } from '../types'
+import { parseReceiptRawText } from './tesseractParser'
+import Tesseract from 'tesseract.js'
 
-// Mock fallback jika tidak ada API key atau image scan gagal
+// Mock fallback jika tidak ada teks terbaca sama sekali
 const FALLBACK_ITEMS: ParsedItem[] = [
   { nama: 'Tepung Terigu Segitiga Biru', qty: 5, satuan: 'kg', harga: 12500 },
   { nama: 'Gula Pasir Kristal Putih', qty: 3, satuan: 'kg', harga: 14000 },
@@ -41,62 +43,50 @@ export const ocrService = {
     }
   },
 
-  // Scan file nota menggunakan API route server (9router / Gemini multimodal)
+  // Scan file nota menggunakan Tesseract.js di browser + Custom Parser (Vercel-ready, 0 server cost)
   async parseReceiptImage(
     file: File,
-    apiKey?: string,
-    existingBahanNames: string[] = [],
-    routerConfig?: { routerUrl?: string; routerKey?: string; routerModel?: string }
+    existingBahanList: BahanOption[] = [],
+    onProgress?: (progress: number, status: string) => void
   ): Promise<OCRScanResult> {
     try {
-      // Kirim file ke backend API route (/dashboard/ocr-nota/api)
-      const formData = new FormData()
-      formData.append('file', file)
-      if (apiKey) formData.append('apiKey', apiKey.trim())
-      if (routerConfig?.routerUrl) formData.append('routerUrl', routerConfig.routerUrl.trim())
-      if (routerConfig?.routerKey) formData.append('routerKey', routerConfig.routerKey.trim())
-      if (routerConfig?.routerModel) formData.append('routerModel', routerConfig.routerModel.trim())
-      formData.append('existingBahan', existingBahanNames.join(', '))
+      if (onProgress) onProgress(10, 'Mempersiapkan engine OCR...')
 
-      const response = await fetch('/dashboard/ocr-nota/api', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const resJson = await response.json()
-
-      if (!response.ok || !resJson.success) {
-        throw new Error(
-          resJson.error ||
-            `Gagal memproses gambar nota (Status: ${response.status})`
-        )
+      // Inisialisasi Tesseract recognize
+      // Menggunakan fallback language yang aman jika download 'ind' terhambat jaringan
+      let rawText = ''
+      try {
+        const result = await Tesseract.recognize(file, 'ind+eng', {
+          logger: m => {
+            if (m.status === 'recognizing text' && onProgress) {
+              const pct = Math.round(15 + m.progress * 75)
+              onProgress(pct, `Membaca teks nota (${Math.round(m.progress * 100)}%)...`)
+            } else if (m.status === 'loading tesseract core' && onProgress) {
+              onProgress(15, 'Memuat komponen OCR...')
+            }
+          },
+        })
+        rawText = result?.data?.text || ''
+      } catch (indErr) {
+        console.warn('Gagal memuat traineddata ind, mencoba eng fallback:', indErr)
+        if (onProgress) onProgress(30, 'Menggunakan engine fallback...')
+        const fallbackRes = await Tesseract.recognize(file, 'eng')
+        rawText = fallbackRes?.data?.text || ''
       }
 
-      const parsed: OCRScanResult = resJson.data
+      if (onProgress) onProgress(92, 'Menganalisis baris item nota...')
 
-      // Validasi & normalisasi hasil OCR
-      const items: ParsedItem[] = (parsed.items || []).map(i => ({
-        nama: i.nama || 'Item Bahan',
-        qty: Number(i.qty) > 0 ? Number(i.qty) : 1,
-        satuan: (i.satuan || 'pcs').toLowerCase(),
-        harga: Number(i.harga) || 0,
-      }))
+      // Olah teks mentah menggunakan Custom Parser
+      const parsed = parseReceiptRawText(rawText, existingBahanList)
 
-      const total =
-        Number(parsed.totalAkumulasi) ||
-        items.reduce((sum, item) => sum + item.qty * item.harga, 0)
-
-      return {
-        supplierName: parsed.supplierName || undefined,
-        tanggalNota: parsed.tanggalNota || new Date().toISOString().split('T')[0],
-        nomorNota: parsed.nomorNota || undefined,
-        items,
-        totalAkumulasi: total,
-        catatan: parsed.catatan || (resJson.source ? `Sumber OCR: ${resJson.source}` : undefined),
-      }
+      if (onProgress) onProgress(100, 'Selesai mengekstrak!')
+      return parsed
     } catch (err: any) {
-      console.error('OCR API error:', err)
-      throw new Error(err.message || 'Gagal memindai nota')
+      console.error('Tesseract OCR error:', err)
+      throw new Error(
+        err.message ||
+          'Gagal memproses gambar nota. Pastikan gambar tidak rusak dan coba gunakan foto dengan sudut tegak lurus.'
+      )
     }
   },
 
