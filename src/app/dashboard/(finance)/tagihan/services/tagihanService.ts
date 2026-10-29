@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import { purchaseOrderService } from '../../purchase-order/services/purchaseOrderService'
+import { purchaseOrderService } from '@/app/dashboard/(purchasing)/purchase-order/services/purchaseOrderService'
 import { PurchaseOrder, PelunasanInput } from '../types'
 
 export const tagihanService = {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MenuItem } from '../../menu/types'
+import { MenuItem } from '@/app/dashboard/(pos)/menu/types'
 import { formatRupiah } from '@/lib/mock-data'
 import { Plus, Minus, ChefHat, Sparkles, Check, ShoppingCart, X } from 'lucide-react'
 

@@ -1,4 +1,4 @@
-import { PurchaseOrder, POItem } from '../../purchase-order/types'
+import { PurchaseOrder, POItem } from '@/app/dashboard/(purchasing)/purchase-order/types'
 
 export type { PurchaseOrder, POItem }
 

@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { tagihanService } from '../services/tagihanService'
 import { PurchaseOrder, PelunasanInput } from '../types'
-import { purchaseOrderService } from '../../purchase-order/services/purchaseOrderService'
-import { SupplierOption } from '../../purchase-order/types'
+import { purchaseOrderService } from '@/app/dashboard/(purchasing)/purchase-order/services/purchaseOrderService'
+import { SupplierOption } from '@/app/dashboard/(purchasing)/purchase-order/types'
 
 export function useTagihan() {
   const [list, setList] = useState<PurchaseOrder[]>([])

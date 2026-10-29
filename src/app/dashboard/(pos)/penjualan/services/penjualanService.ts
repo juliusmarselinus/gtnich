@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
-import { menuService } from '../../menu/services/menuService'
-import { MenuItem } from '../../menu/types'
+import { menuService } from '@/app/dashboard/(pos)/menu/services/menuService'
+import { MenuItem } from '@/app/dashboard/(pos)/menu/types'
 import { CartItem, CheckoutFormInput, OrderRecord, OrderItemRecord } from '../types'
 
 interface RawOrderDB {

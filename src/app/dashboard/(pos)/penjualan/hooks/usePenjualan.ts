@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { penjualanService } from '../services/penjualanService'
-import { MenuItem } from '../../menu/types'
+import { MenuItem } from '@/app/dashboard/(pos)/menu/types'
 import { CartItem, CheckoutFormInput, OrderRecord } from '../types'
 
 export function usePenjualan() {
