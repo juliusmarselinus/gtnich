@@ -9,29 +9,43 @@ import { createClient } from '@/lib/supabase/client'
 
 function friendlyError(msg: string) {
   const m = msg.toLowerCase()
+  if (m.includes('rate limit'))
+    return 'Batas pengiriman email Supabase tercapai (Rate limit exceeded). Di Supabase Dashboard, Anda dapat menonaktifkan "Confirm email" di Authentication > Providers > Email agar pendaftaran langsung aktif tanpa verifikasi email.'
   if (m.includes('failed to fetch') || m.includes('network'))
     return 'Server tidak bisa dihubungi. Cek koneksi internet atau isi file .env.local.'
-  if (m.includes('invalid login')) return 'Email atau kata sandi salah. Coba lagi, ya.'
-  if (m.includes('email not confirmed')) return 'Email belum dikonfirmasi. Cek kotak masuk email kamu.'
+  if (m.includes('invalid login') || m.includes('invalid credentials')) return 'Email atau kata sandi salah. Coba lagi, ya.'
+  if (m.includes('email not confirmed')) return 'Email belum dikonfirmasi. Cek kotak masuk email kamu, atau matikan "Confirm email" di dashboard Supabase.'
   if (m.includes('already registered')) return 'Email ini sudah terdaftar. Silakan masuk.'
+  if (m.includes('invalid email') || m.includes('not valid')) return 'Format email tidak valid. Pastikan penulisan email sudah benar tanpa spasi.'
   return msg || 'Terjadi kesalahan. Coba lagi sebentar lagi.'
 }
 
 export default function LoginPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState('budi@orderhub.id')
-  const [password, setPassword] = useState('password123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [storeName, setStoreName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSignUp, setIsSignUp] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-  const [focusField, setFocusField] = useState<'email' | 'password' | null>(null)
+  const [focusField, setFocusField] = useState<'email' | 'password' | 'name' | 'store' | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  // dari landing: /login?daftar=1 langsung buka form daftar
+  const [surveyData, setSurveyData] = useState<{ usaha?: string; kanal?: string; habis?: number }>({})
+
+  // dari landing: /login?daftar=1 langsung buka form daftar beserta data survey
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('daftar') === '1') setIsSignUp(true)
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('daftar') === '1') {
+      setIsSignUp(true)
+      const u = params.get('usaha') || undefined
+      const k = params.get('kanal') || undefined
+      const h = params.get('habis') ? Number(params.get('habis')) : undefined
+      setSurveyData({ usaha: u, kanal: k, habis: h })
+    }
   }, [])
 
   // Ekspresi Dapi mengikuti apa yang sedang dilakukan user
@@ -55,14 +69,38 @@ export default function LoginPage() {
     setErrorMessage(null)
     setMessage(null)
 
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanPassword = password.trim()
+
+    // Validasi format email di sisi client
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(cleanEmail)) {
+      setIsLoading(false)
+      setErrorMessage('Format email tidak valid. Pastikan contoh: nama@gmail.com tanpa spasi.')
+      return
+    }
+
+    if (cleanPassword.length < 6) {
+      setIsLoading(false)
+      setErrorMessage('Kata sandi minimal 6 karakter.')
+      return
+    }
+
     try {
       if (isSignUp) {
+        const resolvedName = fullName.trim() || cleanEmail.split('@')[0]
+        const resolvedStore = storeName.trim() || `Dapur ${resolvedName}`
+
         const { error, data } = await supabase.auth.signUp({
-          email,
-          password,
+          email: cleanEmail,
+          password: cleanPassword,
           options: {
             data: {
-              full_name: email.split('@')[0],
+              full_name: resolvedName,
+              store_name: resolvedStore,
+              business_type: surveyData.usaha || null,
+              sales_channels: surveyData.kanal ? surveyData.kanal.split(',') : null,
+              stockout_frequency: surveyData.habis ?? null,
             },
           },
         })
@@ -70,15 +108,33 @@ export default function LoginPage() {
         if (error) {
           setErrorMessage(friendlyError(error.message))
         } else if (data.session) {
+          // Buat record profil langsung dari client jika trigger belum terpasang
+          try {
+            await supabase.from('profiles').upsert(
+              {
+                id: data.session.user.id,
+                full_name: resolvedName,
+                store_name: resolvedStore,
+                business_type: surveyData.usaha || null,
+                sales_channels: surveyData.kanal ? surveyData.kanal.split(',') : null,
+              },
+              { onConflict: 'id' }
+            )
+          } catch {
+            // non-blocking
+          }
+
+          setIsSuccess(true)
+          await new Promise((r) => setTimeout(r, 600))
           router.push('/dashboard')
         } else {
-          setMessage('Pendaftaran berhasil! Silakan cek email Anda untuk konfirmasi, atau silakan login jika email confirm dinonaktifkan di dashboard Supabase.')
+          setMessage('Pendaftaran berhasil! Akun Anda telah siap. Silakan masuk untuk memulai.')
           setIsSignUp(false)
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: cleanEmail,
+          password: cleanPassword,
         })
 
         if (error) {
@@ -138,6 +194,46 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <>
+                <div>
+                  <label htmlFor="fullName" className="block text-sm font-bold mb-1.5">
+                    Nama Pemilik / Pengelola
+                  </label>
+                  <input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    onFocus={() => { setFocusField('name'); setErrorMessage(null) }}
+                    onBlur={() => setFocusField(null)}
+                    className={inputCls}
+                    placeholder="Contoh: Budi Santoso"
+                    autoComplete="name"
+                    required={isSignUp}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="storeName" className="block text-sm font-bold mb-1.5">
+                    Nama Usaha / Dapur Kuliner
+                  </label>
+                  <input
+                    id="storeName"
+                    type="text"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    onFocus={() => { setFocusField('store'); setErrorMessage(null) }}
+                    onBlur={() => setFocusField(null)}
+                    className={inputCls}
+                    placeholder="Contoh: Dapur Twin Rasa"
+                    autoComplete="organization"
+                    required={isSignUp}
+                  />
+                </div>
+              </>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-bold mb-1.5">Email</label>
               <input
@@ -192,18 +288,32 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-[#6F5C4A]">
-            {isSignUp ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp)
-                setErrorMessage(null)
-                setMessage(null)
-              }}
-              className="font-bold text-[#B5560A] hover:underline"
-            >
-              {isSignUp ? 'Masuk' : 'Daftar sekarang'}
-            </button>
+            {isSignUp ? (
+              <>
+                Sudah punya akun?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(false)
+                    setErrorMessage(null)
+                    setMessage(null)
+                  }}
+                  className="font-bold text-[#B5560A] hover:underline"
+                >
+                  Masuk
+                </button>
+              </>
+            ) : (
+              <>
+                Belum punya akun?{' '}
+                <Link
+                  href="/"
+                  className="font-bold text-[#B5560A] hover:underline"
+                >
+                  Daftar sekarang
+                </Link>
+              </>
+            )}
           </p>
 
           <Link href="/" className="mt-3 text-center text-xs text-[#917A63] hover:underline">← Kembali ke beranda</Link>

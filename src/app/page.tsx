@@ -270,7 +270,7 @@ export default function LandingPage() {
             ) : (
               <div className="mt-6 flex flex-col gap-3">
                 <Link
-                  href="/login?daftar=1"
+                  href={`/login?daftar=1&usaha=${encodeURIComponent(usaha || '')}&kanal=${encodeURIComponent(kanal.join(','))}&habis=${habis}`}
                   className="w-full rounded-full bg-[#FF8F28] py-3.5 text-center text-sm font-bold text-white shadow-[0_4px_0_#C9620C] transition hover:bg-[#FF9F3F] active:translate-y-[3px] active:shadow-[0_1px_0_#C9620C]"
                 >
                   Buat akun & mulai
