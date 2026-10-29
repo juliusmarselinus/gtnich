@@ -157,3 +157,21 @@ body {
     box-shadow: none !important;
   }
 }
+
+/* ===== Animasi wajah Dapi (login & splash) ===== */
+@keyframes dapi-pop {
+  0% { transform: scale(0.6) translateY(8px); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.dapi-label { display: inline-block; animation: dapi-pop 380ms cubic-bezier(.34,1.56,.64,1); }
+.dapi-brand { animation: dapi-pop 600ms 300ms cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes dapi-shake {
+  0%,100% { transform: translateX(0); }
+  20%,60% { transform: translateX(-8px); }
+  40%,80% { transform: translateX(8px); }
+}
+.dapi-shake { animation: dapi-shake 400ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .dapi-label, .dapi-brand, .dapi-shake { animation: none; }
+}
