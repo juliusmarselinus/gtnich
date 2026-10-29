@@ -4,20 +4,16 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null
-    const apiKey = (formData.get('apiKey') as string) || ''
-    const routerUrlInput = (formData.get('routerUrl') as string) || ''
-    const routerKeyInput = (formData.get('routerKey') as string) || ''
-    const routerModelInput = (formData.get('routerModel') as string) || ''
     const existingBahan = (formData.get('existingBahan') as string) || ''
 
     if (!file) {
       return NextResponse.json({ success: false, error: 'File nota tidak ditemukan' }, { status: 400 })
     }
 
-    // Prioritaskan environment variable NEXT_9ROUTER_URL / NEXT_9ROUTER_KEY, lalu input form/localStorage
-    const routerUrl = process.env.NEXT_9ROUTER_URL || process.env.ROUTER_URL || routerUrlInput || ''
-    const routerKey = process.env.NEXT_9ROUTER_KEY || process.env.ROUTER_KEY || routerKeyInput || apiKey || ''
-    const routerModel = process.env.ROUTER_MODEL || routerModelInput || 'google/gemini-2.0-flash'
+    // Gunakan konfigurasi 9Router dengan model opencode-code (didukung gemini-3.1-flash-lite)
+    const routerUrl = process.env.NEXT_9ROUTER_URL || 'https://router.hitungmin.my.id/v1'
+    const routerKey = process.env.NEXT_9ROUTER_KEY || 'sk-c294c01527d313cd-aaa9eu-c656a5e8'
+    const routerModel = process.env.NEXT_9ROUTER_MODEL || 'opencode-code'
 
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer()
@@ -65,6 +61,7 @@ PENTING:
           },
           body: JSON.stringify({
             model: routerModel,
+            stream: false,
             messages: [
               {
                 role: 'user',
@@ -79,7 +76,6 @@ PENTING:
                 ],
               },
             ],
-            response_format: { type: 'json_object' },
             temperature: 0.1,
           }),
         })
@@ -88,82 +84,35 @@ PENTING:
           const json = await response.json()
           const rawContent = json?.choices?.[0]?.message?.content
           if (rawContent) {
-            const cleanContent = rawContent.replace(/```json/g, '').replace(/```/g, '').trim()
+            // Bersihkan markdown fence ```json dan teks keterangan lain
+            let cleanContent = rawContent.replace(/```json/g, '').replace(/```/g, '').trim()
+            const firstBrace = cleanContent.indexOf('{')
+            const lastBrace = cleanContent.lastIndexOf('}')
+            if (firstBrace !== -1 && lastBrace !== -1) {
+              cleanContent = cleanContent.substring(firstBrace, lastBrace + 1)
+            }
             const parsed = JSON.parse(cleanContent)
-            return NextResponse.json({ success: true, data: parsed, source: '9router' })
+            return NextResponse.json({ success: true, data: parsed, source: '9router-gemini-3.1-flash-lite' })
           }
         } else {
           const errResText = await response.text()
           console.warn('9Router call failed:', response.status, errResText)
+          return NextResponse.json(
+            { success: false, error: `9Router error (${response.status}): ${errResText}` },
+            { status: response.status }
+          )
         }
-      } catch (routerErr) {
+      } catch (routerErr: any) {
         console.warn('9Router exception:', routerErr)
-      }
-    }
-
-    // 2. Jika 9router belum ada atau gagal, fallback ke Google Gemini Direct API
-    const effectiveGeminiKey = apiKey || routerKey
-    if (effectiveGeminiKey) {
-      // Hilangkan parameter generationConfig responseMimeType jika bermasalah, atau gunakan prompt ketat
-      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${effectiveGeminiKey.trim()}`
-      const geminiRes = await fetch(geminiEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: prompt },
-                {
-                  inlineData: {
-                    mimeType: mimeType,
-                    data: base64Data,
-                  },
-                },
-              ],
-            },
-          ],
-        }),
-      })
-
-      if (geminiRes.ok) {
-        const json = await geminiRes.json()
-        const text = json?.candidates?.[0]?.content?.parts?.[0]?.text
-        if (text) {
-          const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim()
-          const parsed = JSON.parse(cleanText)
-          return NextResponse.json({ success: true, data: parsed, source: 'gemini' })
-        }
-      } else {
-        const errText = await geminiRes.text()
-        console.warn('Gemini Direct call failed:', geminiRes.status, errText)
-        let errMsg = `Gagal memproses gambar melalui AI Vision: ${geminiRes.statusText}`
-        try {
-          const parsedErr = JSON.parse(errText)
-          if (parsedErr?.error?.message) {
-            errMsg = `${errMsg} (${parsedErr.error.message})`
-          }
-        } catch {
-          // ignore
-        }
         return NextResponse.json(
-          {
-            success: false,
-            error: errMsg,
-            details: errText,
-          },
-          { status: geminiRes.status }
+          { success: false, error: routerErr.message || 'Gagal memproses gambar ke 9Router' },
+          { status: 500 }
         )
       }
     }
 
-    // 3. Jika sama sekali tidak ada API key
     return NextResponse.json(
-      {
-        success: false,
-        error:
-          'API Key atau Router URL belum dikonfigurasi. Harap pasang NEXT_9ROUTER_URL & NEXT_9ROUTER_KEY di environment atau pasang di antarmuka.',
-      },
+      { success: false, error: 'Konfigurasi 9Router tidak lengkap' },
       { status: 400 }
     )
   } catch (error: any) {

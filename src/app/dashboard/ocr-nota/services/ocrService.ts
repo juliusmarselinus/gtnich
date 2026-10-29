@@ -43,49 +43,72 @@ export const ocrService = {
     }
   },
 
-  // Scan file nota menggunakan Tesseract.js di browser + Custom Parser (Vercel-ready, 0 server cost)
+  // Scan file nota menggunakan 9Router Vision AI (opencode-code / gemini-3.1-flash-lite)
   async parseReceiptImage(
     file: File,
     existingBahanList: BahanOption[] = [],
     onProgress?: (progress: number, status: string) => void
   ): Promise<OCRScanResult> {
     try {
-      if (onProgress) onProgress(10, 'Mempersiapkan engine OCR...')
+      if (onProgress) onProgress(20, 'Mengunggah gambar nota ke AI Vision...')
 
-      // Inisialisasi Tesseract recognize
-      // Menggunakan fallback language yang aman jika download 'ind' terhambat jaringan
-      let rawText = ''
-      try {
-        const result = await Tesseract.recognize(file, 'ind+eng', {
-          logger: m => {
-            if (m.status === 'recognizing text' && onProgress) {
-              const pct = Math.round(15 + m.progress * 75)
-              onProgress(pct, `Membaca teks nota (${Math.round(m.progress * 100)}%)...`)
-            } else if (m.status === 'loading tesseract core' && onProgress) {
-              onProgress(15, 'Memuat komponen OCR...')
-            }
-          },
-        })
-        rawText = result?.data?.text || ''
-      } catch (indErr) {
-        console.warn('Gagal memuat traineddata ind, mencoba eng fallback:', indErr)
-        if (onProgress) onProgress(30, 'Menggunakan engine fallback...')
-        const fallbackRes = await Tesseract.recognize(file, 'eng')
-        rawText = fallbackRes?.data?.text || ''
+      const formData = new FormData()
+      formData.append('file', file)
+      const existingNames = existingBahanList.map(b => b.nama)
+      formData.append('existingBahan', existingNames.join(', '))
+
+      if (onProgress) onProgress(50, 'Menganalisis nota via 9Router (Gemini 3.1 Flash Lite)...')
+
+      const response = await fetch('/dashboard/ocr-nota/api', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const resJson = await response.json()
+
+      if (!response.ok || !resJson.success) {
+        throw new Error(
+          resJson.error || `Gagal memproses gambar nota (Status: ${response.status})`
+        )
       }
 
-      if (onProgress) onProgress(92, 'Menganalisis baris item nota...')
+      if (onProgress) onProgress(90, 'Menyusun hasil ekstraksi item...')
 
-      // Olah teks mentah menggunakan Custom Parser
-      const parsed = parseReceiptRawText(rawText, existingBahanList)
+      const parsed: OCRScanResult = resJson.data
+
+      // Validasi & normalisasi hasil OCR
+      const items: ParsedItem[] = (parsed.items || []).map(i => {
+        // Coba match ke master bahan
+        const found = existingBahanList.find(
+          b => b.nama.toLowerCase() === (i.nama || '').toLowerCase()
+        )
+        return {
+          nama: i.nama || 'Item Bahan',
+          qty: Number(i.qty) > 0 ? Number(i.qty) : 1,
+          satuan: (i.satuan || 'pcs').toLowerCase(),
+          harga: Number(i.harga) || 0,
+          matchedBahanId: found?.id,
+        }
+      })
+
+      const total =
+        Number(parsed.totalAkumulasi) ||
+        items.reduce((sum, item) => sum + item.qty * item.harga, 0)
 
       if (onProgress) onProgress(100, 'Selesai mengekstrak!')
-      return parsed
+
+      return {
+        supplierName: parsed.supplierName || undefined,
+        tanggalNota: parsed.tanggalNota || new Date().toISOString().split('T')[0],
+        nomorNota: parsed.nomorNota || undefined,
+        items,
+        totalAkumulasi: total,
+        catatan: parsed.catatan || 'Model: 9Router opencode-code (gemini-3.1-flash-lite)',
+      }
     } catch (err: any) {
-      console.error('Tesseract OCR error:', err)
+      console.error('OCR API error:', err)
       throw new Error(
-        err.message ||
-          'Gagal memproses gambar nota. Pastikan gambar tidak rusak dan coba gunakan foto dengan sudut tegak lurus.'
+        err.message || 'Gagal memproses gambar nota. Pastikan gambar tidak rusak dan coba lagi.'
       )
     }
   },

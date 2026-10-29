@@ -54,11 +54,11 @@ export default function OCRNotaPage() {
     <div className="flex-1 pb-16">
       <Topbar
         title="Pemindai OCR Nota Pembelian"
-        subtitle="Ekstraksi otomatis nota fisik supplier via Tesseract.js & Smart Parser"
+        subtitle="Ekstraksi otomatis nota fisik supplier via 9Router (Gemini 3.1 Flash Lite)"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-7 max-w-5xl mx-auto">
-        {/* Banner Vercel & Client-Side Ready */}
+        {/* Banner 9Router Vision AI */}
         <div className="clay-card p-4 sm:p-5 border-l-4 border-l-emerald-500 bg-emerald-50/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
@@ -66,15 +66,15 @@ export default function OCRNotaPage() {
             </span>
             <div>
               <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-                OCR Client-Side Engine (Vercel Ready)
+                AI Vision OCR (9Router opencode-code)
               </h4>
               <p className="text-[11px] text-slate-500">
-                Didukung oleh Tesseract.js & Heuristic Parser lokal tanpa batas kuota serverless Vercel dan tanpa biaya API tambahan.
+                Didukung oleh multimodal AI <strong>gemini-3.1-flash-lite</strong> untuk membaca berbagai format nota fisik & digital (minimarket, pasar, grosir) dengan akurasi tinggi.
               </p>
             </div>
           </div>
           <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-mono self-start sm:self-auto">
-            100% Client-Side
+            AI Vision Active
           </span>
         </div>
 
