@@ -322,35 +322,42 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* DAFTAR SUB-MODUL BERJAJAR SECARA HORIZONTAL */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5 pt-1">
+                  {/* DAFTAR SUB-MODUL BERJAJAR SECARA HORIZONTAL: 3 Card Per Row untuk Modul Operasional di semua breakpoint */}
+                  <div
+                    className={
+                      mod.id === 'operasional'
+                        ? 'grid grid-cols-3 gap-2.5 sm:gap-3.5 pt-1'
+                        : 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5 pt-1'
+                    }
+                  >
                     {mod.items.map(item => {
                       const ItemIcon = item.icon
+                      const isOperasional = mod.id === 'operasional'
                       return (
                         <Link
                           key={item.href}
                           href={item.href}
-                          className={`group p-4 rounded-2xl bg-[#FFFFFF] hover:bg-[#FFFDFC] border border-[#EBE3D7] ${mod.subCardHover} transition-all duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between space-y-3 cursor-pointer`}
+                          className={`group p-2.5 sm:p-4 rounded-2xl bg-[#FFFFFF] hover:bg-[#FFFDFC] border border-[#EBE3D7] ${mod.subCardHover} transition-all duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between space-y-2 sm:space-y-3 cursor-pointer min-w-0`}
                         >
-                          <div className="space-y-2">
+                          <div className="space-y-1.5 sm:space-y-2 min-w-0">
                             <div className="flex items-center justify-between">
-                              <div className={`w-9 h-9 rounded-xl ${mod.subIconBg} flex items-center justify-center ${mod.subIconHover} transition-all shadow-2xs`}>
-                                <ItemIcon className="w-4.5 h-4.5" />
+                              <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl ${mod.subIconBg} flex items-center justify-center ${mod.subIconHover} transition-all shadow-2xs flex-shrink-0`}>
+                                <ItemIcon className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" />
                               </div>
-                              <ArrowRight className={`w-4 h-4 text-slate-400 ${mod.subTextHover} group-hover:translate-x-1 transition-all`} />
+                              <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 ${mod.subTextHover} group-hover:translate-x-1 transition-all flex-shrink-0`} />
                             </div>
-                            <div>
-                              <p className={`text-xs font-extrabold text-slate-900 ${mod.subTextHover} transition-colors`}>
+                            <div className="min-w-0">
+                              <p className={`text-[11px] sm:text-xs font-extrabold text-slate-900 ${mod.subTextHover} transition-colors truncate`}>
                                 {item.label}
                               </p>
-                              <p className="text-[11px] text-slate-600 mt-1 leading-snug line-clamp-2">
+                              <p className={`text-[9px] sm:text-[11px] text-slate-600 mt-0.5 sm:mt-1 leading-tight sm:leading-snug ${isOperasional ? 'line-clamp-1 sm:line-clamp-2' : 'line-clamp-2'}`}>
                                 {item.desc}
                               </p>
                             </div>
                           </div>
 
-                          <div className={`pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 ${mod.subTextHover} font-bold`}>
-                            <span>Buka Modul</span>
+                          <div className={`pt-1.5 sm:pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[10px] text-slate-500 ${mod.subTextHover} font-bold`}>
+                            <span className="truncate">Buka</span>
                             <span>→</span>
                           </div>
                         </Link>
