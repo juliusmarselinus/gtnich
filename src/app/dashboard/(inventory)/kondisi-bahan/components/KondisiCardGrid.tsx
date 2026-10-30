@@ -12,7 +12,7 @@ interface KondisiCardGridProps {
 const FRESHNESS_BADGE = {
   segar: {
     label: 'Segar & Aman',
-    cls: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
+    cls: 'bg-[#FFF6EC] text-[#FF8F2B] border-[#FFE2C2]',
     icon: ShieldCheck,
   },
   mendekati_expire: {
@@ -87,7 +87,7 @@ export default function KondisiCardGrid({ list }: KondisiCardGridProps) {
             <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200/60 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Estimasi Expire (AI):
+                  <Sparkles className="w-3.5 h-3.5 text-[#FF8F2B]" /> Estimasi Expire (AI):
                 </span>
                 <span className="font-mono font-bold text-slate-800">
                   {tglExpireStr}
@@ -104,7 +104,7 @@ export default function KondisiCardGrid({ list }: KondisiCardGridProps) {
                         ? 'bg-rose-100 text-rose-700'
                         : b.aiSisaHari <= 3
                         ? 'bg-amber-100 text-amber-800'
-                        : 'bg-emerald-100 text-emerald-800'
+                        : 'bg-[#FFF6EC] text-[#FF8F2B]'
                       : 'text-slate-400'
                   )}
                 >
@@ -135,7 +135,7 @@ export default function KondisiCardGrid({ list }: KondisiCardGridProps) {
                 <div
                   className={clsx(
                     'h-full rounded-full transition-all duration-500',
-                    isLowStock ? 'bg-rose-500' : 'bg-emerald-500'
+                    isLowStock ? 'bg-rose-500' : 'bg-[#FF8F2B]'
                   )}
                   style={{ width: `${pct}%` }}
                 />

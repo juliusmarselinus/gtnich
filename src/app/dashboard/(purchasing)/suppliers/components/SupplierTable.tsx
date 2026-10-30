@@ -45,11 +45,11 @@ export default function SupplierTable({
               <td className="px-6 py-4">
                 <p className="font-bold text-slate-800 text-sm">{s.nama}</p>
                 <p className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                  <Phone className="w-3 h-3 text-emerald-500" /> {s.telepon}
+                  <Phone className="w-3 h-3 text-[#FF8F2B]" /> {s.telepon}
                 </p>
               </td>
               <td className="px-6 py-4">
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold clay-pill text-[11px]">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFF6EC] text-[#FF8F2B] font-bold clay-pill text-[11px] border border-[#FFE2C2]">
                   <Tag className="w-3 h-3" /> {s.kategoriNama}
                 </span>
               </td>
@@ -59,7 +59,7 @@ export default function SupplierTable({
               <td className="px-6 py-4 text-center">
                 <button
                   onClick={() => setExpandedId(expandedId === s.id ? null : s.id)}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl clay-btn text-emerald-700 hover:text-emerald-800 font-bold text-xs"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl clay-btn text-[#FF8F2B] hover:text-[#E67215] font-bold text-xs"
                 >
                   {s.riwayat?.length || 0} pesanan
                   {expandedId === s.id ? (
@@ -102,7 +102,7 @@ export default function SupplierTable({
             return (
               <div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-600" /> {currentSupplier.alamat}
+                  <MapPin className="w-3.5 h-3.5 text-[#FF8F2B]" /> {currentSupplier.alamat}
                 </p>
                 <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-3">
                   Riwayat Pengiriman & Pasokan
@@ -118,7 +118,7 @@ export default function SupplierTable({
                           <p className="text-xs font-bold text-slate-800">{r.keterangan}</p>
                           <p className="text-[10px] text-slate-400 mt-0.5">{r.tanggal}</p>
                         </div>
-                        <span className="font-mono text-xs font-black text-emerald-600">
+                        <span className="font-mono text-xs font-black text-[#FF8F2B]">
                           {formatRupiah(r.jumlah)}
                         </span>
                       </div>

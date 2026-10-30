@@ -95,14 +95,14 @@ export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjuala
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-medium text-slate-700 block">{t.paymentMethod}</span>
-                      <span className="inline-block text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mt-0.5">
+                      <span className="inline-block text-[10px] font-bold text-[#FF8F2B] bg-[#FFF6EC] border border-[#FFE2C2] px-2 py-0.5 rounded-md mt-0.5">
                         {t.paymentStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-black text-slate-800 text-sm">
                       {formatRupiah(t.totalPrice)}
                     </td>
-                    <td className="px-6 py-4 text-right font-mono font-black text-emerald-600 text-sm">
+                    <td className="px-6 py-4 text-right font-mono font-black text-[#FF8F2B] text-sm">
                       +{formatRupiah(t.profit)}
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -122,7 +122,7 @@ export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjuala
                       <td colSpan={7} className="px-8 py-5">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                            <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
+                            <ShoppingBag className="w-3.5 h-3.5 text-[#FF8F2B]" />
                             Rincian Menu Dipesan ({t.items.length} Menu)
                           </p>
                           <span className="text-[11px] text-slate-400">
@@ -138,12 +138,12 @@ export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjuala
                             >
                               <div>
                                 <span className="font-bold text-slate-800">{item.namaMenu}</span>
-                                <span className="text-emerald-600 font-mono font-bold ml-2">
+                                <span className="text-[#FF8F2B] font-mono font-bold ml-2">
                                   ({item.qty}x @ {formatRupiah(item.hargaJual)})
                                 </span>
                               </div>
                               <div className="text-right">
-                                <span className="font-mono text-emerald-600 font-black">
+                                <span className="font-mono text-[#FF8F2B] font-black">
                                   {formatRupiah(item.subtotal || item.hargaJual * item.qty)}
                                 </span>
                                 {item.hpp > 0 && (

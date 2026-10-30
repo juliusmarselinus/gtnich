@@ -115,7 +115,7 @@ export default function RiwayatPage() {
             {tab === 'penjualan' ? (
               <Link
                 href="/dashboard/penjualan"
-                className="px-3.5 py-2 clay-btn rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 flex items-center gap-1.5 whitespace-nowrap"
+                className="px-3.5 py-2 clay-btn rounded-xl text-xs font-bold text-[#FF8F2B] bg-[#FFF6EC] hover:bg-[#FFE2C2]/50 border border-[#FFE2C2] flex items-center gap-1.5 whitespace-nowrap"
               >
                 <span>Kasir Baru</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />

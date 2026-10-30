@@ -23,7 +23,7 @@ export default function ProductTable({ products, onAddStock }: ProductTableProps
                     ? 'bg-[#FAEDE8] text-[#C85A32] border border-[#F0D4C9]'
                     : product.stock < 5
                     ? 'bg-[#FAF8F5] text-[#C85A32] border border-[#EAE5DF]'
-                    : 'bg-[#EDF4EE] text-[#3E6B48] border border-[#D2E3D4]'
+                    : 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]'
                 }`}
               >
                 {product.stock === 0 ? 'Habis' : `${product.stock} pcs`}
@@ -50,7 +50,7 @@ export default function ProductTable({ products, onAddStock }: ProductTableProps
             <button
               type="button"
               onClick={() => onAddStock && onAddStock(product.id)}
-              className="text-[11px] font-medium text-[#3E6B48] hover:text-[#34593c] py-1 px-2 hover:bg-[#EDF4EE] rounded transition-colors"
+              className="text-[11px] font-bold text-[#FF8F2B] hover:text-[#E67215] py-1 px-2.5 hover:bg-[#FFF6EC] rounded-lg transition-colors cursor-pointer"
             >
               + Tambah Stok
             </button>

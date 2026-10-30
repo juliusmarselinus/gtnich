@@ -56,7 +56,7 @@ export default function OCRConfigBar({
               <span
                 className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   isConfigured
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    ? 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]'
                     : 'bg-rose-50 text-rose-700 border border-rose-200'
                 }`}
               >
@@ -130,7 +130,7 @@ export default function OCRConfigBar({
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-[11px] text-slate-400 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#FF8F2B]" />
               Tersimpan aman di browser lokal Anda (Local Storage) & Runtime.
             </span>
             <div className="flex items-center gap-2">

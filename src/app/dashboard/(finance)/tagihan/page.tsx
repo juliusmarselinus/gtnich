@@ -121,19 +121,19 @@ export default function TagihanPage() {
             </p>
           </div>
 
-          <div className="clay-card p-5 space-y-2 border-l-4 border-l-emerald-500">
+          <div className="clay-card p-5 space-y-2 border-l-4 border-l-[#FF8F2B]">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest">
+              <span className="text-[11px] font-bold text-[#FF8F2B] uppercase tracking-widest">
                 Sudah Dilunasi
               </span>
-              <span className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <span className="w-8 h-8 rounded-xl bg-[#FFF6EC] flex items-center justify-center text-[#FF8F2B]">
                 <CheckCircle2 className="w-4 h-4" />
               </span>
             </div>
-            <p className="text-2xl font-black font-mono text-emerald-600">
+            <p className="text-2xl font-black font-mono text-[#FF8F2B]">
               {formatRupiah(summary.totalLunas)}
             </p>
-            <p className="text-[11px] text-emerald-700/80 font-medium">
+            <p className="text-[11px] text-[#C86400] font-medium">
               {summary.countLunas} tagihan telah dibayar
             </p>
           </div>
@@ -210,7 +210,7 @@ export default function TagihanPage() {
         {/* Table Tagihan */}
         {loading ? (
           <div className="clay-card py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#FF8F2B]" />
             <p className="text-xs font-semibold">Mengambil daftar tagihan supplier...</p>
           </div>
         ) : (

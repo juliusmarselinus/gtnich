@@ -9,7 +9,7 @@ import clsx from 'clsx'
 const STATUS_CONFIG: Record<POStatus, { label: string; cls: string; nextStatus?: POStatus; nextLabel?: string }> = {
   draft: { label: 'Draft', cls: 'bg-slate-100 text-slate-600', nextStatus: 'dikirim', nextLabel: 'Kirim ke Supplier' },
   dikirim: { label: 'Dikirim', cls: 'bg-blue-50 text-blue-600 border border-blue-200/50', nextStatus: 'diterima', nextLabel: 'Konfirmasi Terima Barang (+Stok)' },
-  diterima: { label: 'Diterima', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200/50', nextStatus: 'tagihan', nextLabel: 'Masuk Antrean Tagihan' },
+  diterima: { label: 'Diterima', cls: 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]', nextStatus: 'tagihan', nextLabel: 'Masuk Antrean Tagihan' },
   tagihan: { label: 'Tagihan', cls: 'bg-amber-50 text-amber-700 border border-amber-200/50' },
 }
 
@@ -113,7 +113,7 @@ export default function POTable({
                             className={clsx(
                               'px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all disabled:opacity-50 shadow-xs cursor-pointer whitespace-nowrap',
                               cfg.nextStatus === 'diterima'
-                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                ? 'clay-btn-primary text-white'
                                 : 'bg-slate-800 hover:bg-slate-900 text-white'
                             )}
                           >
@@ -121,7 +121,7 @@ export default function POTable({
                           </button>
                         ) : (
                           <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-                            <FileCheck className="w-3.5 h-3.5 text-emerald-600" /> Selesai
+                            <FileCheck className="w-3.5 h-3.5 text-[#FF8F2B]" /> Selesai
                           </span>
                         )}
 
@@ -146,7 +146,7 @@ export default function POTable({
                             Detail Item Bahan Yang Dipesan
                           </p>
                           {po.tanggalTerima && (
-                            <span className="text-[10px] text-emerald-600 font-bold">
+                            <span className="text-[10px] text-[#FF8F2B] font-bold">
                               ✓ Diterima pada {new Date(po.tanggalTerima).toLocaleDateString('id-ID')}
                             </span>
                           )}
@@ -170,7 +170,7 @@ export default function POTable({
                                 <span
                                   className={clsx(
                                     'text-[10px] font-bold flex items-center gap-1 justify-end mt-0.5',
-                                    item.diterima ? 'text-emerald-600' : 'text-amber-600'
+                                    item.diterima ? 'text-[#FF8F2B]' : 'text-amber-600'
                                   )}
                                 >
                                   {item.diterima ? (

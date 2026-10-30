@@ -36,7 +36,7 @@ export default function RecentSalesTable({ sales }: RecentSalesTableProps) {
         </div>
         <Link
           href="/dashboard/penjualan"
-          className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+          className="text-xs font-bold text-[#FF8F2B] hover:text-[#E67215] flex items-center gap-1"
         >
           Ke Kasir Penjualan <ArrowUpRight className="w-3.5 h-3.5" />
         </Link>
@@ -74,7 +74,7 @@ export default function RecentSalesTable({ sales }: RecentSalesTableProps) {
                   <td className="py-2.5 text-right font-mono font-bold text-slate-800">
                     {formatRupiah(s.totalPrice)}
                   </td>
-                  <td className="py-2.5 text-right font-mono text-emerald-600 font-bold">
+                  <td className="py-2.5 text-right font-mono text-[#FF8F2B] font-bold">
                     +{formatRupiah(s.profit)}
                   </td>
                   <td className="py-2.5 text-right text-[11px] text-slate-400">

@@ -75,7 +75,7 @@ export default function CartPOS({
         {/* Header Keranjang */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <span className="w-8 h-8 rounded-xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center font-bold">
               <ShoppingCart className="w-4 h-4" />
             </span>
             <div>
@@ -116,7 +116,7 @@ export default function CartPOS({
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-slate-800 truncate">{item.namaMenu}</p>
-                  <p className="text-[10px] font-mono text-emerald-700 font-bold">
+                  <p className="text-[10px] font-mono text-[#FF8F2B] font-bold">
                     {formatRupiah(item.hargaJual)}
                   </p>
                 </div>
@@ -163,10 +163,10 @@ export default function CartPOS({
             <span className="font-mono">{formatRupiah(totals.totalHPP)}</span>
           </div>
           <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-            <span className="font-bold text-emerald-700 flex items-center gap-1">
+            <span className="font-bold text-[#FF8F2B] flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5" /> Margin Laba:
             </span>
-            <span className="font-mono font-black text-emerald-700">
+            <span className="font-mono font-black text-[#FF8F2B]">
               {formatRupiah(totals.profit)} ({totals.margin.toFixed(1)}%)
             </span>
           </div>
@@ -190,7 +190,7 @@ export default function CartPOS({
           <div className="clay-card p-6 w-full max-w-md max-h-[92vh] overflow-y-auto space-y-4 animate-in fade-in-0 zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-emerald-600" />
+                <CreditCard className="w-4 h-4 text-[#FF8F2B]" />
                 Konfirmasi Penjualan Kasir
               </h3>
               <button
@@ -268,8 +268,8 @@ export default function CartPOS({
             </div>
 
             {/* Total Ringkasan Bayar */}
-            <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-100 space-y-1.5 text-xs">
-              <div className="flex justify-between text-emerald-800 font-medium">
+            <div className="p-4 rounded-2xl bg-[#FFF6EC] border border-[#FFE2C2] space-y-1.5 text-xs">
+              <div className="flex justify-between text-slate-800 font-medium">
                 <span>Subtotal ({totals.totalItems} item):</span>
                 <span className="font-mono">{formatRupiah(totals.subtotal)}</span>
               </div>
@@ -279,13 +279,13 @@ export default function CartPOS({
                   <span className="font-mono">-{formatRupiah(discount)}</span>
                 </div>
               )}
-              <div className="flex justify-between items-center pt-2 border-t border-emerald-200">
-                <span className="font-bold text-emerald-950 text-sm">Total Bayar:</span>
-                <span className="font-black font-mono text-emerald-800 text-lg">
+              <div className="flex justify-between items-center pt-2 border-t border-[#FFE2C2]">
+                <span className="font-bold text-slate-900 text-sm">Total Bayar:</span>
+                <span className="font-black font-mono text-[#FF8F2B] text-lg">
                   {formatRupiah(finalPrice)}
                 </span>
               </div>
-              <div className="flex justify-between text-[11px] text-emerald-700/80 pt-1">
+              <div className="flex justify-between text-[11px] text-[#C86400] pt-1">
                 <span>Estimasi Laba Bersih:</span>
                 <span className="font-mono font-bold">{formatRupiah(finalProfit)}</span>
               </div>

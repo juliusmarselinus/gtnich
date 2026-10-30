@@ -88,9 +88,8 @@ export default function PenjualanPage() {
 
         {/* Notifikasi Sukses */}
         {successNotif && (
-          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-800 text-xs shadow-sm animate-in fade-in-0 slide-in-from-top-2">
-            <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-            <span className="font-semibold">{successNotif}</span>
+          <div className="p-4 rounded-2xl bg-[#FFF6EC] border border-[#FFE2C2] flex items-center gap-3 text-[#C86400] text-xs shadow-sm animate-in fade-in-0 slide-in-from-top-2">
+            <CheckCircle className="w-5 h-5 text-[#FF8F2B] flex-shrink-0" />`r`n            <span className="font-semibold">{successNotif}</span>
           </div>
         )}
 
@@ -172,7 +171,7 @@ export default function PenjualanPage() {
                       className={clsx(
                         'px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer',
                         selectedKategori === kat
-                          ? 'bg-emerald-600 text-white shadow-sm'
+                          ? 'clay-btn-primary text-white shadow-sm'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       )}
                     >
@@ -185,7 +184,7 @@ export default function PenjualanPage() {
               {/* Grid Menu Terkini */}
               {loading ? (
                 <div className="clay-card py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-                  <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                  <Loader2 className="w-6 h-6 animate-spin text-[#FF8F2B]" />
                   <p className="text-xs font-semibold">Memuat katalog menu dari database Supabase...</p>
                 </div>
               ) : (

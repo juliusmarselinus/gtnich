@@ -6,7 +6,7 @@ import { Edit2, Trash2, AlertTriangle, CheckCircle, XCircle } from 'lucide-react
 import clsx from 'clsx'
 
 const statusConfig: Record<StockCondition, { label: string; icon: typeof CheckCircle; cls: string }> = {
-  ok: { label: 'Aman', icon: CheckCircle, cls: 'bg-emerald-50 text-emerald-700' },
+  ok: { label: 'Aman', icon: CheckCircle, cls: 'bg-[#FFF6EC] text-[#C86400]' },
   rendah: { label: 'Rendah', icon: AlertTriangle, cls: 'bg-amber-50 text-amber-700' },
   habis: { label: 'Habis', icon: XCircle, cls: 'bg-rose-50 text-rose-700' },
 }

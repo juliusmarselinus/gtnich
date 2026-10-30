@@ -25,8 +25,8 @@ const TIPE_CONFIG: Record<
   Keuangan: { icon: DollarSign, colorCls: 'text-amber-600', badgeCls: 'bg-amber-50 text-amber-700' },
   Penjualan: {
     icon: TrendingUp,
-    colorCls: 'text-emerald-600',
-    badgeCls: 'bg-emerald-50 text-emerald-700',
+    colorCls: 'text-[#FF8F2B]',
+    badgeCls: 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]',
   },
 }
 
@@ -49,17 +49,17 @@ export default function RekomendasiPage() {
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-5xl mx-auto">
         {/* Banner Clay Card */}
         <div className="clay-card p-6 flex flex-col sm:flex-row items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 clay-pill">
+          <div className="w-14 h-14 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center flex-shrink-0 clay-pill">
             <Lightbulb className="w-7 h-7" />
           </div>
           <div className="flex-1 text-center sm:text-left">
             <p className="text-base font-extrabold text-slate-800 flex items-center justify-center sm:justify-start gap-2">
               <span>DapurTwin AI Intelligence</span>
-              <Sparkles className="w-4 h-4 text-emerald-500" />
+              <Sparkles className="w-4 h-4 text-[#FF8F2B]" />
             </p>
             <p className="text-xs text-slate-500 mt-0.5">
               Sistem menganalisis inventori langsung dari database Supabase dan mendeteksi{' '}
-              <span className="font-bold text-emerald-600">{summary.total} insight strategis</span>{' '}
+              <span className="font-bold text-[#FF8F2B]">{summary.total} insight strategis</span>{' '}
               untuk kelancaran operasional dapur.
             </p>
           </div>
@@ -71,7 +71,7 @@ export default function RekomendasiPage() {
                 <span>{summary.kritisCount} Tindakan Kritis</span>
               </div>
             ) : (
-              <div className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full clay-pill flex-shrink-0">
+              <div className="text-xs font-bold text-[#FF8F2B] bg-[#FFF6EC] border border-[#FFE2C2] px-3.5 py-1.5 rounded-full clay-pill flex-shrink-0">
                 ✓ Operasional Stabil
               </div>
             )}
@@ -190,11 +190,11 @@ export default function RekomendasiPage() {
                       <div className="flex items-center gap-2 mt-1">
                         <div className="w-20 h-2 clay-inset rounded-full overflow-hidden p-0.5">
                           <div
-                            className="h-full bg-emerald-500 rounded-full"
+                            className="h-full bg-[#FF8F2B] rounded-full"
                             style={{ width: `${r.confidence}%` }}
                           />
                         </div>
-                        <span className="text-xs font-black text-emerald-600 font-mono">
+                        <span className="text-xs font-black text-[#FF8F2B] font-mono">
                           {r.confidence}%
                         </span>
                       </div>
@@ -209,7 +209,7 @@ export default function RekomendasiPage() {
                     <div className="sm:pl-14 pt-1">
                       <Link
                         href={r.actionLink}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FF8F2B] hover:text-[#E67215] transition-colors"
                       >
                         <span>{r.actionLabel || 'Tindak lanjuti'}</span>
                         <ArrowRight className="w-3.5 h-3.5" />

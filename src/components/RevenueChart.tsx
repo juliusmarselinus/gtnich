@@ -40,8 +40,8 @@ export default function RevenueChart() {
       <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
         <defs>
           <linearGradient id="scandiChart" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#3E6B48" stopOpacity={0.18} />
-            <stop offset="95%" stopColor="#3E6B48" stopOpacity={0.0} />
+            <stop offset="5%" stopColor="#FF8F2B" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#FF8F2B" stopOpacity={0.0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="#F4F0EB" vertical={false} />
@@ -61,11 +61,11 @@ export default function RevenueChart() {
         <Area
           type="monotone"
           dataKey="revenue"
-          stroke="#3E6B48"
-          strokeWidth={1.75}
+          stroke="#FF8F2B"
+          strokeWidth={2}
           fill="url(#scandiChart)"
-          dot={{ fill: '#3E6B48', strokeWidth: 2, r: 3, stroke: '#FAF8F5' }}
-          activeDot={{ r: 5, fill: '#3E6B48', stroke: '#FAF8F5', strokeWidth: 2 }}
+          dot={{ fill: '#FF8F2B', strokeWidth: 2, r: 3, stroke: '#FFFFFF' }}
+          activeDot={{ r: 5, fill: '#FF8F2B', stroke: '#FFFFFF', strokeWidth: 2 }}
         />
         <Area
           type="monotone"

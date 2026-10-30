@@ -55,7 +55,7 @@ export default function TabSupply({
       {/* Parameter Target Produksi */}
       <div className="clay-card p-6 space-y-4">
         <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
-          <Sparkles className="w-4 h-4 text-emerald-500" /> Rencana Target Batch Produksi
+          <Sparkles className="w-4 h-4 text-[#FF8F2B]" /> Rencana Target Batch Produksi
         </h3>
 
         <div>
@@ -102,8 +102,8 @@ export default function TabSupply({
             </Link>
           </div>
         ) : (
-          <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <div className="p-3.5 rounded-2xl bg-[#FFF6EC] border border-[#FFE2C2] text-[11px] text-[#C86400] flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#FF8F2B] flex-shrink-0" />
             <span>Semua bahan baku tersedia cukup di gudang untuk membuat {servings} porsi.</span>
           </div>
         )}
@@ -112,7 +112,7 @@ export default function TabSupply({
       {/* Status Ketersediaan Bahan */}
       <div className="clay-card p-6 space-y-3">
         <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <Package className="w-4 h-4 text-emerald-600" /> Status Ketersediaan Bahan di Dapur
+          <Package className="w-4 h-4 text-[#FF8F2B]" /> Status Ketersediaan Bahan di Dapur
         </h3>
 
         {supplyNeeded.length === 0 ? (
@@ -128,7 +128,7 @@ export default function TabSupply({
                   <span
                     className={clsx(
                       'text-[10px] font-bold px-2.5 py-0.5 rounded-full clay-pill',
-                      s.cukup ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                      s.cukup ? 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]' : 'bg-rose-50 text-rose-700'
                     )}
                   >
                     {s.cukup ? '✓ Stok Cukup' : '✗ Kurang'}
@@ -153,7 +153,7 @@ export default function TabSupply({
                     <p
                       className={clsx(
                         'font-mono font-bold',
-                        s.cukup ? 'text-emerald-600' : 'text-rose-600'
+                        s.cukup ? 'text-[#FF8F2B]' : 'text-rose-600'
                       )}
                     >
                       {s.cukup ? '0' : `-${Math.round(s.kekurangan * 100) / 100} ${s.satuan}`}

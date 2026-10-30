@@ -52,7 +52,7 @@ export default function TabPenjualan({
       {/* Parameter Input */}
       <div className="clay-card p-6 space-y-4">
         <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
-          <Sparkles className="w-4 h-4 text-emerald-500" /> Parameter Simulasi Penjualan
+          <Sparkles className="w-4 h-4 text-[#FF8F2B]" /> Parameter Simulasi Penjualan
         </h3>
 
         <div>
@@ -97,13 +97,13 @@ export default function TabPenjualan({
                 >
                   <span className="font-semibold text-slate-700">{s.namaBahan}</span>
                   <div className="text-right">
-                    <span className="text-emerald-700 font-mono font-bold">
+                    <span className="text-[#C86400] font-mono font-bold">
                       {Math.round(s.qty * 100) / 100} {s.satuan}
                     </span>
                     <span
                       className={clsx(
                         'block text-[9px] font-bold',
-                        s.isSufficient ? 'text-emerald-600' : 'text-rose-500'
+                        s.isSufficient ? 'text-[#FF8F2B]' : 'text-rose-500'
                       )}
                     >
                       {s.isSufficient
@@ -121,7 +121,7 @@ export default function TabPenjualan({
       {/* Proyeksi Finansial */}
       <div className="clay-card p-6 space-y-4">
         <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
-          <TrendingUp className="w-4 h-4 text-emerald-600" /> Hasil Proyeksi Finansial
+          <TrendingUp className="w-4 h-4 text-[#FF8F2B]" /> Hasil Proyeksi Finansial
         </h3>
 
         <div className="space-y-3">
@@ -139,12 +139,12 @@ export default function TabPenjualan({
             {
               label: 'Estimasi Profit Bersih',
               value: formatRupiah(projProfit),
-              cls: 'text-emerald-600 font-black text-lg',
+              cls: 'text-[#FF8F2B] font-black text-lg',
             },
             {
               label: 'Margin Keuntungan',
               value: `${marginPct.toFixed(1)}%`,
-              cls: 'text-emerald-600 font-bold',
+              cls: 'text-[#FF8F2B] font-bold',
             },
           ].map(r => (
             <div
@@ -157,12 +157,12 @@ export default function TabPenjualan({
           ))}
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-[11px] text-emerald-800 space-y-1">
+        <div className="p-3.5 rounded-2xl bg-[#FFF6EC]/70 border border-[#FFE2C2] text-[11px] text-[#C86400] space-y-1">
           <p className="font-bold">Analisis Keuntungan:</p>
           <p>
             Setiap 1 porsi menu <strong className="text-slate-900">{menuItem?.nama}</strong> menghasilkan
             margin sebesar{' '}
-            <strong className="text-emerald-700">
+            <strong className="text-[#FF8F2B]">
               {formatRupiah((menuItem?.hargaJual ?? 0) - (menuItem?.estimasiHPP ?? 0))}
             </strong>{' '}
             (Harga jual {formatRupiah(menuItem?.hargaJual ?? 0)} vs HPP {formatRupiah(menuItem?.estimasiHPP ?? 0)}).

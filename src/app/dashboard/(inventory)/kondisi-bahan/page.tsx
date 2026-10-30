@@ -76,7 +76,7 @@ export default function KondisiBahanPage() {
         {/* Summary Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="clay-card p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center clay-pill flex-shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center clay-pill flex-shrink-0">
               <CheckCircle className="w-6 h-6" />
             </div>
             <div>
@@ -152,7 +152,7 @@ export default function KondisiBahanPage() {
         {/* Loading Spinner or Grid Cards */}
         {loading ? (
           <div className="clay-card py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#FF8F2B]" />
             <p className="text-xs font-semibold">Menganalisis masa simpan dan memuat bahan...</p>
           </div>
         ) : (

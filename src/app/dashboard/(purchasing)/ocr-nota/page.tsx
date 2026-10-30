@@ -59,9 +59,9 @@ export default function OCRNotaPage() {
 
       <main className="p-4 sm:p-6 md:p-8 space-y-7 max-w-5xl mx-auto">
         {/* Banner 9Router Vision AI */}
-        <div className="clay-card p-4 sm:p-5 border-l-4 border-l-emerald-500 bg-emerald-50/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="clay-card p-4 sm:p-5 border-l-4 border-l-[#FF8F2B] bg-[#FFF6EC]/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+            <span className="w-9 h-9 rounded-xl bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2] flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-5 h-5" />
             </span>
             <div>
@@ -73,7 +73,7 @@ export default function OCRNotaPage() {
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-mono self-start sm:self-auto">
+          <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 font-mono self-start sm:self-auto">
             AI Vision Active
           </span>
         </div>
@@ -95,7 +95,7 @@ export default function OCRNotaPage() {
             onDragOver={e => e.preventDefault()}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="clay-card border-2 border-dashed border-slate-300 hover:border-emerald-500 hover:bg-emerald-50/10 transition-all p-10 sm:p-14 text-center cursor-pointer group rounded-3xl"
+            className="clay-card border-2 border-dashed border-slate-300 hover:border-[#FF8F2B] hover:bg-[#FFF6EC]/20 transition-all p-10 sm:p-14 text-center cursor-pointer group rounded-3xl"
           >
             <input
               type="file"
@@ -104,7 +104,7 @@ export default function OCRNotaPage() {
               accept="image/*,.pdf"
               className="hidden"
             />
-            <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform clay-pill">
+            <div className="w-16 h-16 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform clay-pill">
               <ImageIcon className="w-8 h-8" />
             </div>
             <h3 className="text-sm sm:text-base font-extrabold text-slate-800">
@@ -122,7 +122,7 @@ export default function OCRNotaPage() {
         {/* State 2: Progress OCR Processing */}
         {state === 'uploading' && (
           <div className="clay-card p-10 sm:p-14 text-center space-y-4 max-w-lg mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto clay-pill animate-pulse">
+            <div className="w-16 h-16 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center mx-auto clay-pill animate-pulse">
               <Loader2 className="w-8 h-8 animate-spin" />
             </div>
             <div>
@@ -137,7 +137,7 @@ export default function OCRNotaPage() {
             {/* Progress Bar */}
             <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
               <div
-                className="bg-emerald-500 h-2.5 rounded-full transition-all duration-300 ease-out"
+                className="bg-[#FF8F2B] h-2.5 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${Math.max(5, ocrProgress)}%` }}
               />
             </div>

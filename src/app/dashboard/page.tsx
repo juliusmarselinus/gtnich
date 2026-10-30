@@ -37,13 +37,16 @@ import {
   Layers,
 } from 'lucide-react'
 
-// Definisi katalog modul dengan sub-modul (fitur-fiturnya)
+// Definisi katalog modul dengan sub-modul menggunakan Warm Sunset & Clean Palette
 const modulesCatalog = [
   {
     id: 'operasional',
     title: 'Modul Operasional',
     badge: '3 Fitur',
-    color: 'from-emerald-500 to-teal-500',
+    gradient: 'from-[#FF8F2B] to-[#FF775D]',
+    badgeBg: 'bg-orange-50 text-[#C76710] border-orange-200/80',
+    iconBg: 'bg-orange-50 text-[#FF8F2B]',
+    hoverBorder: 'hover:border-[#FF8F2B]',
     description: 'Aktivitas kasir harian, transaksi penjualan, pemesanan ke distributor, dan penagihan supplier.',
     icon: ShoppingCart,
     items: [
@@ -71,7 +74,10 @@ const modulesCatalog = [
     id: 'inventaris',
     title: 'Modul Inventaris',
     badge: '5 Fitur',
-    color: 'from-amber-500 to-orange-500',
+    gradient: 'from-[#FFBF35] to-[#FF8F2B]',
+    badgeBg: 'bg-amber-50 text-amber-900 border-amber-200/80',
+    iconBg: 'bg-amber-50 text-[#C76710]',
+    hoverBorder: 'hover:border-[#FFBF35]',
     description: 'Master data bahan baku, formula resep, vendor supplier, visualisasi stok, dan stock opname fisik.',
     icon: Package,
     items: [
@@ -111,7 +117,10 @@ const modulesCatalog = [
     id: 'analitik',
     title: 'Modul Analitik & Laporan',
     badge: '4 Fitur',
-    color: 'from-blue-500 to-indigo-500',
+    gradient: 'from-[#89BDF7] to-[#4085D3]',
+    badgeBg: 'bg-sky-50 text-sky-900 border-sky-200/80',
+    iconBg: 'bg-sky-50 text-[#3070B8]',
+    hoverBorder: 'hover:border-[#89BDF7]',
     description: 'Visualisasi keuangan, grafik konsumsi bahan, histori lengkap, simulasi laba, dan rekomendasi cerdas.',
     icon: BarChart2,
     items: [
@@ -124,7 +133,7 @@ const modulesCatalog = [
       {
         href: '/dashboard/riwayat',
         label: 'Riwayat Transaksi',
-        desc: 'Arsip log seluruh transaksi penjualan & PO',
+        desc: 'Arsip log seluruh transaksi kasir & PO',
         icon: History,
       },
       {
@@ -145,7 +154,10 @@ const modulesCatalog = [
     id: 'tools',
     title: 'Modul Tools & Utilitas',
     badge: '1 Fitur',
-    color: 'from-purple-500 to-pink-500',
+    gradient: 'from-[#FF775D] to-[#FF8F2B]',
+    badgeBg: 'bg-orange-50 text-[#C76710] border-orange-200/80',
+    iconBg: 'bg-orange-50 text-[#FF8F2B]',
+    hoverBorder: 'hover:border-[#FF8F2B]',
     description: 'Alat bantu otomatisasi proses input manual nota belanja dapur.',
     icon: Sparkles,
     items: [
@@ -215,7 +227,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={refresh}
-              className="px-3 py-1 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 cursor-pointer"
+              className="px-3 py-1 bg-[#FF8F2B] text-white rounded-xl text-xs font-bold hover:bg-[#E07218] cursor-pointer shadow-xs"
             >
               Coba Lagi
             </button>
@@ -258,15 +270,17 @@ export default function DashboardPage() {
         <div className="space-y-6 pt-1">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
-              <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                <Layers className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] text-white flex items-center justify-center shadow-xs">
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
                 Modul Sistem DapurTwin
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-600 mt-0.5">
                 Setiap modul tersusun terstruktur dengan sub-modul berjejer horizontal
               </p>
             </div>
-            <span className="text-xs font-bold text-slate-500 bg-white px-3 py-1 rounded-full clay-pill border border-slate-200/60">
+            <span className="text-xs font-bold text-slate-700 bg-white px-3 py-1 rounded-full clay-pill border border-[#EBE3D7]">
               4 Modul Terintegrasi
             </span>
           </div>
@@ -280,20 +294,20 @@ export default function DashboardPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-11 h-11 rounded-2xl bg-gradient-to-tr ${mod.color} text-white flex items-center justify-center shadow-md shadow-emerald-500/10 flex-shrink-0`}
+                        className={`w-11 h-11 rounded-2xl bg-gradient-to-tr ${mod.gradient} text-white flex items-center justify-center shadow-sm flex-shrink-0`}
                       >
-                        <ModIcon className="w-5 h-5 drop-shadow" />
+                        <ModIcon className="w-5 h-5 drop-shadow-xs" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-extrabold text-slate-800">
+                          <h3 className="text-base font-extrabold text-slate-900">
                             {mod.title}
                           </h3>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${mod.badgeBg}`}>
                             {mod.badge}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-600 mt-0.5">
                           {mod.description}
                         </p>
                       </div>
@@ -308,26 +322,26 @@ export default function DashboardPage() {
                         <Link
                           key={item.href}
                           href={item.href}
-                          className="group p-4 rounded-2xl bg-white/75 hover:bg-white border border-slate-200/70 hover:border-emerald-300 transition-all duration-200 shadow-2xs hover:shadow-sm flex flex-col justify-between space-y-3 cursor-pointer"
+                          className="group p-4 rounded-2xl bg-[#FFFFFF] hover:bg-[#FFFDFC] border border-[#EBE3D7] hover:border-[#FFBF35] transition-all duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between space-y-3 cursor-pointer"
                         >
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors shadow-2xs">
-                                <ItemIcon className="w-4 h-4" />
+                              <div className="w-9 h-9 rounded-xl bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE7CF] flex items-center justify-center group-hover:bg-[#FF8F2B] group-hover:text-white transition-all shadow-2xs">
+                                <ItemIcon className="w-4.5 h-4.5" />
                               </div>
-                              <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#FF8F2B] group-hover:translate-x-1 transition-all" />
                             </div>
                             <div>
-                              <p className="text-xs font-extrabold text-slate-800 group-hover:text-emerald-700 transition-colors">
+                              <p className="text-xs font-extrabold text-slate-900 group-hover:text-[#FF8F2B] transition-colors">
                                 {item.label}
                               </p>
-                              <p className="text-[11px] text-slate-400 mt-1 leading-snug line-clamp-2">
+                              <p className="text-[11px] text-slate-600 mt-1 leading-snug line-clamp-2">
                                 {item.desc}
                               </p>
                             </div>
                           </div>
 
-                          <div className="pt-2 border-t border-slate-100/80 flex items-center justify-between text-[10px] text-slate-400 group-hover:text-emerald-600 font-semibold">
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 group-hover:text-[#FF8F2B] font-bold">
                             <span>Buka Modul</span>
                             <span>→</span>
                           </div>
@@ -347,10 +361,10 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 clay-card p-6 space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                   Arus Kas 7 Hari Terakhir
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-500">
                   Total akumulasi penjualan operasional dari database orders
                 </p>
               </div>
@@ -360,13 +374,13 @@ export default function DashboardPage() {
                   onClick={refresh}
                   disabled={isLoading}
                   title="Segarkan Data"
-                  className="p-1.5 rounded-xl clay-btn text-slate-500 hover:text-slate-800 cursor-pointer disabled:opacity-50"
+                  className="p-1.5 rounded-xl clay-btn text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-50"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                 </button>
                 <Link
                   href="/dashboard/laporan"
-                  className="text-xs font-mono font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full clay-pill hover:bg-emerald-100 transition-colors"
+                  className="text-xs font-mono font-bold text-[#C76710] bg-[#FFF5EB] px-3 py-1 rounded-full clay-pill hover:bg-orange-100 transition-colors border border-orange-200"
                 >
                   Lihat Statistik Lengkap →
                 </Link>
@@ -386,14 +400,14 @@ export default function DashboardPage() {
                   >
                     <defs>
                       <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                        <stop offset="5%" stopColor="#FF8F2B" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#FFBF35" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE3" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748B' }} />
                     <YAxis
-                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      tick={{ fontSize: 11, fill: '#64748B' }}
                       tickFormatter={v => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
                     />
                     <Tooltip
@@ -401,14 +415,15 @@ export default function DashboardPage() {
                       contentStyle={{
                         fontSize: 11,
                         borderRadius: 16,
-                        border: '1px solid #cbd5e1',
-                        boxShadow: '4px 4px 12px #d8e2ed',
+                        border: '1px solid #FFD8B0',
+                        boxShadow: '0 4px 12px rgba(160, 140, 120, 0.15)',
+                        backgroundColor: '#FFFFFF',
                       }}
                     />
                     <Area
                       type="monotone"
                       dataKey="revenue"
-                      stroke="#10b981"
+                      stroke="#FF8F2B"
                       strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#revenueGradient)"
@@ -423,12 +438,12 @@ export default function DashboardPage() {
           <div className="clay-card p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                   Transaksi Masuk
                 </h3>
                 <Link
                   href="/dashboard/riwayat"
-                  className="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold"
+                  className="text-[11px] text-[#C76710] hover:text-[#FF8F2B] font-bold"
                 >
                   Lihat Semua
                 </Link>
@@ -444,21 +459,21 @@ export default function DashboardPage() {
                     <div
                       key={ord.id}
                       onClick={() => handleSelectOrder(ord)}
-                      className="py-3 flex items-center justify-between hover:bg-slate-50/80 px-2.5 rounded-xl transition-colors cursor-pointer group"
+                      className="py-3 flex items-center justify-between hover:bg-[#FAF7F2] px-2.5 rounded-xl transition-colors cursor-pointer group"
                     >
                       <div>
-                        <p className="font-bold text-xs text-slate-800 group-hover:text-emerald-600 transition-colors">
+                        <p className="font-bold text-xs text-slate-900 group-hover:text-[#FF8F2B] transition-colors">
                           {ord.customerName}
                         </p>
-                        <p className="text-[10px] text-slate-400 font-mono">
+                        <p className="text-[10px] text-slate-500 font-mono">
                           {ord.invoiceNumber}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-mono text-xs font-bold text-slate-800">
+                        <p className="font-mono text-xs font-bold text-slate-900">
                           {formatRupiah(ord.totalPrice)}
                         </p>
-                        <span className="text-[10px] text-emerald-600 font-semibold">
+                        <span className="text-[10px] text-[#3070B8] font-bold bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
                           {ord.channel}
                         </span>
                       </div>
@@ -469,10 +484,10 @@ export default function DashboardPage() {
             </div>
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-              <span className="text-slate-400">Klik nota untuk rincian</span>
+              <span className="text-slate-500">Klik nota untuk rincian</span>
               <Link
                 href="/dashboard/penjualan"
-                className="text-emerald-600 font-bold hover:underline flex items-center gap-1"
+                className="text-[#C76710] font-bold hover:underline flex items-center gap-1"
               >
                 <ShoppingCart className="w-3.5 h-3.5" /> Buka Kasir
               </Link>
@@ -485,12 +500,12 @@ export default function DashboardPage() {
           {/* Best Sellers */}
           <div className="clay-card p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Menu Terlaris Dapur
               </h3>
               <Link
                 href="/dashboard/menu"
-                className="text-[11px] text-emerald-600 font-bold hover:underline"
+                className="text-[11px] text-[#C76710] font-bold hover:underline"
               >
                 Kelola Menu
               </Link>
@@ -505,21 +520,21 @@ export default function DashboardPage() {
                 {bestSellers.map(item => (
                   <div
                     key={item.id}
-                    className="py-3 flex items-center justify-between hover:bg-slate-50/80 px-2 rounded-xl transition-colors"
+                    className="py-3 flex items-center justify-between hover:bg-[#FAF7F2] px-2 rounded-xl transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl p-2 rounded-2xl bg-slate-50 clay-pill">
+                      <span className="text-2xl p-2 rounded-2xl bg-[#F8F5EE] clay-pill">
                         {item.emoji}
                       </span>
                       <div>
-                        <p className="text-xs font-bold text-slate-800">{item.name}</p>
-                        <p className="text-[11px] text-emerald-600 font-mono font-semibold">
+                        <p className="text-xs font-bold text-slate-900">{item.name}</p>
+                        <p className="text-[11px] text-[#C76710] font-mono font-semibold">
                           {formatRupiah(item.price)}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="font-mono text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 clay-pill">
+                      <span className="font-mono text-xs font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-900 clay-pill border border-amber-200/60">
                         {item.sold} porsi terjual
                       </span>
                     </div>
@@ -532,19 +547,19 @@ export default function DashboardPage() {
           {/* Low Stock Attention */}
           <div className="clay-card p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Peringatan Stok Bahan Baku
               </h3>
               <Link
                 href="/dashboard/purchase-order"
-                className="text-[11px] text-emerald-600 font-bold hover:underline flex items-center gap-1"
+                className="text-[11px] text-[#C76710] font-bold hover:underline flex items-center gap-1"
               >
                 Buat PO <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
 
             {lowStockItems.length === 0 ? (
-              <div className="py-8 text-center text-xs text-emerald-600 font-medium bg-emerald-50/50 rounded-2xl border border-emerald-100">
+              <div className="py-8 text-center text-xs text-[#C86400] font-semibold bg-[#FFF6EC] rounded-2xl border border-[#FFE2C2]">
                 ✓ Seluruh bahan baku berada dalam kondisi aman di atas batas minimum.
               </div>
             ) : (
@@ -552,19 +567,19 @@ export default function DashboardPage() {
                 {lowStockItems.map(item => (
                   <div
                     key={item.id}
-                    className="py-3 flex items-center justify-between hover:bg-slate-50/80 px-2 rounded-xl transition-colors"
+                    className="py-3 flex items-center justify-between hover:bg-[#FAF7F2] px-2 rounded-xl transition-colors"
                   >
                     <div>
-                      <p className="text-xs font-bold text-slate-800">{item.name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">
+                      <p className="text-xs font-bold text-slate-900">{item.name}</p>
+                      <p className="text-[10px] text-slate-500 font-medium">
                         Batas minimum: {item.stockMinimum} {item.satuan}
                       </p>
                     </div>
                     <span
                       className={`text-[10px] font-mono px-3 py-1 rounded-full font-bold clay-pill ${
                         item.stock === 0
-                          ? 'bg-rose-50 text-rose-600'
-                          : 'bg-amber-50 text-amber-700'
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                          : 'bg-amber-50 text-amber-900 border border-amber-200'
                       }`}
                     >
                       {item.stock === 0

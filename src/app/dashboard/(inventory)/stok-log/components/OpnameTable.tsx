@@ -64,7 +64,7 @@ export default function OpnameTable({
           className={clsx(
             'flex items-center gap-2.5 p-4 rounded-2xl text-xs font-bold clay-pill',
             statusMsg.type === 'success'
-              ? 'bg-emerald-50 text-emerald-700'
+              ? 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]'
               : 'bg-blue-50 text-blue-700'
           )}
         >
@@ -128,7 +128,7 @@ export default function OpnameTable({
                         o.selisih === 0
                           ? 'bg-slate-100 text-slate-400'
                           : o.selisih > 0
-                          ? 'bg-emerald-50 text-emerald-600'
+                          ? 'bg-[#FFF6EC] text-[#FF8F2B]'
                           : 'bg-rose-50 text-rose-600'
                       )}
                     >

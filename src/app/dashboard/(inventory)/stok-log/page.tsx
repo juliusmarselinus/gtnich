@@ -88,10 +88,10 @@ export default function StokLogPage() {
           </div>
           <div className="clay-card p-4.5 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Total Mutasi Masuk</p>
-              <p className="text-2xl font-black text-emerald-700 font-mono mt-1">+{summary.masukCount.toFixed(1)}</p>
+              <p className="text-[11px] font-bold text-[#FF8F2B] uppercase tracking-wider">Total Mutasi Masuk</p>
+              <p className="text-2xl font-black text-[#C86400] font-mono mt-1">+{summary.masukCount.toFixed(1)}</p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <div className="w-10 h-10 rounded-2xl bg-[#FFF6EC] flex items-center justify-center text-[#FF8F2B]">
               <ArrowDownCircle className="w-5 h-5" />
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function StokLogPage() {
         {/* Loading Spinner */}
         {loading ? (
           <div className="clay-card py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#FF8F2B]" />
             <p className="text-xs font-semibold">Mengambil data mutasi stok dari database Supabase...</p>
           </div>
         ) : (

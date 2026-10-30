@@ -145,7 +145,7 @@ export default function POWizardModal({
               <div
                 className={clsx(
                   'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold clay-pill',
-                  step >= i + 1 ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'
+                  step >= i + 1 ? 'bg-[#FF8F2B] text-white' : 'bg-slate-100 text-slate-400'
                 )}
               >
                 {i + 1}
@@ -169,7 +169,7 @@ export default function POWizardModal({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-1">
-                <Building2 className="w-4 h-4 text-emerald-600" />
+                <Building2 className="w-4 h-4 text-[#FF8F2B]" />
                 1. Pilih Supplier Tujuan
               </h3>
               <p className="text-xs text-slate-500">
@@ -179,21 +179,21 @@ export default function POWizardModal({
 
             {/* Status Indikator Pilihan Supplier */}
             {selectedSupplier ? (
-              <div className="p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-200 flex items-center justify-between shadow-[inset_1px_1px_2px_#ffffff]">
+              <div className="p-3.5 rounded-2xl bg-[#FFF6EC] border border-[#FFE2C2] flex items-center justify-between shadow-[inset_1px_1px_2px_#ffffff]">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-xl bg-[#FF8F2B] text-white flex items-center justify-center font-bold">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-black text-emerald-900 leading-tight">
+                    <p className="text-xs font-black text-slate-900 leading-tight">
                       {selectedSupplier.nama}
                     </p>
-                    <p className="text-[10px] text-emerald-700 font-medium">
+                    <p className="text-[10px] text-[#FF8F2B] font-medium">
                       {selectedSupplier.kategori ? `${selectedSupplier.kategori} • ` : ''}Min. Order: {formatRupiah(selectedSupplier.minimalOrder || 0)}
                     </p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-full">
+                <span className="text-[10px] font-bold text-[#FF8F2B] bg-[#FFF6EC] border border-[#FFE2C2] px-2.5 py-1 rounded-full">
                   Terpilih ✓
                 </span>
               </div>
@@ -218,8 +218,8 @@ export default function POWizardModal({
                     className={clsx(
                       'w-full text-left px-4 py-3 rounded-2xl transition-all cursor-pointer relative',
                       isSelected
-                        ? 'clay-btn-primary ring-2 ring-emerald-500 ring-offset-2'
-                        : 'clay-btn text-slate-700 hover:border-emerald-300'
+                        ? 'clay-btn-primary ring-2 ring-[#FF8F2B] ring-offset-2'
+                        : 'clay-btn text-slate-700 hover:border-[#FF8F2B]/40'
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -228,7 +228,7 @@ export default function POWizardModal({
                         <p
                           className={clsx(
                             'text-[10px] mt-1',
-                            isSelected ? 'text-emerald-100 font-medium' : 'text-slate-400'
+                            isSelected ? 'text-white/90 font-medium' : 'text-slate-400'
                           )}
                         >
                           {s.kategori ? `${s.kategori} • ` : ''}Min. Order {formatRupiah(s.minimalOrder || 0)}
@@ -355,9 +355,9 @@ export default function POWizardModal({
               </div>
 
               {newItem.bahanId && newItem.qty > 0 && newItem.hargaEstimasi > 0 && (
-                <div className="flex justify-between items-center px-3 py-1.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-[11px]">
-                  <span className="text-emerald-700 font-medium">Subtotal Estimasi:</span>
-                  <span className="font-mono font-black text-emerald-800">
+                <div className="flex justify-between items-center px-3 py-1.5 rounded-xl bg-[#FFF6EC]/80 border border-[#FFE2C2] text-[11px]">
+                  <span className="text-[#FF8F2B] font-medium">Subtotal Estimasi:</span>
+                  <span className="font-mono font-black text-slate-900">
                     {formatRupiah(newItem.qty * newItem.hargaEstimasi)}
                   </span>
                 </div>
@@ -389,7 +389,7 @@ export default function POWizardModal({
               </div>
               <div className="flex justify-between text-xs pt-2 border-t border-slate-200">
                 <span className="text-slate-500 font-bold">Total Estimasi Nilai PO</span>
-                <span className="font-black text-emerald-600 font-mono text-sm">
+                <span className="font-black text-[#FF8F2B] font-mono text-sm">
                   {formatRupiah(items.reduce((s, i) => s + i.qty * i.hargaEstimasi, 0))}
                 </span>
               </div>

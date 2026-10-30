@@ -1,115 +1,117 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f1f5f9;
-  --foreground: #1e293b;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 body {
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background-color: #f8fafc;
+  color: #0f172a;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   letter-spacing: -0.01em;
   min-height: 100vh;
 }
 
-/* Claymorphism White Background with Soft Pastels */
+/* 
+  Claymorphism Clean Background untuk Dashboard
+  Base warna Soft Pearl Linen (#F7F5F0) dengan warm ambient sangat tipis & elegan
+*/
 .clay-bg {
-  background-color: #f3f6fa;
+  background-color: #F7F5F0;
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(224, 231, 255, 0.5) 0%, transparent 40%),
-    radial-gradient(circle at 90% 10%, rgba(220, 252, 231, 0.5) 0%, transparent 40%),
-    radial-gradient(circle at 50% 90%, rgba(254, 240, 138, 0.25) 0%, transparent 50%);
+    radial-gradient(circle at 10% 10%, rgba(255, 191, 53, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 15%, rgba(255, 143, 43, 0.04) 0%, transparent 35%),
+    radial-gradient(circle at 75% 85%, rgba(137, 189, 247, 0.05) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
-/* White Clay Card / Container (Timbul, Lembut, Menggembung) */
+/* 
+  White Clay Card (Timbul, Menggembung Lembut & Bersih)
+  Shadow natural hangat netral (tidak pekat, tidak silau)
+*/
 .clay-card {
-  background: #ffffff;
-  border-radius: 1.5rem;
-  box-shadow: 
-    8px 8px 18px #d6dfea,
-    -8px -8px 18px #ffffff,
-    inset 2px 2px 4px rgba(255, 255, 255, 0.9),
-    inset -2px -2px 4px rgba(200, 215, 230, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.clay-card:hover {
-  transform: translateY(-3px) scale(1.005);
-  box-shadow: 
-    12px 14px 24px #cbd8e6,
-    -10px -10px 22px #ffffff,
-    inset 2px 2px 4px rgba(255, 255, 255, 0.95);
-}
-
-/* Clay Button (White & Soft Mint/Emerald Puff) */
-.clay-btn {
-  background: #ffffff;
+  background: #FFFFFF;
   border-radius: 1.25rem;
   box-shadow: 
-    5px 5px 12px #d3dde8,
-    -5px -5px 12px #ffffff,
-    inset 1px 1px 2px #ffffff,
-    inset -1px -1px 2px #d1dbe6;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  transition: all 0.2s ease;
-}
-
-.clay-btn:active {
-  box-shadow: 
-    inset 4px 4px 8px #d3dde8,
-    inset -4px -4px 8px #ffffff;
-  transform: scale(0.98);
-}
-
-.clay-btn-primary {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff !important;
-  border-radius: 1.25rem;
-  box-shadow: 
-    6px 6px 16px rgba(16, 185, 129, 0.35),
-    -4px -4px 12px #ffffff,
-    inset 2px 2px 3px rgba(255, 255, 255, 0.4),
-    inset -2px -2px 4px rgba(4, 120, 87, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+    6px 8px 18px rgba(160, 140, 120, 0.07),
+    -6px -6px 16px #FFFFFF,
+    inset 1px 1px 2px rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(230, 220, 208, 0.85);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.clay-btn-primary:hover {
+.clay-card:hover {
   transform: translateY(-2px);
   box-shadow: 
-    8px 10px 20px rgba(16, 185, 129, 0.45),
-    -4px -4px 14px #ffffff,
-    inset 2px 2px 4px rgba(255, 255, 255, 0.5);
+    8px 12px 22px rgba(160, 140, 120, 0.12),
+    -8px -8px 20px #FFFFFF,
+    inset 1px 1px 2px rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 143, 43, 0.4);
+}
+
+/* Clay Button (White & Soft Puff) */
+.clay-btn {
+  background: #FFFFFF;
+  border-radius: 1rem;
+  box-shadow: 
+    3px 4px 10px rgba(160, 140, 120, 0.08),
+    -3px -3px 8px #FFFFFF,
+    inset 1px 1px 2px #FFFFFF;
+  border: 1px solid rgba(230, 220, 208, 0.9);
+  transition: all 0.15s ease;
+}
+
+.clay-btn:hover {
+  background: #FAF7F2;
+  border-color: rgba(255, 143, 43, 0.5);
+}
+
+.clay-btn:active {
+  transform: scale(0.98);
+  box-shadow: inset 2px 2px 5px rgba(160, 140, 120, 0.15);
+}
+
+/* 
+  Clay Button Primary (Sunset Orange #FF8F2B -> #FF775D)
+  Warna oranye hangat estetik sesuai palet gambar
+*/
+.clay-btn-primary {
+  background: linear-gradient(135deg, #FF9C38 0%, #FF8F2B 100%);
+  color: #FFFFFF !important;
+  border-radius: 1rem;
+  box-shadow: 
+    0 4px 14px rgba(255, 143, 43, 0.35),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 175, 90, 0.8);
+  transition: all 0.15s ease;
+}
+
+.clay-btn-primary:hover {
+  background: linear-gradient(135deg, #FFA74A 0%, #FF841C 100%);
+  box-shadow: 0 6px 18px rgba(255, 143, 43, 0.45);
+  transform: translateY(-1px);
 }
 
 .clay-btn-primary:active {
-  box-shadow: 
-    inset 4px 4px 8px rgba(4, 120, 87, 0.6),
-    inset -3px -3px 6px rgba(255, 255, 255, 0.3);
-  transform: scale(0.97);
+  transform: scale(0.98);
+  box-shadow: inset 0 2px 4px rgba(180, 80, 0, 0.4);
 }
 
 /* Clay Inset (Cekung ke Dalam untuk Form Input / Field) */
 .clay-inset {
-  background: #f4f7fb !important;
-  border-radius: 1rem !important;
-  box-shadow: 
-    inset 3px 3px 6px #d8e2ed,
-    inset -3px -3px 6px #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  color: #1e293b !important;
-  transition: all 0.2s ease;
+  background: #F8F5EE !important;
+  border-radius: 0.875rem !important;
+  box-shadow: inset 1px 2px 4px rgba(160, 140, 120, 0.1) !important;
+  border: 1px solid rgba(230, 220, 208, 0.9) !important;
+  color: #1E293B !important;
+  transition: all 0.15s ease;
 }
 
 .clay-inset:focus {
-  background: #ffffff !important;
-  box-shadow: 
-    inset 2px 2px 4px #d8e2ed,
-    inset -2px -2px 4px #ffffff,
-    0 0 0 3px rgba(16, 185, 129, 0.25) !important;
+  background: #FFFFFF !important;
+  border-color: #FF8F2B !important;
+  box-shadow: 0 0 0 3px rgba(255, 143, 43, 0.2) !important;
   outline: none !important;
 }
 
@@ -117,26 +119,24 @@ body {
 .clay-pill {
   border-radius: 9999px;
   box-shadow: 
-    3px 3px 7px #d8e2ed,
-    -3px -3px 7px #ffffff,
-    inset 1px 1px 2px rgba(255, 255, 255, 0.8);
+    2px 2px 5px rgba(160, 140, 120, 0.08),
+    -2px -2px 5px #FFFFFF;
 }
 
-/* Smooth custom scrollbar for white theme */
+/* Smooth custom scrollbar for warm theme */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #E2D7C8;
   border-radius: 9999px;
-  border: 2px solid #f1f5f9;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #C8BAA7;
 }
 
 @media print {

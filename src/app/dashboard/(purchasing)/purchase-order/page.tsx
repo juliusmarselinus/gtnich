@@ -80,7 +80,7 @@ export default function PurchaseOrderPage() {
           {[
             { key: 'draft', label: 'Draft', count: counts.draft, textCls: 'text-slate-800' },
             { key: 'dikirim', label: 'Dikirim', count: counts.dikirim, textCls: 'text-blue-600' },
-            { key: 'diterima', label: 'Diterima', count: counts.diterima, textCls: 'text-emerald-600' },
+            { key: 'diterima', label: 'Diterima', count: counts.diterima, textCls: 'text-[#FF8F2B]' },
             { key: 'tagihan', label: 'Tagihan', count: counts.tagihan, textCls: 'text-amber-600' },
           ].map(st => (
             <button
@@ -89,7 +89,7 @@ export default function PurchaseOrderPage() {
               onClick={() => setStatusFilter(statusFilter === st.key ? 'all' : st.key)}
               className={clsx(
                 'clay-card p-5 text-center transition-all cursor-pointer',
-                statusFilter === st.key ? 'ring-2 ring-emerald-500 bg-emerald-50/20' : 'hover:scale-[1.02]'
+                statusFilter === st.key ? 'ring-2 ring-[#FF8F2B] bg-[#FFF6EC]/40' : 'hover:scale-[1.02]'
               )}
             >
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{st.label}</p>
@@ -114,7 +114,7 @@ export default function PurchaseOrderPage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/dashboard/tagihan"
-                className="clay-btn flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 hover:text-emerald-700 cursor-pointer transition-colors"
+                className="clay-btn flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 hover:text-[#FF8F2B] cursor-pointer transition-colors"
               >
                 <ReceiptText className="w-4 h-4 text-amber-500" />
                 <span>Halaman Tagihan ({counts.tagihan})</span>
@@ -172,7 +172,7 @@ export default function PurchaseOrderPage() {
         {/* Loading / PO List Table */}
         {loading ? (
           <div className="clay-card py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#FF8F2B]" />
             <p className="text-xs font-semibold">Mengambil data purchase order dari database Supabase...</p>
           </div>
         ) : (

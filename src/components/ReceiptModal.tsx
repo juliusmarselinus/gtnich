@@ -32,7 +32,7 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
         {/* Modal Top Header */}
         <div className="px-6 py-4 bg-stone-50/80 border-b border-stone-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF8F2B] animate-pulse" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-stone-600">Rincian Struk Transaksi</h3>
           </div>
           <button
@@ -48,10 +48,10 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
           <div className="bg-white border border-stone-200/70 rounded-2xl p-5 shadow-sm relative">
             {/* Top decorative receipt cutout line */}
             <div className="text-center pb-4 border-b border-dashed border-stone-300">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-500 text-white font-black text-base shadow-sm mb-2">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] text-white font-black text-base shadow-sm mb-2">
                 OH
               </div>
-              <h4 className="font-extrabold text-stone-800 text-base tracking-tight">ORDERHUB STORE</h4>
+              <h4 className="font-extrabold text-stone-800 text-base tracking-tight">DAPURTWIN</h4>
               <p className="text-[11px] text-stone-400">Jl. Inovasi Digital No. 26, UMKM Hub</p>
               <p className="text-[11px] text-stone-400">WA: 0812-3456-7890 | Web: orderhub.id</p>
             </div>
@@ -82,7 +82,7 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
                 <span className="text-stone-400">Status Pembayaran</span>
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                   order.paymentStatus === 'Lunas' 
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                    ? 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]' 
                     : 'bg-amber-50 text-amber-700 border border-amber-200'
                 }`}>
                   {order.paymentStatus}
@@ -117,7 +117,7 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
                 <span>{formatRupiah(order.subtotal)}</span>
               </div>
               {order.discount > 0 && (
-                <div className="flex justify-between text-emerald-600 font-medium">
+                <div className="flex justify-between text-[#FF8F2B] font-medium">
                   <span>Diskon Promo</span>
                   <span>-{formatRupiah(order.discount)}</span>
                 </div>
@@ -130,7 +130,7 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
               )}
               <div className="flex justify-between text-sm font-black text-stone-900 pt-2 border-t border-stone-200/80">
                 <span>TOTAL AKHIR</span>
-                <span className="text-emerald-600">{formatRupiah(order.totalPrice)}</span>
+                <span className="text-[#FF8F2B] font-mono">{formatRupiah(order.totalPrice)}</span>
               </div>
             </div>
 
@@ -162,7 +162,7 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
               onClick={handleCopySummary}
               className="py-2.5 px-4 bg-white border border-stone-200 hover:bg-stone-100 text-stone-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all"
             >
-              {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-[#FF8F2B]" /> : <Copy className="w-4 h-4" />}
               {copied ? 'Tersalin' : 'Salin Teks WA'}
             </button>
           </div>
@@ -177,7 +177,7 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
                   onClick={() => onUpdateStatus(order.id, st)}
                   className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
                     order.status === st
-                      ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                      ? 'bg-[#FF8F2B] text-white font-bold shadow-xs'
                       : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-100'
                   }`}
                 >

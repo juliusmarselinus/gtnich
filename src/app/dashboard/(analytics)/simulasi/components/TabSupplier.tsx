@@ -67,7 +67,7 @@ export default function TabSupplier({
       {/* Parameter Skenario */}
       <div className="clay-card p-6 space-y-4">
         <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
-          <Truck className="w-4 h-4 text-emerald-500" /> Skenario Fluktuasi Harga Bahan Distributor
+          <Truck className="w-4 h-4 text-[#FF8F2B]" /> Skenario Fluktuasi Harga Bahan Distributor
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -118,7 +118,7 @@ export default function TabSupplier({
               'p-3.5 rounded-2xl border',
               priceChange > 0
                 ? 'bg-rose-50/70 border-rose-100 text-rose-700'
-                : 'bg-emerald-50/70 border-emerald-100 text-emerald-700'
+                : 'bg-[#FFF6EC]/70 border-[#FFE2C2] text-[#FF8F2B]'
             )}
           >
             <p className="text-[10px] font-bold uppercase tracking-wider">Harga Prediksi Baru</p>
@@ -135,7 +135,7 @@ export default function TabSupplier({
             <p
               className={clsx(
                 'text-base font-black font-mono mt-0.5',
-                priceChange > 0 ? 'text-rose-600' : 'text-emerald-600'
+                priceChange > 0 ? 'text-rose-600' : 'text-[#FF8F2B]'
               )}
             >
               {priceChange > 0 ? '+' : ''}
@@ -174,7 +174,7 @@ export default function TabSupplier({
                   <span
                     className={clsx(
                       'text-[11px] font-bold px-2.5 py-0.5 rounded-full clay-pill',
-                      m.hppChange > 0 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'
+                      m.hppChange > 0 ? 'bg-rose-50 text-rose-600' : 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]'
                     )}
                   >
                     HPP {m.hppChange > 0 ? '+' : ''}
@@ -198,7 +198,7 @@ export default function TabSupplier({
                     <p
                       className={clsx(
                         'font-bold font-mono',
-                        m.newMargin < 30 ? 'text-rose-600' : 'text-emerald-600'
+                        m.newMargin < 30 ? 'text-rose-600' : 'text-[#FF8F2B]'
                       )}
                     >
                       {m.newMargin.toFixed(1)}%

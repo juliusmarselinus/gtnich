@@ -102,7 +102,7 @@ export default function BahanPage() {
         {/* Loading State or Table */}
         {loading ? (
           <div className="clay-card py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#FF8F2B]" />
             <p className="text-xs font-semibold">Mengambil data bahan dari database Supabase...</p>
           </div>
         ) : (

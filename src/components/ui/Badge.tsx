@@ -33,10 +33,10 @@ const statusConfig: Record<string, { label: string; bg: string; text: string; do
   // Selesai: Forest / Olive Sage lembut (transaksi tuntas)
   selesai: {
     label: 'Selesai',
-    bg: 'bg-[#EFF5EE]',
-    text: 'text-[#2D5A34]',
-    dot: 'bg-[#407B4A]',
-    border: 'border-[#D5E6D4]',
+    bg: 'bg-[#FFF6EC]',
+    text: 'text-[#C86400]',
+    dot: 'bg-[#FF8F2B]',
+    border: 'border-[#FFE2C2]',
   },
 
   // Channels

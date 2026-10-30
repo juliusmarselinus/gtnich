@@ -145,7 +145,7 @@ export default function BahanModal({
                     setCustomSatuanText(form.satuan)
                   }
                 }}
-                className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
+                className="text-[11px] font-semibold text-[#FF8F2B] hover:text-[#E67215] flex items-center gap-1 cursor-pointer"
               >
                 <PlusCircle className="w-3 h-3" />
                 {isCustomSatuan ? 'Pilih Satuan Standar' : '+ Satuan Kustom'}

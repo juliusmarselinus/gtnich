@@ -22,7 +22,7 @@ interface UsageAndMenuBreakdownProps {
   menuBreakdown: MenuSalesBreakdownItem[]
 }
 
-const COLORS = ['#10b981', '#06b6d4', '#6366f1', '#f59e0b', '#ec4899', '#84cc16', '#8b5cf6', '#14b8a6']
+const COLORS = ['#FF8F2B', '#FFBF35', '#89BDF7', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6']
 
 export default function UsageAndMenuBreakdown({
   bahanUsage,
@@ -39,7 +39,7 @@ export default function UsageAndMenuBreakdown({
       {/* Kebutuhan Bahan Terpakai */}
       <div className="clay-card p-6 space-y-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-emerald-50 text-emerald-600">
+          <div className="p-1.5 rounded-xl bg-[#FFF6EC] text-[#FF8F2B]">
             <PackageSearch className="w-4 h-4" />
           </div>
           <div>
@@ -87,7 +87,7 @@ export default function UsageAndMenuBreakdown({
                     boxShadow: '4px 4px 12px #d8e2ed',
                   }}
                 />
-                <Bar dataKey="qty" fill="#10b981" radius={[0, 8, 8, 0]} name="Qty Dipakai" />
+                <Bar dataKey="qty" fill="#FF8F2B" radius={[0, 8, 8, 0]} name="Qty Dipakai" />
               </BarChart>
             </ResponsiveContainer>
 
@@ -108,7 +108,7 @@ export default function UsageAndMenuBreakdown({
                       <td className="py-1.5 text-right font-mono font-bold text-slate-800">
                         {b.qty} <span className="text-[10px] text-slate-400 font-normal">{b.satuan}</span>
                       </td>
-                      <td className="py-1.5 text-right font-mono text-emerald-600">
+                      <td className="py-1.5 text-right font-mono text-[#FF8F2B]">
                         {formatRupiah(b.totalEstimasiBiaya)}
                       </td>
                     </tr>

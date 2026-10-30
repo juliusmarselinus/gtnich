@@ -8,7 +8,7 @@ const sourceBadge: Record<string, string> = {
   PO: 'bg-blue-50 text-blue-700 border-blue-200/50',
   Penjualan: 'bg-amber-50 text-amber-700 border-amber-200/50',
   Manual: 'bg-purple-50 text-purple-700 border-purple-200/50',
-  Opname: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
+  Opname: 'bg-[#FFF6EC] text-[#FF8F2B] border-[#FFE2C2]',
   Penyesuaian: 'bg-slate-100 text-slate-700 border-slate-200',
 }
 
@@ -108,7 +108,7 @@ export default function StokLogTable({
                       className={clsx(
                         'inline-flex items-center gap-1 font-mono font-black text-xs px-2.5 py-1 rounded-full clay-pill',
                         isMasuk
-                          ? 'bg-emerald-50 text-emerald-600'
+                          ? 'bg-[#FFF6EC] text-[#FF8F2B]'
                           : 'bg-rose-50 text-rose-600'
                       )}
                     >

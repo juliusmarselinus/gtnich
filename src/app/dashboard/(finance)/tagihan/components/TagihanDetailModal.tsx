@@ -82,7 +82,7 @@ export default function TagihanDetailModal({
               <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
                 Detail Tagihan Faktur
                 {isLunas ? (
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]">
                     Lunas
                   </span>
                 ) : (
@@ -112,7 +112,7 @@ export default function TagihanDetailModal({
               Supplier / Pemasok
             </span>
             <p className="font-extrabold text-slate-800 flex items-center gap-1.5 text-sm">
-              <Building2 className="w-4 h-4 text-emerald-600" />
+              <Building2 className="w-4 h-4 text-[#FF8F2B]" />
               {po.namaSupplier}
             </p>
           </div>
@@ -169,7 +169,7 @@ export default function TagihanDetailModal({
                     <p className="text-xs font-mono font-black text-slate-800">
                       {formatRupiah(subtotal)}
                     </p>
-                    <span className="text-[10px] text-emerald-600 font-bold">✓ Diterima</span>
+                    <span className="text-[10px] text-[#FF8F2B] font-bold">✓ Diterima</span>
                   </div>
                 </div>
               )
@@ -178,10 +178,10 @@ export default function TagihanDetailModal({
         </div>
 
         {/* Ringkasan Total Tagihan */}
-        <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-100 space-y-2">
+        <div className="p-4 rounded-2xl bg-[#FFF6EC] border border-[#FFE2C2] space-y-2">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-emerald-800 font-medium">Nilai Total Tagihan Aktual:</span>
-            <span className="text-lg font-black font-mono text-emerald-900">
+            <span className="text-[#C86400] font-medium">Nilai Total Tagihan Aktual:</span>
+            <span className="text-lg font-black font-mono text-slate-900">
               {formatRupiah(totalTagihan)}
             </span>
           </div>
@@ -191,7 +191,7 @@ export default function TagihanDetailModal({
         {!isLunas && showBayarForm && (
           <div className="p-4 clay-inset rounded-2xl space-y-3 pt-3 border-t border-slate-200">
             <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <CreditCard className="w-4 h-4 text-emerald-600" />
+              <CreditCard className="w-4 h-4 text-[#FF8F2B]" />
               Konfirmasi Pelunasan Tagihan
             </p>
 

@@ -79,7 +79,7 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                       {formatRupiah(o.totalPrice)}
                     </td>
 
-                    <td className="px-5 py-3.5 text-right font-mono font-black text-emerald-600 text-sm">
+                    <td className="px-5 py-3.5 text-right font-mono font-black text-[#FF8F2B] text-sm">
                       {formatRupiah(o.profit)}
                     </td>
 
@@ -101,7 +101,7 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                       <td colSpan={6} className="px-6 py-4">
                         <div className="flex items-center justify-between mb-2.5">
                           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                            <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
+                            <ShoppingBag className="w-3.5 h-3.5 text-[#FF8F2B]" />
                             Rincian Menu ({o.items?.length || 0} Item)
                           </p>
                           <span className="text-[10px] text-slate-400">
@@ -122,12 +122,12 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                               >
                                 <div>
                                   <span className="font-bold text-slate-800">{item.namaMenu}</span>
-                                  <span className="text-emerald-600 font-mono font-bold ml-2">
+                                  <span className="text-[#FF8F2B] font-mono font-bold ml-2">
                                     ({item.qty}x @ {formatRupiah(item.hargaJual)})
                                   </span>
                                 </div>
                                 <div className="text-right">
-                                  <span className="font-mono text-emerald-600 font-black">
+                                  <span className="font-mono text-[#FF8F2B] font-black">
                                     {formatRupiah(item.subtotal || item.hargaJual * item.qty)}
                                   </span>
                                   {item.hpp > 0 && (

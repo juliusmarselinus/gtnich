@@ -126,7 +126,7 @@ export default function VerifyPenerimaanModal({
         <div className="flex items-start justify-between pb-3 border-b border-slate-100">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <span className="w-8 h-8 rounded-xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center font-bold">
                 <PackageCheck className="w-4 h-4" />
               </span>
               <div>
@@ -172,7 +172,7 @@ export default function VerifyPenerimaanModal({
                 <AlertTriangle className="w-3.5 h-3.5" /> Terdeteksi Selisih Kuantitas / Catatan
               </span>
             ) : (
-              <span className="text-emerald-600 flex items-center gap-1 font-bold">
+              <span className="text-[#FF8F2B] flex items-center gap-1 font-bold">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Semua Item Sesuai Pesanan
               </span>
             )}
@@ -207,13 +207,13 @@ export default function VerifyPenerimaanModal({
                       className={clsx(
                         'px-2.5 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors',
                         item.isSesuai
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          ? 'bg-[#FFF6EC] text-[#C86400] border border-[#FFE2C2]'
                           : 'bg-rose-50 text-rose-700 border border-rose-200'
                       )}
                     >
                       {item.isSesuai ? (
                         <>
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Kondisi Bagus
+                          <CheckCircle2 className="w-3 h-3 text-[#FF8F2B]" /> Kondisi Bagus
                         </>
                       ) : (
                         <>
@@ -294,7 +294,7 @@ export default function VerifyPenerimaanModal({
           </div>
           <div className="flex justify-between text-xs pt-1 border-t border-slate-200">
             <span className="font-bold text-slate-800">Total Tagihan Aktual yang Diverifikasi:</span>
-            <span className="font-mono font-black text-emerald-700 text-sm">
+            <span className="font-mono font-black text-[#C86400] text-sm">
               {formatRupiah(Math.round(totalAktual))}
             </span>
           </div>

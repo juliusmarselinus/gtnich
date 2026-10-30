@@ -28,7 +28,7 @@ export default function TrendChart({ trend, rangeLabel }: TrendChartProps) {
     <div className="clay-card p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-emerald-50 text-emerald-600">
+          <div className="p-1.5 rounded-xl bg-[#FFF6EC] text-[#FF8F2B]">
             <Activity className="w-4 h-4" />
           </div>
           <div>
@@ -54,12 +54,12 @@ export default function TrendChart({ trend, rangeLabel }: TrendChartProps) {
           <AreaChart data={trend} margin={{ top: 10, right: 15, bottom: 0, left: 10 }}>
             <defs>
               <linearGradient id="colorPenjualan" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#FF8F2B" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#FF8F2B" stopOpacity={0.0} />
               </linearGradient>
               <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#FFBF35" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#FFBF35" stopOpacity={0.0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -81,7 +81,7 @@ export default function TrendChart({ trend, rangeLabel }: TrendChartProps) {
             <Area
               type="monotone"
               dataKey="penjualan"
-              stroke="#10b981"
+              stroke="#FF8F2B"
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorPenjualan)"
@@ -90,7 +90,7 @@ export default function TrendChart({ trend, rangeLabel }: TrendChartProps) {
             <Area
               type="monotone"
               dataKey="profit"
-              stroke="#06b6d4"
+              stroke="#FFBF35"
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorProfit)"

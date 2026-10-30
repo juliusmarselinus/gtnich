@@ -96,7 +96,6 @@ export default function Sidebar() {
     setActiveSectionId((prev) => {
       const willOpen = prev !== sectionId
       if (willOpen) {
-        // Auto scroll to make the opened section smoothly in view without user having to manual scroll
         setTimeout(() => {
           sectionRefs.current[sectionId]?.scrollIntoView({
             behavior: 'smooth',
@@ -129,27 +128,27 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar Drawer: Ringkas & Pas di layar tanpa perlu scroll */}
+      {/* Sidebar Drawer: Clean Warm White Aesthetic */}
       <aside
         className={clsx(
-          'w-64 h-screen max-h-screen bg-[#f3f6fa] border-r border-slate-200/80 flex flex-col flex-shrink-0 select-none z-50 p-3 transition-transform duration-300 ease-in-out',
+          'w-64 h-screen max-h-screen bg-[#FFFFFF] border-r border-[#EBE3D7] flex flex-col flex-shrink-0 select-none z-50 p-3 transition-transform duration-300 ease-in-out',
           'lg:static lg:translate-x-0',
           'fixed inset-y-0 left-0',
           isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         )}
       >
-        {/* Brand Header: Ringkas & Ramping */}
-        <div className="clay-card p-3 flex-shrink-0 mb-2.5 flex items-center justify-between">
+        {/* Brand Header */}
+        <div className="clay-card p-3 flex-shrink-0 mb-2.5 flex items-center justify-between border-[#EBE3D7]">
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 transition-transform duration-300 group-hover:scale-105 flex-shrink-0">
-              <UtensilsCrossed className="w-5 h-5 drop-shadow" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] flex items-center justify-center text-white shadow-xs transition-transform duration-300 group-hover:scale-105 flex-shrink-0">
+              <UtensilsCrossed className="w-5 h-5 drop-shadow-xs" />
             </div>
             <div>
-              <span className="font-extrabold text-base tracking-tight text-slate-800 block leading-tight flex items-center gap-1.5">
+              <span className="font-extrabold text-base tracking-tight text-slate-900 block leading-tight flex items-center gap-1.5">
                 DapurTwin
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="inline-block w-2 h-2 rounded-full bg-[#FF8F2B]" />
               </span>
-              <span className="text-[10px] text-slate-400 font-medium">
+              <span className="text-[10px] text-slate-500 font-medium">
                 Manajemen Dapur & Stok
               </span>
             </div>
@@ -159,7 +158,7 @@ export default function Sidebar() {
           <button
             type="button"
             onClick={closeSidebar}
-            className="lg:hidden p-1 rounded-xl clay-btn text-slate-400 hover:text-slate-800 cursor-pointer"
+            className="lg:hidden p-1 rounded-xl clay-btn text-slate-500 hover:text-slate-900 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -173,32 +172,32 @@ export default function Sidebar() {
               if (window.innerWidth < 1024) closeSidebar()
             }}
             className={clsx(
-              'flex items-center gap-2.5 px-3 py-2 text-xs font-bold transition-all duration-200 rounded-xl border',
+              'flex items-center gap-2.5 px-3 py-2 text-xs font-bold transition-all duration-150 rounded-xl border',
               isOverviewActive
-                ? 'clay-card text-emerald-800 bg-white border-emerald-200/80 shadow-[inset_2px_2px_4px_#ffffff,3px_3px_8px_#d8e2ed]'
-                : 'text-slate-700 hover:text-slate-900 bg-white/70 hover:bg-white border-slate-200/60 shadow-2xs'
+                ? 'bg-[#FFF5EB] text-[#FF8F2B] border-[#FFD8B0] shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 bg-[#FAF7F2] hover:bg-white border-[#EBE3D7]'
             )}
           >
             <div
               className={clsx(
-                'w-6 h-6 rounded-lg flex items-center justify-center transition-colors shadow-xs flex-shrink-0',
+                'w-6 h-6 rounded-lg flex items-center justify-center transition-colors flex-shrink-0',
                 isOverviewActive
-                  ? 'bg-gradient-to-tr from-emerald-500 to-teal-500 text-white'
-                  : 'bg-emerald-50 text-emerald-600'
+                  ? 'bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] text-white shadow-2xs'
+                  : 'bg-white text-[#FF8F2B] border border-[#EBE3D7]'
               )}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
             </div>
             <div className="flex-1 min-w-0 leading-tight">
               <span className="block text-xs font-extrabold tracking-tight">Overview</span>
-              <span className="block text-[10px] text-slate-400 font-normal">
+              <span className="block text-[10px] text-slate-500 font-normal">
                 Pusat Kendali & Modul
               </span>
             </div>
             <span
               className={clsx(
                 'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                isOverviewActive ? 'bg-emerald-500 animate-pulse' : 'bg-transparent'
+                isOverviewActive ? 'bg-[#FF8F2B]' : 'bg-transparent'
               )}
             />
           </Link>
@@ -206,15 +205,15 @@ export default function Sidebar() {
 
         {/* Header Label Modul */}
         <div className="px-2 pb-1 flex items-center justify-between flex-shrink-0">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
+          <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">
             Daftar Modul
           </span>
-          <span className="text-[10px] text-slate-400 font-mono font-semibold">
+          <span className="text-[10px] text-slate-500 font-mono font-semibold">
             {navSections.length} Modul
           </span>
         </div>
 
-        {/* Nav Sections with Accordion (Auto smooth fit) */}
+        {/* Nav Sections with Accordion */}
         <nav className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 scrollbar-thin">
           {navSections.map((section) => {
             const isExpanded = activeSectionId === section.id
@@ -228,9 +227,9 @@ export default function Sidebar() {
                   sectionRefs.current[section.id] = el
                 }}
                 className={clsx(
-                  'rounded-xl transition-all duration-200 p-1',
+                  'rounded-xl transition-all duration-150 p-1',
                   hasActiveChild
-                    ? 'bg-emerald-50/40 border border-emerald-100/60'
+                    ? 'bg-[#FFF8F0] border border-[#FFD8B0]'
                     : 'bg-transparent'
                 )}
               >
@@ -239,10 +238,10 @@ export default function Sidebar() {
                   type="button"
                   onClick={() => toggleSection(section.id)}
                   className={clsx(
-                    'w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer',
+                    'w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 cursor-pointer',
                     hasActiveChild
-                      ? 'text-emerald-800'
-                      : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+                      ? 'text-[#FF8F2B]'
+                      : 'text-slate-800 hover:text-slate-950 hover:bg-[#FAF7F2]'
                   )}
                 >
                   <div className="flex items-center gap-2">
@@ -250,25 +249,25 @@ export default function Sidebar() {
                       className={clsx(
                         'w-5 h-5 rounded-md flex items-center justify-center transition-colors flex-shrink-0',
                         hasActiveChild
-                          ? 'bg-emerald-500 text-white shadow-xs'
-                          : 'bg-slate-200/60 text-slate-500'
+                          ? 'bg-[#FF8F2B] text-white shadow-2xs'
+                          : 'bg-[#F0EBE1] text-slate-700'
                       )}
                     >
                       <SectionIcon className="w-3 h-3" />
                     </div>
-                    <span className="tracking-tight text-[11px] uppercase font-bold text-slate-700">
+                    <span className="tracking-tight text-[11px] uppercase font-bold text-slate-850">
                       {section.label}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[9px] px-1.5 py-0.2 rounded-full font-mono bg-white text-slate-400 font-semibold border border-slate-100">
+                    <span className="text-[9px] px-1.5 py-0.2 rounded-full font-mono bg-white text-slate-600 font-semibold border border-[#EBE3D7]">
                       {section.items.length}
                     </span>
                     <ChevronDown
                       className={clsx(
-                        'w-3.5 h-3.5 text-slate-400 transition-transform duration-200',
-                        isExpanded ? 'rotate-180 text-emerald-600' : 'rotate-0'
+                        'w-3.5 h-3.5 text-slate-500 transition-transform duration-200',
+                        isExpanded ? 'rotate-180 text-[#FF8F2B]' : 'rotate-0'
                       )}
                     />
                   </div>
@@ -281,7 +280,7 @@ export default function Sidebar() {
                     isExpanded ? 'max-h-72 opacity-100 mt-1' : 'max-h-0 opacity-0'
                   )}
                 >
-                  <div className="space-y-0.5 pl-2 pr-1 py-0.5 border-l-2 border-emerald-200/60 ml-3">
+                  <div className="space-y-0.5 pl-2 pr-1 py-0.5 border-l-2 border-[#FFD8B0] ml-3">
                     {section.items.map(({ href, label, icon: Icon }) => {
                       const active = isItemActive(href)
                       return (
@@ -294,14 +293,14 @@ export default function Sidebar() {
                           className={clsx(
                             'flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 rounded-lg',
                             active
-                              ? 'clay-card text-emerald-700 bg-white shadow-[inset_1px_1px_2px_#ffffff,2px_2px_6px_#d8e2ed] font-bold'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                              ? 'bg-white text-[#FF8F2B] border border-[#FFD8B0] shadow-xs font-bold'
+                              : 'text-slate-700 hover:text-slate-950 hover:bg-[#FAF7F2]'
                           )}
                         >
                           <div
                             className={clsx(
                               'w-5 h-5 rounded-md flex items-center justify-center transition-colors flex-shrink-0',
-                              active ? 'bg-emerald-50 text-emerald-600' : 'text-slate-400'
+                              active ? 'bg-[#FFF0E0] text-[#FF8F2B]' : 'text-slate-500'
                             )}
                           >
                             <Icon className="w-3 h-3" />
@@ -317,23 +316,23 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* User Footer Clay Card: Ramping & Rapi di Bawah */}
-        <div className="clay-card p-2.5 flex-shrink-0 mt-2">
+        {/* User Footer Clay Card */}
+        <div className="clay-card p-2.5 flex-shrink-0 mt-2 border-[#EBE3D7]">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xs font-bold shadow-sm shadow-emerald-500/20 flex-shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] text-white flex items-center justify-center text-xs font-bold shadow-xs flex-shrink-0">
                 DT
               </div>
               <div className="text-left leading-tight">
-                <p className="text-xs font-bold text-slate-800">Admin Dapur</p>
-                <p className="text-[10px] text-emerald-600 font-medium">DapurTwin Active</p>
+                <p className="text-xs font-bold text-slate-900">Admin Dapur</p>
+                <p className="text-[10px] text-[#FF8F2B] font-semibold">DapurTwin Active</p>
               </div>
             </div>
             <button
               type="button"
               onClick={handleLogout}
               title="Keluar"
-              className="text-slate-400 hover:text-rose-500 transition-colors p-1.5 rounded-lg hover:bg-rose-50 cursor-pointer"
+              className="text-slate-500 hover:text-rose-600 transition-colors p-1.5 rounded-lg hover:bg-rose-50 cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>

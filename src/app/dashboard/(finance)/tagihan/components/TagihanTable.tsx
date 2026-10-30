@@ -82,7 +82,7 @@ export default function TagihanTable({
 
                   <td className="px-6 py-4 font-semibold text-slate-700">
                     <div className="flex items-center gap-1.5">
-                      <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <Building2 className="w-3.5 h-3.5 text-[#FF8F2B]" />
                       <span>{po.namaSupplier}</span>
                     </div>
                   </td>
@@ -96,8 +96,8 @@ export default function TagihanTable({
 
                   <td className="px-6 py-4 text-center">
                     {isLunas ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Lunas Terbayar
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]">
+                        <CheckCircle2 className="w-3 h-3 text-[#FF8F2B]" /> Lunas Terbayar
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">

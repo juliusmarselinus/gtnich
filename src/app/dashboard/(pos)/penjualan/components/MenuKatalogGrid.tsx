@@ -75,22 +75,22 @@ export default function MenuKatalogGrid({
               onClick={() => handleOpenModal(menu)}
               className={`clay-card p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] group cursor-pointer flex flex-col justify-between relative ${
                 isJustAdded
-                  ? 'ring-2 ring-emerald-500 shadow-md shadow-emerald-500/20 bg-emerald-50/30'
+                  ? 'ring-2 ring-[#FF8F2B] shadow-md shadow-[#FF8F2B]/20 bg-[#FFF6EC]/30'
                   : ''
               }`}
             >
               {/* Badge Jumlah di Keranjang - Berada rapi di dalam kartu, tidak keluar box */}
               {inCartCount > 0 && (
-                <div className="mb-2 inline-flex items-center gap-1.5 self-start bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] font-extrabold px-2.5 py-1 rounded-xl shadow-xs animate-in zoom-in-75">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <ShoppingCart className="w-3.5 h-3.5 text-emerald-600" />
+                <div className="mb-2 inline-flex items-center gap-1.5 self-start bg-[#FFF6EC] border border-[#FFE2C2] text-[#FF8F2B] font-mono text-[11px] font-extrabold px-2.5 py-1 rounded-xl shadow-xs animate-in zoom-in-75">
+                  <span className="w-2 h-2 rounded-full bg-[#FF8F2B] animate-pulse" />
+                  <ShoppingCart className="w-3.5 h-3.5 text-[#FF8F2B]" />
                   <span>{inCartCount} Porsi Terpilih</span>
                 </div>
               )}
 
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <span className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl clay-pill flex-shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  <span className="w-10 h-10 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center text-xl clay-pill flex-shrink-0 group-hover:bg-[#FF8F2B] group-hover:text-white transition-colors">
                     {menu.emoji || '🍽️'}
                   </span>
                   <span className="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 uppercase tracking-wider whitespace-nowrap">
@@ -98,7 +98,7 @@ export default function MenuKatalogGrid({
                   </span>
                 </div>
 
-                <h4 className="font-extrabold text-xs sm:text-sm text-slate-800 leading-snug group-hover:text-emerald-700 transition-colors line-clamp-2">
+                <h4 className="font-extrabold text-xs sm:text-sm text-slate-800 leading-snug group-hover:text-[#FF8F2B] transition-colors line-clamp-2">
                   {menu.nama}
                 </h4>
 
@@ -112,7 +112,7 @@ export default function MenuKatalogGrid({
 
               <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-end justify-between gap-2">
                 <div>
-                  <p className="text-xs sm:text-sm font-black font-mono text-emerald-700 leading-tight">
+                  <p className="text-xs sm:text-sm font-black font-mono text-[#FF8F2B] leading-tight">
                     {formatRupiah(menu.hargaJual)}
                   </p>
                   <p className="text-[9px] text-slate-400 font-mono mt-0.5">
@@ -127,8 +127,8 @@ export default function MenuKatalogGrid({
                   title="Tambah 1 porsi langsung"
                   className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                     isJustAdded
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white clay-pill'
+                      ? 'bg-[#FF8F2B] text-white'
+                      : 'bg-[#FFF6EC] text-[#FF8F2B] hover:bg-[#FF8F2B] hover:text-white clay-pill'
                   }`}
                 >
                   {isJustAdded ? <Check className="w-4 h-4 animate-in zoom-in" /> : <Plus className="w-4 h-4" />}
@@ -145,12 +145,12 @@ export default function MenuKatalogGrid({
           <div className="clay-card p-6 w-full max-w-sm space-y-5 animate-in zoom-in-95 duration-150">
             <div className="flex items-start justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-3">
-                <span className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl clay-pill">
+                <span className="w-12 h-12 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center text-2xl clay-pill">
                   {selectedMenu.emoji || '🍽️'}
                 </span>
                 <div>
                   <h3 className="text-sm font-extrabold text-slate-800">{selectedMenu.nama}</h3>
-                  <p className="text-xs font-mono font-bold text-emerald-700">
+                  <p className="text-xs font-mono font-bold text-[#FF8F2B]">
                     {formatRupiah(selectedMenu.hargaJual)} / porsi
                   </p>
                 </div>
@@ -205,7 +205,7 @@ export default function MenuKatalogGrid({
                     onClick={() => setOrderQty(val)}
                     className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-colors cursor-pointer ${
                       orderQty === val
-                        ? 'bg-emerald-600 text-white'
+                        ? 'bg-[#FF8F2B] text-white'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
@@ -218,7 +218,7 @@ export default function MenuKatalogGrid({
             {/* Rincian Finansial Modal */}
             <div className="p-3.5 rounded-2xl clay-inset flex items-center justify-between text-xs">
               <span className="text-slate-500 font-medium">Total Harga:</span>
-              <span className="text-base font-black font-mono text-emerald-700">
+              <span className="text-base font-black font-mono text-[#FF8F2B]">
                 {formatRupiah(selectedMenu.hargaJual * orderQty)}
               </span>
             </div>

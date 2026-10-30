@@ -66,12 +66,12 @@ export default function ScanResultView({
       {/* Header Info Nota */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center clay-pill flex-shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center clay-pill flex-shrink-0">
             <FileText className="w-6 h-6" />
           </div>
           <div>
             <p className="text-sm font-extrabold text-slate-800">{fileName}</p>
-            <p className="text-[11px] text-emerald-600 font-bold">
+            <p className="text-[11px] text-[#FF8F2B] font-bold">
               {items.length} rincian bahan berhasil dikenali oleh sistem
             </p>
           </div>
@@ -107,7 +107,7 @@ export default function ScanResultView({
         {/* Form Meta PO Supplier */}
         <div className={`clay-card p-5 space-y-4 ${imagePreview ? 'md:col-span-2' : 'md:col-span-3'}`}>
           <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-emerald-600" />
+            <Truck className="w-4 h-4 text-[#FF8F2B]" />
             <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
               Tujuan Supplier & Mode Pencatatan
             </h4>
@@ -152,16 +152,16 @@ export default function ScanResultView({
           </div>
 
           {/* Opsi Update Stok Langsung */}
-          <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-3">
+          <div className="p-3.5 rounded-2xl bg-[#FFF6EC]/70 border border-[#FFE2C2] flex items-start gap-3">
             <input
               type="checkbox"
               id="updateStok"
               checked={updateStokDirectly}
               onChange={e => onToggleUpdateStok(e.target.checked)}
-              className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+              className="mt-0.5 rounded text-[#FF8F2B] focus:ring-[#FF8F2B] w-4 h-4 cursor-pointer"
             />
             <label htmlFor="updateStok" className="text-xs text-slate-700 cursor-pointer">
-              <strong className="text-emerald-800 block">
+              <strong className="text-slate-900 block">
                 Langsung Tambahkan ke Stok Gudang & Catat Stok Log (Status: Diterima)
               </strong>
               <span className="text-[11px] text-slate-500">
@@ -176,7 +176,7 @@ export default function ScanResultView({
       <div className="clay-card overflow-hidden">
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-emerald-600" />
+            <Layers className="w-4 h-4 text-[#FF8F2B]" />
             <div>
               <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
                 Rincian Item Bahan Hasil Scan
@@ -189,7 +189,7 @@ export default function ScanResultView({
           <button
             type="button"
             onClick={onAddItem}
-            className="px-3.5 py-2 rounded-xl clay-btn text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl clay-btn text-xs font-bold text-[#FF8F2B] bg-[#FFF6EC] border border-[#FFE2C2] hover:bg-[#FFE2C2]/50 flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Tambah Baris Bahan</span>
@@ -319,7 +319,7 @@ export default function ScanResultView({
                 <td colSpan={5} className="px-6 py-4 text-right font-extrabold text-slate-800 text-sm">
                   Total Nilai Akumulasi Nota
                 </td>
-                <td className="px-5 py-4 text-right font-mono font-black text-emerald-600 text-base">
+                <td className="px-5 py-4 text-right font-mono font-black text-[#FF8F2B] text-base">
                   {formatRupiah(totalAkumulasi)}
                 </td>
                 <td></td>
@@ -337,7 +337,7 @@ export default function ScanResultView({
             return (
               <div key={i} className="pt-4 first:pt-0 space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-mono font-bold text-[#FF8F2B] bg-[#FFF6EC] border border-[#FFE2C2] px-2 py-0.5 rounded-full">
                     Item #{i + 1}
                   </span>
                   <button
@@ -441,7 +441,7 @@ export default function ScanResultView({
 
           <div className="pt-4 border-t border-slate-200 flex justify-between items-center bg-slate-50/70 p-3 rounded-2xl">
             <span className="font-extrabold text-slate-800 text-xs">Total Nota</span>
-            <span className="font-mono font-black text-emerald-600 text-base">
+            <span className="font-mono font-black text-[#FF8F2B] text-base">
               {formatRupiah(totalAkumulasi)}
             </span>
           </div>
@@ -450,12 +450,12 @@ export default function ScanResultView({
 
       {/* Action Buttons & Success Feedback */}
       {savedPO ? (
-        <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-3xl space-y-3">
-          <div className="flex items-center gap-3 text-emerald-800 font-bold text-sm">
-            <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+        <div className="p-5 bg-[#FFF6EC] border border-[#FFE2C2] rounded-3xl space-y-3">
+          <div className="flex items-center gap-3 text-slate-900 font-bold text-sm">
+            <CheckCircle2 className="w-6 h-6 text-[#FF8F2B] flex-shrink-0" />
             <div>
               <span>Transaksi Nota Berhasil Disimpan ke Purchase Order!</span>
-              <p className="text-xs font-mono text-emerald-700 font-normal mt-0.5">
+              <p className="text-xs font-mono text-[#C86400] font-normal mt-0.5">
                 Nomor PO: <strong>{savedPO.noPO}</strong> • {updateStokDirectly ? 'Stok bahan telah otomatis diperbarui di gudang' : 'Status Draf'}
               </p>
             </div>
@@ -464,7 +464,7 @@ export default function ScanResultView({
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
               href="/dashboard/purchase-order"
-              className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl clay-btn-primary text-white font-bold text-xs flex items-center gap-1.5"
             >
               <span>Lihat di Purchase Order</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -472,7 +472,7 @@ export default function ScanResultView({
 
             <Link
               href="/dashboard/stok-log"
-              className="px-4 py-2 rounded-xl bg-white border border-emerald-300 text-emerald-700 font-bold text-xs hover:bg-emerald-50"
+              className="px-4 py-2 rounded-xl bg-white border border-[#FFE2C2] text-[#FF8F2B] font-bold text-xs hover:bg-[#FFF6EC]"
             >
               Cek Stok Log & Opname
             </Link>

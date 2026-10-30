@@ -15,8 +15,8 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
       value: formatRupiah(summary.totalRevenue),
       sub: `${summary.totalTransaksi} transaksi penjualan selesai`,
       icon: DollarSign,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
+      color: 'text-[#FF8F2B]',
+      bg: 'bg-[#FFF6EC]',
     },
     {
       label: 'Total Estimasi Profit Bersih',

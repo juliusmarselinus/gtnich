@@ -48,7 +48,7 @@ export default function DashboardLayout({
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center clay-bg text-slate-600 gap-3">
-        <Loader2 className="w-7 h-7 animate-spin text-emerald-600" />
+        <Loader2 className="w-7 h-7 animate-spin text-[#FF8F2B]" />
         <p className="text-xs font-semibold tracking-wide">Memverifikasi sesi akun...</p>
       </div>
     )
@@ -61,7 +61,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen clay-bg text-slate-800 selection:bg-emerald-500/20 selection:text-emerald-800 relative">
+      <div className="flex min-h-screen clay-bg text-slate-800 selection:bg-orange-500/20 selection:text-orange-950 relative">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen relative">
           {children}

@@ -369,13 +369,13 @@ export default function MenuModal({
             </div>
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Estimasi Profit</p>
-              <p className={clsx('text-xs font-black font-mono mt-0.5', liveProfit >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
+              <p className={clsx('text-xs font-black font-mono mt-0.5', liveProfit >= 0 ? 'text-[#FF8F2B]' : 'text-rose-600')}>
                 {formatRupiah(Math.round(liveProfit))}
               </p>
             </div>
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Margin Laba</p>
-              <p className={clsx('text-xs font-black mt-0.5', liveProfitPct >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
+              <p className={clsx('text-xs font-black mt-0.5', liveProfitPct >= 0 ? 'text-[#FF8F2B]' : 'text-rose-600')}>
                 {liveProfitPct.toFixed(1)}%
               </p>
             </div>

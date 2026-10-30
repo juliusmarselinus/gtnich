@@ -131,9 +131,9 @@ export default function CustomSelect({
         aria-expanded={isOpen}
         onClick={() => !disabled && setIsOpen(prev => !prev)}
         onKeyDown={handleKeyDown}
-        className={`w-full flex items-center justify-between gap-2 transition-all cursor-pointer select-none outline-none focus:ring-2 focus:ring-emerald-400/40 ${baseStyle} ${sizeStyle} ${
-          disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-emerald-300'
-        } ${isOpen ? 'ring-2 ring-emerald-500/30' : ''}`}
+        className={`w-full flex items-center justify-between gap-2 transition-all cursor-pointer select-none outline-none focus:ring-2 focus:ring-[#FF8F2B]/30 ${baseStyle} ${sizeStyle} ${
+          disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-[#FF8F2B]/40'
+        } ${isOpen ? 'ring-2 ring-[#FF8F2B]/30 border-[#FF8F2B]' : ''}`}
       >
         <div className="flex items-center gap-2 truncate">
           {selectedOption?.icon && (
@@ -151,7 +151,7 @@ export default function CustomSelect({
 
         <ChevronDown
           className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-emerald-600' : ''
+            isOpen ? 'rotate-180 text-[#FF8F2B]' : ''
           }`}
         />
       </button>
@@ -161,7 +161,7 @@ export default function CustomSelect({
         <div
           role="listbox"
           tabIndex={-1}
-          className="absolute z-[9999] left-0 right-0 mt-1.5 p-1.5 bg-white rounded-2xl border border-slate-100/80 shadow-[0_12px_30px_rgba(0,0,0,0.15),0_4px_12px_rgba(16,185,129,0.1)] backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-150 max-h-60 overflow-hidden flex flex-col"
+          className="absolute z-[9999] left-0 right-0 mt-1.5 p-1.5 bg-white rounded-2xl border border-slate-100/80 shadow-[0_12px_30px_rgba(0,0,0,0.12),0_4px_12px_rgba(255,143,43,0.1)] backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-150 max-h-60 overflow-hidden flex flex-col"
         >
           {searchable && (
             <div className="p-1 mb-1 border-b border-slate-100 flex items-center gap-2 px-2.5">
@@ -200,7 +200,7 @@ export default function CustomSelect({
                     }}
                     className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between gap-2 transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-emerald-50 text-emerald-800 font-bold shadow-[inset_1px_1px_2px_#ffffff]'
+                        ? 'bg-[#FFF6EC] text-[#FF8F2B] font-bold shadow-[inset_1px_1px_2px_#ffffff]'
                         : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                     } ${opt.disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                   >
@@ -214,7 +214,7 @@ export default function CustomSelect({
                       )}
                     </div>
                     {isSelected && (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 font-bold" />
+                      <Check className="w-3.5 h-3.5 text-[#FF8F2B] flex-shrink-0 font-bold" />
                     )}
                   </button>
                 )

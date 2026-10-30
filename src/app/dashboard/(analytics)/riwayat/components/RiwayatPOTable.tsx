@@ -16,9 +16,9 @@ export default function RiwayatPOTable({ poList }: RiwayatPOTableProps) {
   const statusCls: Record<string, string> = {
     draft: 'bg-slate-100 text-slate-600 border border-slate-200',
     dikirim: 'bg-blue-50 text-blue-700 border border-blue-200',
-    diterima: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    diterima: 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]',
     tagihan: 'bg-amber-50 text-amber-700 border border-amber-200',
-    selesai: 'bg-teal-50 text-teal-700 border border-teal-200',
+    selesai: 'bg-amber-50 text-amber-700 border border-amber-200',
     batal: 'bg-rose-50 text-rose-700 border border-rose-200',
   }
 
@@ -121,11 +121,11 @@ export default function RiwayatPOTable({ poList }: RiwayatPOTableProps) {
                       <td colSpan={6} className="px-8 py-5">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                            <PackageCheck className="w-3.5 h-3.5 text-emerald-600" />
+                            <PackageCheck className="w-3.5 h-3.5 text-[#FF8F2B]" />
                             Rincian Pasokan Bahan Masuk ({po.items.length} Item)
                           </p>
                           {po.tanggalTerima && (
-                            <span className="text-[11px] text-emerald-700 font-medium">
+                            <span className="text-[11px] text-[#C86400] font-medium">
                               Diterima pada:{' '}
                               {new Date(po.tanggalTerima).toLocaleDateString('id-ID', {
                                 day: 'numeric',
@@ -150,7 +150,7 @@ export default function RiwayatPOTable({ poList }: RiwayatPOTableProps) {
                                   — {item.qty} {item.satuan}
                                 </span>
                                 {item.diterima && (
-                                  <span className="ml-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                  <span className="ml-2 text-[10px] font-bold text-[#FF8F2B] bg-[#FFF6EC] border border-[#FFE2C2] px-2 py-0.5 rounded-full">
                                     ✓ Diterima
                                   </span>
                                 )}

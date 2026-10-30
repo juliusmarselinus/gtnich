@@ -29,9 +29,9 @@ export default function APIKeyConfigBar({
   }
 
   return (
-    <div className="clay-card p-4.5 bg-gradient-to-r from-emerald-50/50 via-teal-50/30 to-white rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-emerald-100">
+    <div className="clay-card p-4.5 bg-gradient-to-r from-[#FFF6EC]/70 via-amber-50/30 to-white rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-[#FFE2C2]">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-500/20">
+        <div className="w-10 h-10 rounded-2xl bg-[#FF8F2B] text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-[#FF8F2B]/30">
           <Sparkles className="w-5 h-5" />
         </div>
         <div>
@@ -39,7 +39,7 @@ export default function APIKeyConfigBar({
             <p className="text-xs font-bold text-slate-800">
               Analisis AI Prediksi Kedaluwarsa Dapur
             </p>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]">
               {apiKey ? 'API Terhubung' : 'Smart Food Engine Aktif'}
             </span>
           </div>
@@ -58,7 +58,7 @@ export default function APIKeyConfigBar({
           }}
           className="clay-btn px-4 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer"
         >
-          <Key className="w-3.5 h-3.5 text-emerald-600" />
+          <Key className="w-3.5 h-3.5 text-[#FF8F2B]" />
           <span>{apiKey ? 'Ubah API Key' : 'Pasang API Key'}</span>
         </button>
       </div>

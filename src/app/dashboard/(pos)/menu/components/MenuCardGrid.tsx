@@ -22,7 +22,7 @@ export default function MenuCardGrid({
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2.5 mb-1.5">
-                <span className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg clay-pill flex-shrink-0">
+                <span className="w-9 h-9 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center text-lg clay-pill flex-shrink-0">
                   {m.emoji || <ChefHat className="w-4 h-4" />}
                 </span>
                 <div>
@@ -63,9 +63,9 @@ export default function MenuCardGrid({
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Harga Jual</p>
               <p className="text-xs font-black text-slate-800 mt-0.5 font-mono">{formatRupiah(m.hargaJual)}</p>
             </div>
-            <div className="bg-emerald-50 rounded-xl p-2.5 border border-emerald-100 shadow-[inset_1px_1px_2px_#ffffff]">
-              <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Margin Laba</p>
-              <p className="text-xs font-black text-emerald-700 mt-0.5 flex items-center justify-center gap-0.5">
+            <div className="bg-[#FFF6EC] rounded-xl p-2.5 border border-[#FFE2C2] shadow-[inset_1px_1px_2px_#ffffff]">
+              <p className="text-[10px] text-[#FF8F2B] font-bold uppercase tracking-wider">Margin Laba</p>
+              <p className="text-xs font-black text-[#C86400] mt-0.5 flex items-center justify-center gap-0.5">
                 <TrendingUp className="w-3 h-3" /> {m.profitPercent.toFixed(1)}%
               </p>
             </div>
