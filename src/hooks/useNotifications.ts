@@ -84,6 +84,25 @@ export function useNotifications() {
     }
   }
 
+  const applyPriceUpdate = async (notificationId: string, bahanId: string, newPrice: number) => {
+    await notificationService.applyPriceUpdate(notificationId, bahanId, newPrice)
+    setNotifications(prev =>
+      prev.map(n => {
+        if (n.id === notificationId) {
+          return {
+            ...n,
+            isRead: true,
+            metadata: {
+              ...n.metadata,
+              applied: true,
+            },
+          }
+        }
+        return n
+      })
+    )
+  }
+
   const unreadCount = notifications.filter(n => !n.isRead).length
 
   return {
@@ -94,5 +113,6 @@ export function useNotifications() {
     markAllRead,
     dismissNotification,
     clearAll,
+    applyPriceUpdate,
   }
 }

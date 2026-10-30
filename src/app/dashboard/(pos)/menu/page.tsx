@@ -170,6 +170,7 @@ export default function MenuPage() {
         onSave={saveMenu}
         editingMenu={editing}
         bahanList={bahanList}
+        onRefreshBahan={refresh}
       />
     </div>
   )

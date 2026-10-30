@@ -78,4 +78,5 @@ export interface VerifyPenerimaanInput {
   items: VerifyItemPenerimaan[]
   totalAktual: number
   catatanPenerimaan?: string
+  autoUpdateHargaMaster?: boolean
 }

@@ -1,9 +1,10 @@
 'use client'
 
-import { Bell, Search, Sparkles, Check, ExternalLink, Package, ShoppingCart, Receipt, AlertTriangle, Menu, X, Trash2 } from 'lucide-react'
+import { Bell, Search, Check, ExternalLink, Package, ShoppingCart, Receipt, AlertTriangle, Menu, X, Trash2, TrendingUp, CheckCircle2, Loader2 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useSidebar } from '@/context/SidebarContext'
+import { formatRupiah } from '@/lib/mock-data'
 import Link from 'next/link'
 import clsx from 'clsx'
 
@@ -15,9 +16,23 @@ interface TopbarProps {
 
 export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false)
-  const { notifications, unreadCount, markAllRead, dismissNotification, clearAll } = useNotifications()
+  const [updatingPriceId, setUpdatingPriceId] = useState<string | null>(null)
+  const { notifications, unreadCount, markAllRead, dismissNotification, clearAll, applyPriceUpdate } = useNotifications()
   const { toggleSidebar } = useSidebar()
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const handleApplyPrice = async (notifId: string, bahanId: string, newPrice: number) => {
+    try {
+      setUpdatingPriceId(notifId)
+      await applyPriceUpdate(notifId, bahanId, newPrice)
+    } catch (err: unknown) {
+      const e = err as Error
+      console.error('Gagal memperbarui harga master:', e)
+      alert(e.message || 'Gagal memperbarui harga master bahan.')
+    } finally {
+      setUpdatingPriceId(null)
+    }
+  }
 
   // Tutup dropdown saat klik di luar
   useEffect(() => {
@@ -41,7 +56,7 @@ export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
       case 'po':
         return <Package className="w-3.5 h-3.5 text-blue-500" />
       default:
-        return <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+        return <Bell className="w-3.5 h-3.5 text-purple-500" />
     }
   }
 
@@ -97,7 +112,7 @@ export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
             <div className="absolute right-0 mt-3 w-88 max-w-[90vw] clay-card p-4 z-50 animate-in fade-in zoom-in-95 duration-100 border border-white max-h-[85vh] flex flex-col">
               <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-100 flex-shrink-0">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#FF8F2B]" />
+                  <Bell className="w-3.5 h-3.5 text-[#FF8F2B]" />
                   Notifikasi Dapur
                 </span>
                 <div className="flex items-center gap-2">
@@ -198,6 +213,54 @@ export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
                           </Link>
                         ) : (
                           <p className="text-[11px] text-slate-500 leading-snug">{n.detail}</p>
+                        )}
+
+                        {/* Opsi Interaktif: Update Harga Master Bahan & HPP dari Purchase Order */}
+                        {n.metadata?.isPriceUpdate && n.metadata?.bahanId && (
+                          <div className="mt-2 p-2.5 rounded-xl bg-amber-50/90 border border-amber-200/90 space-y-2">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-slate-500 font-medium">Harga Master Lama:</span>
+                              <span className="font-mono font-bold text-slate-500 line-through">
+                                {formatRupiah(n.metadata.oldPrice || 0)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-bold text-amber-950">Harga Baru PO:</span>
+                              <span className="font-mono font-black text-amber-700 text-xs">
+                                {formatRupiah(n.metadata.newPrice || 0)} / {n.metadata.satuan || 'satuan'}
+                              </span>
+                            </div>
+
+                            {n.metadata.applied ? (
+                              <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-100/80 px-2.5 py-1.5 rounded-lg border border-emerald-200">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                                <span>Harga master & HPP resep telah diperbarui</span>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={updatingPriceId === n.id}
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  e.preventDefault()
+                                  handleApplyPrice(n.id, n.metadata!.bahanId!, n.metadata!.newPrice!)
+                                }}
+                                className="w-full py-1.5 px-3 bg-[#FF8F2B] hover:bg-[#E07A1E] active:scale-98 text-white text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                {updatingPriceId === n.id ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    <span>Memperbarui Harga...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <TrendingUp className="w-3 h-3" />
+                                    <span>Update Harga Master (HPP)</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     )

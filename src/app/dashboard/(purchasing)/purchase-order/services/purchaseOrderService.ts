@@ -9,6 +9,7 @@ import {
   VerifyPenerimaanInput,
 } from '../types'
 import { getUnitConversionFactor } from '@/lib/satuan'
+import { formatRupiah } from '@/lib/mock-data'
 
 interface RawPOItemDB {
   id: string
@@ -361,21 +362,66 @@ export const purchaseOrderService = {
       // Ambil stok & satuan master bahan terkini
       const { data: bhn } = await supabase
         .from('bahan')
-        .select('stok, satuan')
+        .select('id, nama, stok, satuan, harga_per_satuan')
         .eq('id', vItem.bahanId)
         .single()
 
       const currentStock = bhn ? Number(bhn.stok) || 0 : 0
+      const currentPrice = bhn ? Number(bhn.harga_per_satuan) || 0 : 0
       const baseUnit = bhn?.satuan || vItem.satuan
       const factor = getUnitConversionFactor(vItem.satuan, baseUnit)
       const addedStock = Number((vItem.qtyDiterima * factor).toFixed(3))
       const newStock = Number((currentStock + addedStock).toFixed(3))
 
-      // Update stok fisik di tabel bahan
+      const itemHargaAktual = Number(vItem.hargaAktual) || 0
+      const newPricePerBaseUnit = factor > 0 ? Math.round(itemHargaAktual / factor) : itemHargaAktual
+
+      const hasPriceChange = newPricePerBaseUnit > 0 && newPricePerBaseUnit !== currentPrice
+      const shouldAutoUpdate = !!input.autoUpdateHargaMaster && hasPriceChange
+
+      // Update stok fisik (dan harga master jika opsi auto-update dipilih) di tabel bahan
+      const bahanUpdatePayload: Record<string, unknown> = {
+        stok: newStock,
+        updated_at: todayIso,
+      }
+      if (shouldAutoUpdate) {
+        bahanUpdatePayload.harga_per_satuan = newPricePerBaseUnit
+      }
+
       await supabase
         .from('bahan')
-        .update({ stok: newStock, updated_at: todayIso })
+        .update(bahanUpdatePayload)
         .eq('id', vItem.bahanId)
+
+      // Jika ada perubahan harga, catat notifikasi dengan opsi update HPP/harga master
+      if (hasPriceChange) {
+        try {
+          await supabase.from('notifications').insert({
+            user_id: userId,
+            title: shouldAutoUpdate
+              ? `Harga Bahan Terupdate: ${bhn?.nama || vItem.namaBahan}`
+              : `Perubahan Harga PO: ${bhn?.nama || vItem.namaBahan}`,
+            detail: shouldAutoUpdate
+              ? `Harga master & HPP otomatis diperbarui ke ${formatRupiah(newPricePerBaseUnit)}/${baseUnit} (sebelumnya ${formatRupiah(currentPrice)}/${baseUnit}) sesuai penerimaan PO ${currentPO.no_po}.`
+              : `Terdeteksi harga beli baru ${formatRupiah(newPricePerBaseUnit)}/${baseUnit} di PO ${currentPO.no_po} (harga master saat ini: ${formatRupiah(currentPrice)}/${baseUnit}). Klik untuk memperbarui harga master & HPP.`,
+            type: 'po',
+            link: '/dashboard/purchase-order',
+            metadata: {
+              isPriceUpdate: true,
+              applied: !!shouldAutoUpdate,
+              bahanId: vItem.bahanId,
+              namaBahan: bhn?.nama || vItem.namaBahan,
+              oldPrice: currentPrice,
+              newPrice: newPricePerBaseUnit,
+              satuan: baseUnit,
+              noPO: currentPO.no_po,
+              poId: input.poId,
+            },
+          })
+        } catch (notifErr) {
+          console.warn('Gagal mencatat notifikasi perubahan harga ke DB:', notifErr)
+        }
+      }
 
       // Catat ke stok_logs
       const noteParts = [

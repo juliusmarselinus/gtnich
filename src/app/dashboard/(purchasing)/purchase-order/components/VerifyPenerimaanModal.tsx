@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PurchaseOrder, VerifyPenerimaanInput, VerifyItemPenerimaan } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
-import { CheckCircle2, AlertTriangle, X, Loader2, PackageCheck } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, X, Loader2, PackageCheck, TrendingUp } from 'lucide-react'
 import clsx from 'clsx'
 
 interface VerifyPenerimaanModalProps {
@@ -21,6 +21,7 @@ export default function VerifyPenerimaanModal({
 }: VerifyPenerimaanModalProps) {
   const [items, setItems] = useState<VerifyItemPenerimaan[]>([])
   const [catatanPenerimaan, setCatatanPenerimaan] = useState('')
+  const [autoUpdateMasterPrice, setAutoUpdateMasterPrice] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
@@ -92,6 +93,10 @@ export default function VerifyPenerimaanModal({
     item => item.qtyDiterima !== item.qtyPesan || !item.isSesuai
   )
 
+  const hasPriceChange = items.some(
+    item => item.hargaAktual > 0 && item.hargaAktual !== item.hargaEstimasi
+  )
+
   const handleSubmit = async () => {
     // Validasi
     for (const item of items) {
@@ -109,6 +114,7 @@ export default function VerifyPenerimaanModal({
         items,
         totalAktual,
         catatanPenerimaan: catatanPenerimaan.trim() || undefined,
+        autoUpdateHargaMaster: autoUpdateMasterPrice,
       })
       onClose()
     } catch (err: unknown) {
@@ -156,6 +162,28 @@ export default function VerifyPenerimaanModal({
             Kuantitas yang Anda masukkan di bawah akan **langsung ditambahkan ke stok fisik bahan baku** dan dicatat pada audit log mutasi.
           </p>
         </div>
+
+        {/* Banner Deteksi Perubahan Harga Baru dari PO */}
+        {hasPriceChange && (
+          <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-xs space-y-2 animate-in fade-in-50">
+            <div className="flex items-center gap-2 text-amber-900 font-bold">
+              <TrendingUp className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <span>Terdeteksi Perubahan Harga Beli Aktual dari PO</span>
+            </div>
+            <p className="text-[11px] text-amber-800 leading-snug">
+              Beberapa bahan memiliki harga beli aktual berbeda dari harga master/estimasi. Anda dapat langsung mengupdate harga master bahan (HPP) sekarang atau memutuskannya nanti melalui notifikasi.
+            </p>
+            <label className="flex items-center gap-2 cursor-pointer pt-1 text-slate-800 font-bold text-[11px] select-none">
+              <input
+                type="checkbox"
+                checked={autoUpdateMasterPrice}
+                onChange={e => setAutoUpdateMasterPrice(e.target.checked)}
+                className="rounded text-[#FF8F2B] focus:ring-[#FF8F2B] w-4 h-4 cursor-pointer"
+              />
+              <span>Langsung perbarui harga master bahan baku & estimasi HPP resep</span>
+            </label>
+          </div>
+        )}
 
         {errorMsg && (
           <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
@@ -247,15 +275,31 @@ export default function VerifyPenerimaanModal({
                     </div>
 
                     <div>
-                      <label className="text-[10px] text-slate-500 font-bold block mb-1">
-                        Harga Aktual/Satuan (Rp)
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] text-slate-500 font-bold block">
+                          Harga Aktual/Satuan (Rp)
+                        </label>
+                        {item.hargaAktual !== item.hargaEstimasi && (
+                          <span
+                            className={clsx(
+                              'text-[9px] font-black font-mono',
+                              item.hargaAktual > item.hargaEstimasi ? 'text-amber-600' : 'text-emerald-600'
+                            )}
+                          >
+                            {item.hargaAktual > item.hargaEstimasi ? '+' : ''}
+                            {formatRupiah(item.hargaAktual - item.hargaEstimasi)}
+                          </span>
+                        )}
+                      </div>
                       <input
                         type="number"
                         min="0"
                         value={item.hargaAktual}
                         onChange={e => updateItemHarga(idx, Number(e.target.value))}
-                        className="w-full px-3 py-1.5 clay-inset text-xs font-mono font-bold text-slate-800"
+                        className={clsx(
+                          'w-full px-3 py-1.5 clay-inset text-xs font-mono font-bold text-slate-800',
+                          item.hargaAktual !== item.hargaEstimasi ? 'border-amber-400 bg-amber-50/50' : ''
+                        )}
                       />
                     </div>
 

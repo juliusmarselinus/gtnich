@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MenuItem, MenuFormData, BahanOption, ResepItemInput } from '../types'
+import { MenuItem, MenuFormData, BahanOption } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import { getUnitConversionFactor, getCompatibleRecipeUnits, DEFAULT_SATUAN_LIST } from '@/lib/satuan'
-import { Plus, X, Loader2, CornerDownLeft, Sparkles } from 'lucide-react'
+import { menuService, searchResepAI, resolveAIIngredients } from '../services/menuService'
+import { Plus, X, Loader2, CornerDownLeft, Bot, CheckCircle2 } from 'lucide-react'
 import clsx from 'clsx'
 import CustomSelect from '@/components/ui/CustomSelect'
 
@@ -16,6 +17,7 @@ interface MenuModalProps {
   onSave: (id: string | null, form: MenuFormData) => Promise<void>
   editingMenu: MenuItem | null
   bahanList: BahanOption[]
+  onRefreshBahan?: () => Promise<void>
 }
 
 const emptyForm: MenuFormData = {
@@ -33,15 +35,23 @@ export default function MenuModal({
   onSave,
   editingMenu,
   bahanList,
+  onRefreshBahan,
 }: MenuModalProps) {
   const [form, setForm] = useState<MenuFormData>(emptyForm)
+  const [currentBahanList, setCurrentBahanList] = useState<BahanOption[]>(bahanList)
   const [newIngredient, setNewIngredient] = useState<{
     bahanId: string
     qty: number
     satuan: string
   }>({ bahanId: '', qty: 0, satuan: 'gram' })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSearchingAI, setIsSearchingAI] = useState(false)
+  const [aiSuccessMsg, setAiSuccessMsg] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    setCurrentBahanList(bahanList)
+  }, [bahanList])
 
   useEffect(() => {
     if (editingMenu) {
@@ -64,19 +74,20 @@ export default function MenuModal({
     }
     setNewIngredient({ bahanId: '', qty: 0, satuan: 'gram' })
     setErrorMsg(null)
+    setAiSuccessMsg(null)
   }, [editingMenu, isOpen])
 
   if (!isOpen) return null
 
   // Bahan yang sedang dipilih di dropdown tambah bahan
-  const selectedBahanForNew = bahanList.find(b => b.id === newIngredient.bahanId)
+  const selectedBahanForNew = currentBahanList.find(b => b.id === newIngredient.bahanId)
   const availableUnitsForNew = selectedBahanForNew
     ? getCompatibleRecipeUnits(selectedBahanForNew.satuan)
     : DEFAULT_SATUAN_LIST
 
   // Hitung live HPP berdasarkan konversi unit
   const liveHPP = form.resep.reduce((sum, r) => {
-    const bhn = bahanList.find(b => b.id === r.bahanId)
+    const bhn = currentBahanList.find(b => b.id === r.bahanId)
     const baseUnit = bhn?.satuan || r.satuan || 'item'
     const recipeUnit = r.satuan || baseUnit
     const factor = getUnitConversionFactor(recipeUnit, baseUnit)
@@ -88,7 +99,7 @@ export default function MenuModal({
   const liveProfitPct = form.hargaJual > 0 ? (liveProfit / form.hargaJual) * 100 : 0
 
   const handleBahanChange = (bahanId: string) => {
-    const bhn = bahanList.find(b => b.id === bahanId)
+    const bhn = currentBahanList.find(b => b.id === bahanId)
     let defaultUnit = 'gram'
     if (bhn) {
       const bSat = bhn.satuan.toLowerCase()
@@ -114,7 +125,7 @@ export default function MenuModal({
       return false
     }
 
-    const bahan = bahanList.find(b => b.id === targetIngredient.bahanId)
+    const bahan = currentBahanList.find(b => b.id === targetIngredient.bahanId)
     if (!bahan) return false
 
     setForm(prev => {
@@ -152,6 +163,67 @@ export default function MenuModal({
     return true
   }
 
+  // Handle pencarian komposisi resep via 9Router AI
+  const handleSearchKomposisiAI = async () => {
+    if (!form.nama.trim()) {
+      setErrorMsg('Isi nama menu terlebih dahulu untuk mencari komposisi via AI.')
+      return
+    }
+
+    setIsSearchingAI(true)
+    setErrorMsg(null)
+    setAiSuccessMsg(null)
+
+    try {
+      // 1. Panggil 9Router AI endpoint
+      const fetchSearch = searchResepAI || menuService.searchResepAI
+      const aiData = await fetchSearch(form.nama.trim(), currentBahanList)
+
+      if (!aiData.items || aiData.items.length === 0) {
+        setErrorMsg('AI tidak menemukan komposisi bahan yang sesuai untuk menu ini.')
+        return
+      }
+
+      // 2. Cocokkan dengan master bahan dapur (dan daftarkan otomatis bahan baru jika diperlukan)
+      const fetchResolve = resolveAIIngredients || menuService.resolveAIIngredients
+      const { resolvedResep, newlyCreatedBahan } = await fetchResolve(
+        aiData.items,
+        currentBahanList
+      )
+
+      if (newlyCreatedBahan.length > 0) {
+        setCurrentBahanList(prev => [...prev, ...newlyCreatedBahan])
+        if (onRefreshBahan) {
+          onRefreshBahan()
+        }
+      }
+
+      if (resolvedResep.length === 0) {
+        setErrorMsg('Tidak ada bahan baku yang dapat dimasukkan ke resep.')
+        return
+      }
+
+      // 3. Masukkan ke dalam list bahan yang dibutuhkan (resep)
+      setForm(prev => ({
+        ...prev,
+        kategori: prev.kategori === 'Camilan' && aiData.kategori ? aiData.kategori : prev.kategori,
+        emoji: (prev.emoji === '🍲' || !prev.emoji) && aiData.emoji ? aiData.emoji : prev.emoji,
+        resep: resolvedResep,
+      }))
+
+      const createdNote = newlyCreatedBahan.length > 0
+        ? ` (${newlyCreatedBahan.length} bahan baru didaftarkan ke master dapur)`
+        : ''
+      setAiSuccessMsg(`Berhasil menemukan ${resolvedResep.length} bahan komposisi via 9Router untuk "${form.nama.trim()}"${createdNote}.`)
+    } catch (err: unknown) {
+      const e = err as Error
+      console.error('Error searching AI recipe:', e)
+      setErrorMsg(e.message || 'Gagal mencari komposisi bahan via 9Router AI.')
+    } finally {
+      setIsSearchingAI(false)
+    }
+  }
+
   const updateResepUnit = (index: number, newUnit: string) => {
     setForm(prev => ({
       ...prev,
@@ -180,7 +252,7 @@ export default function MenuModal({
     // otomatis masukkan bahan tersebut ke dalam daftar resep
     let currentResep = [...form.resep]
     if (newIngredient.bahanId && newIngredient.qty > 0) {
-      const bahan = bahanList.find(b => b.id === newIngredient.bahanId)
+      const bahan = currentBahanList.find(b => b.id === newIngredient.bahanId)
       if (bahan) {
         const targetSatuan = newIngredient.satuan || bahan.satuan
         const existingIdx = currentResep.findIndex(
@@ -242,6 +314,22 @@ export default function MenuModal({
           </div>
         )}
 
+        {aiSuccessMsg && (
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span>{aiSuccessMsg}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAiSuccessMsg(null)}
+              className="text-emerald-600 hover:text-emerald-800 p-0.5 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
@@ -250,7 +338,10 @@ export default function MenuModal({
                 type="text"
                 required
                 value={form.nama}
-                onChange={e => setForm(p => ({ ...p, nama: e.target.value }))}
+                onChange={e => {
+                  setForm(p => ({ ...p, nama: e.target.value }))
+                  if (aiSuccessMsg) setAiSuccessMsg(null)
+                }}
                 placeholder="Contoh: Brownies Kukus Cokelat"
                 className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
               />
@@ -266,6 +357,43 @@ export default function MenuModal({
               />
             </div>
           </div>
+
+          {/* Opsi Bantuan AI 9Router: Muncul HANYA ketika pengguna sudah mengisi judul/nama menu */}
+          {form.nama.trim().length > 0 && (
+            <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50/90 to-teal-50/90 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in-50">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0 text-white shadow-sm">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-emerald-950 truncate">
+                    Cari Komposisi via AI (9Router)
+                  </p>
+                  <p className="text-[11px] text-emerald-700 truncate">
+                    Otomatis cari takaran & masukkan bahan baku untuk &ldquo;{form.nama.trim()}&rdquo;
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleSearchKomposisiAI}
+                disabled={isSearchingAI || isSubmitting}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-sm flex-shrink-0"
+              >
+                {isSearchingAI ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Mencari via 9Router...</span>
+                  </>
+                ) : (
+                  <>
+                    <Bot className="w-3.5 h-3.5" />
+                    <span>Cari Komposisi AI</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 gap-3">
             <div>
@@ -312,7 +440,7 @@ export default function MenuModal({
 
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {form.resep.map((r, i) => {
-                const masterBahan = bahanList.find(b => b.id === r.bahanId)
+                const masterBahan = currentBahanList.find(b => b.id === r.bahanId)
                 const baseUnit = masterBahan?.satuan || 'item'
                 const compUnits = masterBahan ? getCompatibleRecipeUnits(baseUnit) : DEFAULT_SATUAN_LIST
                 const factor = getUnitConversionFactor(r.satuan || baseUnit, baseUnit)
@@ -376,7 +504,7 @@ export default function MenuModal({
                     placeholder="-- Pilih Bahan Baku --"
                     searchable={true}
                     searchPlaceholder="Cari bahan..."
-                    options={bahanList.map(b => ({
+                    options={currentBahanList.map(b => ({
                       value: b.id,
                       label: b.nama,
                       sublabel: `Master: ${b.satuan}`,
@@ -436,7 +564,7 @@ export default function MenuModal({
               {newIngredient.bahanId && newIngredient.qty > 0 && (
                 <div className="flex items-center justify-between text-[11px] text-[#FF8F2B] bg-[#FFF6EC] px-3 py-1.5 rounded-xl border border-[#FFE2C2] animate-in fade-in-50">
                   <span className="flex items-center gap-1.5 font-medium">
-                    <Sparkles className="w-3.5 h-3.5 text-[#FF8F2B]" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8F2B]" />
                     <span>
                       Siap dimasukkan: <strong>{selectedBahanForNew?.nama}</strong> ({newIngredient.qty} {newIngredient.satuan})
                     </span>

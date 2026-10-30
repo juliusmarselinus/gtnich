@@ -1,5 +1,19 @@
 import { createClient } from '@/lib/supabase/client'
 import { formatRupiah } from '@/lib/mock-data'
+import { getUnitConversionFactor } from '@/lib/satuan'
+
+export interface NotificationMetadata {
+  isPriceUpdate?: boolean
+  applied?: boolean
+  bahanId?: string
+  namaBahan?: string
+  oldPrice?: number
+  newPrice?: number
+  satuan?: string
+  noPO?: string
+  poId?: string
+  [key: string]: any
+}
 
 export interface NotificationItem {
   id: string
@@ -11,6 +25,7 @@ export interface NotificationItem {
   isRead: boolean
   createdAt: string
   timeAgo: string
+  metadata?: NotificationMetadata
 }
 
 function getTimeAgo(dateString: string): string {
@@ -62,6 +77,7 @@ export const notificationService = {
         isRead: Boolean(n.is_read),
         createdAt: n.created_at,
         timeAgo: getTimeAgo(n.created_at),
+        metadata: n.metadata || undefined,
       }))
     }
 
@@ -77,15 +93,78 @@ export const notificationService = {
         .limit(4),
       supabase
         .from('bahan')
-        .select('id, nama, stok, stok_minimum, satuan, updated_at')
+        .select('id, nama, stok, stok_minimum, satuan, harga_per_satuan, updated_at')
         .eq('user_id', user.id),
       supabase
         .from('purchase_orders')
-        .select('id, no_po, nama_supplier, status, total_aktual, total_estimasi, updated_at, created_at')
+        .select('id, no_po, nama_supplier, status, total_aktual, total_estimasi, updated_at, created_at, po_items(*)')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
-        .limit(4),
+        .limit(6),
     ])
+
+    // Load ID perubahan harga yang sudah diaplikasikan dari localStorage
+    let appliedPriceIds: string[] = []
+    try {
+      const stored = localStorage.getItem('dapur_applied_price_updates')
+      if (stored) appliedPriceIds = JSON.parse(stored)
+    } catch {}
+
+    // Deteksi perubahan harga dari PO yang masuk
+    const bahanMap = new Map((bahanRes.data || []).map(b => [b.id, b]))
+    ;(poRes.data || []).forEach(p => {
+      const items = (p.po_items || []) as Array<{
+        id: string
+        bahan_id: string
+        nama_bahan: string
+        satuan: string
+        harga_estimasi: number | string
+        harga_aktual: number | string
+      }>
+
+      items.forEach(item => {
+        const bhn = bahanMap.get(item.bahan_id)
+        if (!bhn) return
+
+        const hargaAktual = Number(item.harga_aktual) || 0
+        const hargaEstimasi = Number(item.harga_estimasi) || 0
+        const effectivePOPrice = hargaAktual > 0 ? hargaAktual : hargaEstimasi
+        if (effectivePOPrice <= 0) return
+
+        const baseUnit = bhn.satuan || item.satuan
+        const factor = getUnitConversionFactor(item.satuan, baseUnit)
+        const pricePerBaseUnit = factor > 0 ? Math.round(effectivePOPrice / factor) : effectivePOPrice
+        const currentMasterPrice = Number(bhn.harga_per_satuan) || 0
+
+        // Jika terdeteksi selisih harga antara PO dan master bahan
+        if (pricePerBaseUnit > 0 && pricePerBaseUnit !== currentMasterPrice) {
+          const synthId = `synth-price-${p.id}-${item.id}`
+          const isApplied = appliedPriceIds.includes(synthId)
+
+          notifications.push({
+            id: synthId,
+            title: `Perubahan Harga PO: ${bhn.nama}`,
+            detail: `Terdeteksi harga baru dari PO ${p.no_po}: ${formatRupiah(pricePerBaseUnit)}/${baseUnit} (harga master saat ini: ${formatRupiah(currentMasterPrice)}/${baseUnit}). Perbarui HPP & harga master bahan?`,
+            type: 'po',
+            link: '/dashboard/purchase-order',
+            isRead: isApplied,
+            createdAt: p.updated_at || p.created_at,
+            timeAgo: getTimeAgo(p.updated_at || p.created_at),
+            metadata: {
+              isPriceUpdate: true,
+              applied: isApplied,
+              bahanId: bhn.id,
+              namaBahan: bhn.nama,
+              oldPrice: currentMasterPrice,
+              newPrice: pricePerBaseUnit,
+              satuan: baseUnit,
+              noPO: p.no_po,
+              poId: p.id,
+            },
+          })
+        }
+      })
+    })
 
     // Notifikasi Transaksi Penjualan Masuk
     ;(ordersRes.data || []).forEach(o => {
@@ -221,5 +300,55 @@ export const notificationService = {
       link: payload.link || null,
       metadata: payload.metadata || {},
     })
+  },
+
+  // Update harga master bahan (HPP) langsung dari notifikasi perubahan harga PO
+  async applyPriceUpdate(notificationId: string, bahanId: string, newPrice: number): Promise<void> {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error('Sesi auth tidak ditemukan.')
+
+    // 1. Update harga_per_satuan di tabel bahan
+    const { error: bahanErr } = await supabase
+      .from('bahan')
+      .update({
+        harga_per_satuan: newPrice,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', bahanId)
+      .eq('user_id', user.id)
+
+    if (bahanErr) {
+      throw new Error(`Gagal memperbarui harga master bahan: ${bahanErr.message}`)
+    }
+
+    // 2. Tandai notifikasi bahwa harga telah diaplikasikan
+    if (!notificationId.startsWith('synth-')) {
+      const { data: notifData } = await supabase
+        .from('notifications')
+        .select('metadata')
+        .eq('id', notificationId)
+        .single()
+
+      const currentMeta = notifData?.metadata || {}
+      await supabase
+        .from('notifications')
+        .update({
+          metadata: { ...currentMeta, applied: true },
+          is_read: true,
+        })
+        .eq('id', notificationId)
+    }
+
+    // Simpan ke localStorage agar status applied tercatat untuk notifikasi sintesis maupun DB
+    try {
+      const appliedKeys = JSON.parse(localStorage.getItem('dapur_applied_price_updates') || '[]')
+      if (!appliedKeys.includes(notificationId)) {
+        appliedKeys.push(notificationId)
+        localStorage.setItem('dapur_applied_price_updates', JSON.stringify(appliedKeys))
+      }
+    } catch {}
   },
 }

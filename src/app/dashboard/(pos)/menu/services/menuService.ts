@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import { MenuItem, ResepItemDetail, MenuFormData, BahanOption } from '../types'
+import { MenuItem, ResepItemDetail, MenuFormData, BahanOption, ResepItemInput } from '../types'
 import { getUnitConversionFactor } from '@/lib/satuan'
 
 interface RawResepItemDB {
@@ -286,4 +286,158 @@ export const menuService = {
       throw new Error(error.message || 'Gagal menghapus menu.')
     }
   },
+
+  // Panggil 9Router AI untuk pencarian komposisi bahan baku berdasarkan nama menu
+  async searchResepAI(
+    namaMenu: string,
+    existingBahan: BahanOption[]
+  ): Promise<{
+    kategori?: string
+    emoji?: string
+    items: Array<{
+      nama: string
+      matchedBahanId: string | null
+      qty: number
+      satuan: string
+    }>
+  }> {
+    const res = await fetch('/dashboard/menu/api/ai-resep', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        namaMenu,
+        existingBahan: existingBahan.map(b => ({
+          id: b.id,
+          nama: b.nama,
+          satuan: b.satuan,
+          hargaPerSatuan: b.hargaPerSatuan,
+        })),
+      }),
+    })
+
+    const json = await res.json()
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Gagal mencari komposisi resep via 9Router AI')
+    }
+
+    return json.data
+  },
+
+  // Menyelesaikan mapping bahan baku dari AI ke master bahan database
+  async resolveAIIngredients(
+    aiItems: Array<{
+      nama: string
+      matchedBahanId: string | null
+      qty: number
+      satuan: string
+    }>,
+    existingBahanList: BahanOption[]
+  ): Promise<{
+    resolvedResep: ResepItemInput[]
+    newlyCreatedBahan: BahanOption[]
+  }> {
+    const supabase = createClient()
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    const resolvedResep: ResepItemInput[] = []
+    const newlyCreatedBahan: BahanOption[] = []
+    const workingBahanList = [...existingBahanList]
+
+    for (const item of aiItems) {
+      if (!item.nama || !item.nama.trim()) continue
+
+      // 1. Cek kecocokan matchedBahanId
+      let matchedBahan = item.matchedBahanId
+        ? workingBahanList.find(b => b.id === item.matchedBahanId)
+        : null
+
+      // 2. Jika tidak ada atau id tidak valid, lakukan pencocokan nama
+      if (!matchedBahan) {
+        const itemLower = item.nama.toLowerCase().trim()
+        // Exact name match
+        matchedBahan = workingBahanList.find(b => b.nama.toLowerCase().trim() === itemLower)
+
+        // Substring match
+        if (!matchedBahan) {
+          matchedBahan = workingBahanList.find(b => {
+            const bLower = b.nama.toLowerCase().trim()
+            return bLower.includes(itemLower) || itemLower.includes(bLower)
+          })
+        }
+      }
+
+      if (matchedBahan) {
+        // Satuan yang digunakan
+        const baseUnit = matchedBahan.satuan || 'gram'
+        const candidateUnit = item.satuan || baseUnit
+
+        resolvedResep.push({
+          bahanId: matchedBahan.id,
+          namaBahan: matchedBahan.nama,
+          satuan: candidateUnit,
+          hargaPerSatuan: matchedBahan.hargaPerSatuan,
+          qty: Number(item.qty) || 1,
+        })
+      } else if (userId) {
+        // Bahan belum ada di master database dapur -> buatkan otomatis dengan stok 0 dan harga 0
+        try {
+          const { data: newBahan, error: insertErr } = await supabase
+            .from('bahan')
+            .insert({
+              user_id: userId,
+              nama: item.nama.trim(),
+              satuan: item.satuan.trim() || 'gram',
+              harga_per_satuan: 0,
+              stok: 0,
+              stok_minimum: 0,
+            })
+            .select('id, nama, satuan, harga_per_satuan, stok')
+            .single()
+
+          if (!insertErr && newBahan) {
+            const mapped: BahanOption = {
+              id: newBahan.id,
+              nama: newBahan.nama,
+              satuan: newBahan.satuan,
+              hargaPerSatuan: Number(newBahan.harga_per_satuan) || 0,
+              stok: Number(newBahan.stok) || 0,
+            }
+            newlyCreatedBahan.push(mapped)
+            workingBahanList.push(mapped)
+
+            resolvedResep.push({
+              bahanId: mapped.id,
+              namaBahan: mapped.nama,
+              satuan: mapped.satuan,
+              hargaPerSatuan: mapped.hargaPerSatuan,
+              qty: Number(item.qty) || 1,
+            })
+          }
+        } catch (e) {
+          console.warn('Gagal membuat bahan master baru otomatis:', e)
+        }
+      }
+    }
+
+    return {
+      resolvedResep,
+      newlyCreatedBahan,
+    }
+  },
 }
+
+export const searchResepAI = (namaMenu: string, existingBahan: BahanOption[]) =>
+  menuService.searchResepAI(namaMenu, existingBahan)
+
+export const resolveAIIngredients = (
+  aiItems: Array<{
+    nama: string
+    matchedBahanId: string | null
+    qty: number
+    satuan: string
+  }>,
+  existingBahanList: BahanOption[]
+) => menuService.resolveAIIngredients(aiItems, existingBahanList)
