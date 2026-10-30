@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
 import { useSidebar } from '@/context/SidebarContext'
+import DapiFace from './ui/DapiFace'
 import {
   LayoutDashboard, Package, BarChart2, ChefHat, LogOut,
   Truck, ClipboardList, ShoppingCart, History, BoxSelect,
@@ -77,8 +78,14 @@ export default function Sidebar() {
   const { isOpen, closeSidebar } = useSidebar()
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  // Track the single open module ID
+  const [user, setUser] = useState<{ email?: string } | null>(null)
   const [activeSectionId, setActiveSectionId] = useState<string | null>('operasional')
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUser({ email: data.user.email || 'Admin' })
+    })
+  }, [supabase.auth])
 
   // Automatically expand only the module that contains the currently active route
   useEffect(() => {
@@ -317,16 +324,14 @@ export default function Sidebar() {
         </nav>
 
         {/* User Footer Clay Card */}
-        <div className="clay-card p-2.5 flex-shrink-0 mt-2 border-[#EBE3D7]">
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] text-white flex items-center justify-center text-xs font-bold shadow-xs flex-shrink-0">
-                DT
-              </div>
-              <div className="text-left leading-tight">
-                <p className="text-xs font-bold text-slate-900">Admin Dapur</p>
-                <p className="text-[10px] text-[#FF8F2B] font-semibold">DapurTwin Active</p>
-              </div>
+        <div className="clay-card p-3 m-4 flex-shrink-0 border-[#EBE3D7] bg-white flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 flex-shrink-0">
+               <DapiFace mood="idle" size="compact" hideBubble />
+            </div>
+            <div className="flex-1 min-w-0">
+               <p className="text-xs font-bold text-slate-900 truncate">{user?.email || "Admin"}</p>
+               <p className="text-[10px] text-[#FF8F2B] font-semibold">Active Session</p>
             </div>
             <button
               type="button"

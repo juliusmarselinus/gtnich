@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import Topbar from '@/components/Topbar'
-import APIKeyConfigBar from './components/APIKeyConfigBar'
 import KondisiCardGrid from './components/KondisiCardGrid'
 import { useKondisiBahan } from './hooks/useKondisiBahan'
 import { CheckCircle, AlertTriangle, XCircle, Search, Loader2, AlertCircle, RefreshCw, LogIn, Sparkles } from 'lucide-react'
@@ -15,8 +14,6 @@ export default function KondisiBahanPage() {
     loading,
     error,
     userEmail,
-    apiKey,
-    saveApiKey,
     search,
     setSearch,
     filterFreshness,
@@ -65,13 +62,6 @@ export default function KondisiBahanPage() {
             </button>
           </div>
         )}
-
-        {/* AI Key Bar */}
-        <APIKeyConfigBar
-          apiKey={apiKey}
-          onSaveKey={saveApiKey}
-          onRefreshAnalysis={refresh}
-        />
 
         {/* Summary Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
