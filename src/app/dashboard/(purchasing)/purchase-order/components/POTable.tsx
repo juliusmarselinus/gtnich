@@ -9,7 +9,7 @@ import clsx from 'clsx'
 const STATUS_CONFIG: Record<POStatus, { label: string; cls: string; nextStatus?: POStatus; nextLabel?: string }> = {
   draft: { label: 'Draft', cls: 'bg-slate-100 text-slate-600', nextStatus: 'dikirim', nextLabel: 'Kirim ke Supplier' },
   dikirim: { label: 'Dikirim', cls: 'bg-blue-50 text-blue-600 border border-blue-200/50', nextStatus: 'diterima', nextLabel: 'Konfirmasi Terima Barang (+Stok)' },
-  diterima: { label: 'Diterima', cls: 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]', nextStatus: 'tagihan', nextLabel: 'Masuk Antrean Tagihan' },
+  diterima: { label: 'Diterima', cls: 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]' },
   tagihan: { label: 'Tagihan', cls: 'bg-amber-50 text-amber-700 border border-amber-200/50' },
 }
 
@@ -46,14 +46,14 @@ export default function POTable({
   return (
     <div className="clay-card overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-xs min-w-[620px]">
+        <table className="w-full text-xs min-w-[720px]">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/70 whitespace-nowrap">
               <th className="text-left px-5 py-3.5 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                No. PO & Tanggal
+                No. Pembelian & Tanggal
               </th>
               <th className="text-left px-5 py-3.5 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                Supplier
+                Supplier / Asal Beli
               </th>
               <th className="text-center px-4 py-3.5 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
                 Status
@@ -74,37 +74,39 @@ export default function POTable({
 
               return (
                 <Fragment key={po.id}>
-                  <tr className="hover:bg-slate-50/50 transition-colors whitespace-nowrap">
-                    <td className="px-5 py-3.5">
+                  <tr className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-5 py-3.5 whitespace-nowrap">
                       <p className="font-mono font-bold text-slate-800 text-xs sm:text-sm">{po.noPO}</p>
                       <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
                         {po.tanggalBuat}
                       </span>
                       {po.catatan && (
-                        <p className="text-[10px] text-slate-500 mt-1 line-clamp-1 max-w-[200px]" title={po.catatan}>
+                        <p className="text-[10px] text-slate-500 mt-1 max-w-[260px] break-words whitespace-normal leading-tight" title={po.catatan}>
                           Catatan: {po.catatan}
                         </p>
                       )}
                     </td>
 
                     <td className="px-5 py-3.5">
-                      <p className="font-semibold text-slate-800 text-xs">{po.namaSupplier}</p>
-                      <span className="text-[10px] text-slate-400">
+                      <p className="font-bold text-slate-800 text-xs leading-snug break-words max-w-[220px]">
+                        {po.namaSupplier || 'Tanpa Supplier (Beli Langsung)'}
+                      </p>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">
                         {po.items.length} jenis bahan
                       </span>
                     </td>
 
-                    <td className="px-4 py-3.5 text-center">
+                    <td className="px-4 py-3.5 text-center whitespace-nowrap">
                       <span className={clsx('inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold clay-pill', cfg.cls)}>
                         {cfg.label}
                       </span>
                     </td>
 
-                    <td className="px-5 py-3.5 text-right font-mono font-black text-slate-800 text-xs sm:text-sm">
+                    <td className="px-5 py-3.5 text-right font-mono font-black text-slate-800 text-xs sm:text-sm whitespace-nowrap">
                       {formatRupiah(po.totalAktual > 0 ? po.totalAktual : po.totalEstimasi)}
                     </td>
 
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="px-5 py-3.5 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">
                         {cfg.nextStatus ? (
                           <button
@@ -199,7 +201,7 @@ export default function POTable({
 
       {list.length === 0 && (
         <div className="text-center py-12 text-slate-400 text-sm font-medium">
-          Belum ada data Purchase Order di database.
+          Belum ada data Pembelian Stok di database.
         </div>
       )}
     </div>

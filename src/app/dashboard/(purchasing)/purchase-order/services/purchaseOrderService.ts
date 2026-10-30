@@ -159,7 +159,7 @@ export const purchaseOrderService = {
         no_po: noPO,
         supplier_id: input.supplierId || null,
         nama_supplier: input.namaSupplier || 'Tanpa Supplier (Beli Langsung)',
-        status: 'draft',
+        status: input.status || 'draft',
         total_estimasi: totalEstimasi,
         total_aktual: 0,
         tanggal_buat: new Date().toISOString(),
@@ -225,9 +225,10 @@ export const purchaseOrderService = {
       throw new Error('Data Purchase Order tidak ditemukan.')
     }
 
-    // 2. Update status PO
+    // 2. Update status PO (Jika diterima, langsung jadikan status tagihan)
+    const effectiveStatus = newStatus === 'diterima' ? 'tagihan' : newStatus
     const updatePayload: Record<string, unknown> = {
-      status: newStatus,
+      status: effectiveStatus,
       updated_at: new Date().toISOString(),
     }
     if (newStatus === 'diterima' && !currentPO.tanggal_terima) {
@@ -327,11 +328,11 @@ export const purchaseOrderService = {
 
     const todayIso = new Date().toISOString()
 
-    // 2. Update Header PO -> status 'diterima', tanggal_terima, total_aktual
+    // 2. Update Header PO -> langsung ke status 'tagihan', tanggal_terima, total_aktual
     const { error: poErr } = await supabase
       .from('purchase_orders')
       .update({
-        status: 'diterima',
+        status: 'tagihan',
         tanggal_terima: todayIso,
         total_aktual: input.totalAktual,
         catatan: input.catatanPenerimaan

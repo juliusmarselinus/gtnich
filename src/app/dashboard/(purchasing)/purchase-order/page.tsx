@@ -36,8 +36,8 @@ export default function PurchaseOrderPage() {
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Purchase Order (PO)"
-        subtitle="Buat PO bertahap: rancang pesanan, kirim ke supplier, verifikasi penerimaan barang (+stok otomatis), dan monitor tagihan"
+        title="Pembelian Stok (PO)"
+        subtitle="Kelola pesanan stok: rancang pembelian, catat supplier/pasar, verifikasi penerimaan barang (+auto stok), dan monitor tagihan"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">
@@ -47,7 +47,7 @@ export default function PurchaseOrderPage() {
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600" />
               <span>
-                Anda belum login ke Supabase Auth. Silakan login terlebih dahulu untuk mengelola Purchase Order.
+                Anda belum login ke Supabase Auth. Silakan login terlebih dahulu untuk mengelola Pembelian Stok.
               </span>
             </div>
             <Link
@@ -122,9 +122,9 @@ export default function PurchaseOrderPage() {
 
               <button
                 onClick={() => setShowWizard(true)}
-                className="clay-btn-primary flex items-center gap-2 px-5 py-2.5 text-xs font-bold cursor-pointer"
+                className="clay-btn-primary flex items-center gap-2 px-5 py-2.5 text-xs font-bold cursor-pointer whitespace-nowrap"
               >
-                <Plus className="w-4 h-4" /> Buat PO Baru
+                <Plus className="w-4 h-4 flex-shrink-0" /> Buat Pembelian Stok Baru
               </button>
             </div>
           </div>

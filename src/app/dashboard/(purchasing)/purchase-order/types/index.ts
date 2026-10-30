@@ -48,6 +48,7 @@ export interface BahanOption {
 export interface CreatePOInput {
   supplierId: string | null
   namaSupplier: string
+  status?: POStatus
   catatan?: string
   items: Array<{
     bahanId: string
