@@ -37,16 +37,18 @@ import {
   Layers,
 } from 'lucide-react'
 
-// Definisi katalog modul dengan sub-modul menggunakan Warm Sunset & Clean Palette
+// Definisi katalog modul dengan sub-modul menggunakan Palet Berkarakter Unik per Modul
 const modulesCatalog = [
   {
     id: 'operasional',
     title: 'Modul Operasional',
     badge: '3 Fitur',
-    gradient: 'from-[#FF8F2B] to-[#FF775D]',
+    gradient: 'from-[#FF8F2B] to-[#FF6B4A]',
     badgeBg: 'bg-orange-50 text-[#C76710] border-orange-200/80',
-    iconBg: 'bg-orange-50 text-[#FF8F2B]',
-    hoverBorder: 'hover:border-[#FF8F2B]',
+    subCardHover: 'hover:border-[#FF8F2B]/60',
+    subIconBg: 'bg-[#FFF6EC] text-[#FF8F2B] border-[#FFE2C2]',
+    subIconHover: 'group-hover:bg-[#FF8F2B] group-hover:text-white',
+    subTextHover: 'group-hover:text-[#FF8F2B]',
     description: 'Aktivitas kasir harian, transaksi penjualan, pemesanan ke distributor, dan penagihan supplier.',
     icon: ShoppingCart,
     items: [
@@ -74,11 +76,13 @@ const modulesCatalog = [
     id: 'inventaris',
     title: 'Modul Inventaris',
     badge: '5 Fitur',
-    gradient: 'from-[#FFBF35] to-[#FF8F2B]',
-    badgeBg: 'bg-amber-50 text-amber-900 border-amber-200/80',
-    iconBg: 'bg-amber-50 text-[#C76710]',
-    hoverBorder: 'hover:border-[#FFBF35]',
-    description: 'Master data bahan baku, formula resep, vendor supplier, visualisasi stok, dan stock opname fisik.',
+    gradient: 'from-[#228B5B] to-[#156B42]',
+    badgeBg: 'bg-[#EDF7F1] text-[#16603B] border-[#BFECD1]',
+    subCardHover: 'hover:border-[#228B5B]/60',
+    subIconBg: 'bg-[#EDF7F1] text-[#228B5B] border-[#C4ECD5]',
+    subIconHover: 'group-hover:bg-[#228B5B] group-hover:text-white',
+    subTextHover: 'group-hover:text-[#228B5B]',
+    description: 'Master data bahan baku segar dapur, formula resep, vendor supplier, visualisasi stok, dan stock opname fisik.',
     icon: Package,
     items: [
       {
@@ -117,10 +121,12 @@ const modulesCatalog = [
     id: 'analitik',
     title: 'Modul Analitik & Laporan',
     badge: '4 Fitur',
-    gradient: 'from-[#89BDF7] to-[#4085D3]',
+    gradient: 'from-[#38BDF8] to-[#0284C7]',
     badgeBg: 'bg-sky-50 text-sky-900 border-sky-200/80',
-    iconBg: 'bg-sky-50 text-[#3070B8]',
-    hoverBorder: 'hover:border-[#89BDF7]',
+    subCardHover: 'hover:border-sky-400/60',
+    subIconBg: 'bg-sky-50 text-sky-600 border-sky-200',
+    subIconHover: 'group-hover:bg-sky-600 group-hover:text-white',
+    subTextHover: 'group-hover:text-sky-600',
     description: 'Visualisasi keuangan, grafik konsumsi bahan, histori lengkap, simulasi laba, dan rekomendasi cerdas.',
     icon: BarChart2,
     items: [
@@ -154,10 +160,12 @@ const modulesCatalog = [
     id: 'tools',
     title: 'Modul Tools & Utilitas',
     badge: '1 Fitur',
-    gradient: 'from-[#FF775D] to-[#FF8F2B]',
-    badgeBg: 'bg-orange-50 text-[#C76710] border-orange-200/80',
-    iconBg: 'bg-orange-50 text-[#FF8F2B]',
-    hoverBorder: 'hover:border-[#FF8F2B]',
+    gradient: 'from-[#A855F7] to-[#7C3AED]',
+    badgeBg: 'bg-purple-50 text-purple-900 border-purple-200/80',
+    subCardHover: 'hover:border-purple-400/60',
+    subIconBg: 'bg-purple-50 text-purple-600 border-purple-200',
+    subIconHover: 'group-hover:bg-purple-600 group-hover:text-white',
+    subTextHover: 'group-hover:text-purple-600',
     description: 'Alat bantu otomatisasi proses input manual nota belanja dapur.',
     icon: Sparkles,
     items: [
@@ -322,17 +330,17 @@ export default function DashboardPage() {
                         <Link
                           key={item.href}
                           href={item.href}
-                          className="group p-4 rounded-2xl bg-[#FFFFFF] hover:bg-[#FFFDFC] border border-[#EBE3D7] hover:border-[#FFBF35] transition-all duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between space-y-3 cursor-pointer"
+                          className={`group p-4 rounded-2xl bg-[#FFFFFF] hover:bg-[#FFFDFC] border border-[#EBE3D7] ${mod.subCardHover} transition-all duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-between space-y-3 cursor-pointer`}
                         >
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                              <div className="w-9 h-9 rounded-xl bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE7CF] flex items-center justify-center group-hover:bg-[#FF8F2B] group-hover:text-white transition-all shadow-2xs">
+                              <div className={`w-9 h-9 rounded-xl ${mod.subIconBg} flex items-center justify-center ${mod.subIconHover} transition-all shadow-2xs`}>
                                 <ItemIcon className="w-4.5 h-4.5" />
                               </div>
-                              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#FF8F2B] group-hover:translate-x-1 transition-all" />
+                              <ArrowRight className={`w-4 h-4 text-slate-400 ${mod.subTextHover} group-hover:translate-x-1 transition-all`} />
                             </div>
                             <div>
-                              <p className="text-xs font-extrabold text-slate-900 group-hover:text-[#FF8F2B] transition-colors">
+                              <p className={`text-xs font-extrabold text-slate-900 ${mod.subTextHover} transition-colors`}>
                                 {item.label}
                               </p>
                               <p className="text-[11px] text-slate-600 mt-1 leading-snug line-clamp-2">
@@ -341,7 +349,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
 
-                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 group-hover:text-[#FF8F2B] font-bold">
+                          <div className={`pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 ${mod.subTextHover} font-bold`}>
                             <span>Buka Modul</span>
                             <span>→</span>
                           </div>
