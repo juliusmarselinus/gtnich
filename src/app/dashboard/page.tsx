@@ -37,14 +37,14 @@ import {
   Layers,
 } from 'lucide-react'
 
-// Definisi katalog modul dengan sub-modul menggunakan Palet Berkarakter Unik per Modul
+// Definisi katalog modul dengan sub-modul menggunakan Palet Hangat Konsisten DapurTwin
 const modulesCatalog = [
   {
     id: 'operasional',
     title: 'Modul Operasional',
     badge: '3 Fitur',
-    gradient: 'from-[#FF8F2B] to-[#FF6B4A]',
-    badgeBg: 'bg-orange-50 text-[#C76710] border-orange-200/80',
+    gradient: 'from-[#FF8F2B] to-[#E07218]',
+    badgeBg: 'bg-[#FFF6EC] text-[#C76710] border-[#FFE2C2]',
     subCardHover: 'hover:border-[#FF8F2B]/60',
     subIconBg: 'bg-[#FFF6EC] text-[#FF8F2B] border-[#FFE2C2]',
     subIconHover: 'group-hover:bg-[#FF8F2B] group-hover:text-white',
@@ -76,12 +76,12 @@ const modulesCatalog = [
     id: 'inventaris',
     title: 'Modul Inventaris',
     badge: '5 Fitur',
-    gradient: 'from-[#228B5B] to-[#156B42]',
-    badgeBg: 'bg-[#EDF7F1] text-[#16603B] border-[#BFECD1]',
-    subCardHover: 'hover:border-[#228B5B]/60',
-    subIconBg: 'bg-[#EDF7F1] text-[#228B5B] border-[#C4ECD5]',
-    subIconHover: 'group-hover:bg-[#228B5B] group-hover:text-white',
-    subTextHover: 'group-hover:text-[#228B5B]',
+    gradient: 'from-[#E07218] to-[#C86400]',
+    badgeBg: 'bg-[#FFF6EC] text-[#C76710] border-[#FFE2C2]',
+    subCardHover: 'hover:border-[#FF8F2B]/60',
+    subIconBg: 'bg-[#FFF6EC] text-[#FF8F2B] border-[#FFE2C2]',
+    subIconHover: 'group-hover:bg-[#FF8F2B] group-hover:text-white',
+    subTextHover: 'group-hover:text-[#FF8F2B]',
     description: 'Master data bahan baku segar dapur, formula resep, vendor supplier, visualisasi stok, dan stock opname fisik.',
     icon: Package,
     items: [
@@ -121,12 +121,12 @@ const modulesCatalog = [
     id: 'analitik',
     title: 'Modul Analitik & Laporan',
     badge: '4 Fitur',
-    gradient: 'from-[#38BDF8] to-[#0284C7]',
-    badgeBg: 'bg-sky-50 text-sky-900 border-sky-200/80',
-    subCardHover: 'hover:border-sky-400/60',
-    subIconBg: 'bg-sky-50 text-sky-600 border-sky-200',
-    subIconHover: 'group-hover:bg-sky-600 group-hover:text-white',
-    subTextHover: 'group-hover:text-sky-600',
+    gradient: 'from-[#FF8F2B] to-[#FFB055]',
+    badgeBg: 'bg-[#FFF6EC] text-[#C76710] border-[#FFE2C2]',
+    subCardHover: 'hover:border-[#FF8F2B]/60',
+    subIconBg: 'bg-[#FFF6EC] text-[#FF8F2B] border-[#FFE2C2]',
+    subIconHover: 'group-hover:bg-[#FF8F2B] group-hover:text-white',
+    subTextHover: 'group-hover:text-[#FF8F2B]',
     description: 'Visualisasi keuangan, grafik konsumsi bahan, histori lengkap, simulasi laba, dan rekomendasi cerdas.',
     icon: BarChart2,
     items: [
@@ -160,12 +160,12 @@ const modulesCatalog = [
     id: 'tools',
     title: 'Modul Tools & Utilitas',
     badge: '1 Fitur',
-    gradient: 'from-[#A855F7] to-[#7C3AED]',
-    badgeBg: 'bg-purple-50 text-purple-900 border-purple-200/80',
-    subCardHover: 'hover:border-purple-400/60',
-    subIconBg: 'bg-purple-50 text-purple-600 border-purple-200',
-    subIconHover: 'group-hover:bg-purple-600 group-hover:text-white',
-    subTextHover: 'group-hover:text-purple-600',
+    gradient: 'from-[#FF9F3F] to-[#E07218]',
+    badgeBg: 'bg-[#FFF6EC] text-[#C76710] border-[#FFE2C2]',
+    subCardHover: 'hover:border-[#FF8F2B]/60',
+    subIconBg: 'bg-[#FFF6EC] text-[#FF8F2B] border-[#FFE2C2]',
+    subIconHover: 'group-hover:bg-[#FF8F2B] group-hover:text-white',
+    subTextHover: 'group-hover:text-[#FF8F2B]',
     description: 'Alat bantu otomatisasi proses input manual nota belanja dapur.',
     icon: Sparkles,
     items: [
@@ -242,8 +242,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Metric Cards Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Metric Cards Row: 2 per row baik di Mobile maupun Desktop (grid-cols-2) */}
+        <div className="grid grid-cols-2 gap-3.5 sm:gap-5">
           <StatCard
             title="Omzet Terkumpul"
             value={metrics ? formatRupiah(metrics.omzetHariIni) : '...'}
@@ -481,7 +481,7 @@ export default function DashboardPage() {
                         <p className="font-mono text-xs font-bold text-slate-900">
                           {formatRupiah(ord.totalPrice)}
                         </p>
-                        <span className="text-[10px] text-[#3070B8] font-bold bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+                        <span className="text-[10px] text-[#C76710] font-bold bg-[#FFF6EC] px-2 py-0.5 rounded-full border border-[#FFE2C2]">
                           {ord.channel}
                         </span>
                       </div>
@@ -542,7 +542,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="font-mono text-xs font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-900 clay-pill border border-amber-200/60">
+                      <span className="font-mono text-xs font-bold px-3 py-1 rounded-full bg-[#FFF6EC] text-[#C76710] clay-pill border border-[#FFE2C2]">
                         {item.sold} porsi terjual
                       </span>
                     </div>
