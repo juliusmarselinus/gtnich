@@ -33,15 +33,17 @@ interface DapiFaceProps {
   mood: FaceMood
   /** 0..1 — arah lirikan saat mengetik email */
   typingProgress?: number
-  size?: 'card' | 'splash'
+  size?: 'card' | 'splash' | 'compact'
   /** sembunyikan balon kata (dipakai splash) */
   hideBubble?: boolean
+  /** kustomisasi ucapan Dapi */
+  customSay?: string
 }
 
 const ease = 'cubic-bezier(.34,1.56,.64,1)'
 const t = (ms = 380) => `transform ${ms}ms ${ease}, opacity 220ms ease`
 
-export default function DapiFace({ mood, typingProgress = 0, size = 'card', hideBubble }: DapiFaceProps) {
+export default function DapiFace({ mood, typingProgress = 0, size = 'card', hideBubble, customSay }: DapiFaceProps) {
   const ref = useRef<HTMLDivElement>(null)
   // ID gradien unik per Dapi, supaya beberapa Dapi di satu halaman tidak saling bentrok
   const uid = useId().replace(/:/g, '')
@@ -78,7 +80,8 @@ export default function DapiFace({ mood, typingProgress = 0, size = 'card', hide
   const pawRightUp = is('password')
 
   const { bg, say } = MOODS[mood]
-  const svgSize = size === 'splash' ? 300 : 176
+  const displayedSay = customSay || say
+  const svgSize = size === 'splash' ? 300 : size === 'compact' ? 120 : 176
 
   return (
     <div
@@ -111,12 +114,12 @@ export default function DapiFace({ mood, typingProgress = 0, size = 'card', hide
       {/* balon kata */}
       {!hideBubble && (
         <div
-          key={say}
+          key={displayedSay}
           role="status"
           aria-live="polite"
           className="dapi-bubble absolute top-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-2xl bg-white px-4 py-2 text-sm font-bold text-[#2B221C] shadow-[0_4px_0_rgba(43,34,28,0.1)]"
         >
-          {say}
+          {displayedSay}
           <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-white" />
         </div>
       )}

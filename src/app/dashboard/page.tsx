@@ -7,6 +7,8 @@ import ReceiptDrawer from '@/components/ReceiptDrawer'
 import { formatRupiah, Order } from '@/lib/mock-data'
 import { useDashboard } from './hooks/useDashboard'
 import { DashboardRecentOrder } from './services/dashboardService'
+import DapiLoginStyleOverviewHero from './components/DapiLoginStyleOverviewHero'
+import LoginStyleMetricsGrid from './components/LoginStyleMetricsGrid'
 import Link from 'next/link'
 import {
   AreaChart,
@@ -222,7 +224,7 @@ export default function DashboardPage() {
     <div className="flex-1 pb-16">
       <Topbar
         title="Overview DapurTwin"
-        subtitle="Pusat kendali operasional, status modul sistem, dan indikator utama persediaan"
+        subtitle="Pusat kendali operasional, status modul sistem, dan indikator utama dapur Anda."
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-7 max-w-7xl mx-auto">
@@ -242,35 +244,21 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Metric Cards Row: 2 per row baik di Mobile maupun Desktop (grid-cols-2) */}
-        <div className="grid grid-cols-2 gap-3.5 sm:gap-5">
-          <StatCard
-            title="Omzet Terkumpul"
-            value={metrics ? formatRupiah(metrics.omzetHariIni) : '...'}
-            change={metrics?.omzetChange}
-            trend={metrics?.omzetChange.startsWith('-') ? 'down' : 'up'}
-            helperText="vs. kemarin"
-          />
-          <StatCard
-            title="Pesanan Berjalan"
-            value={metrics ? `${metrics.totalOrders} order` : '...'}
-            change="+Real-time"
-            trend="up"
-            helperText="WhatsApp & Kasir Langsung"
-          />
-          <StatCard
-            title="Menu & Resep Aktif"
-            value={metrics ? `${metrics.totalMenus} Menu` : '...'}
-            helperText="Tersedia di katalog kasir"
-          />
-          <StatCard
-            title="Stok Bahan Menipis"
-            value={metrics ? `${metrics.lowStockCount} bahan` : '...'}
-            change={metrics && metrics.lowStockCount > 0 ? 'Perlu restock PO' : 'Stok aman'}
-            trend={metrics && metrics.lowStockCount > 0 ? 'down' : 'up'}
-            helperText="Di bawah stok minimum"
-          />
-        </div>
+        {/* Hero Asisten Dapi: Konsep Desain Selaras Halaman Login */}
+        <DapiLoginStyleOverviewHero
+          metrics={metrics}
+          lowStockItems={lowStockItems}
+          isLoading={isLoading}
+          onRefresh={refresh}
+        />
+
+        {/* Metrik Operasional Bergaya Halaman Login (Warm Clay & Solid Tactile) */}
+        <LoginStyleMetricsGrid
+          metrics={metrics}
+          bestSellers={bestSellers}
+          lowStockItems={lowStockItems}
+          isLoading={isLoading}
+        />
 
         {/* ========================================================================= */}
         {/* SEKSI UTAMA OVERVIEW: DAFTAR MODUL DENGAN FITUR HORIZONTAL               */}
