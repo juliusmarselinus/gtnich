@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, Search, Sparkles, Check, ExternalLink, Package, ShoppingCart, Receipt, AlertTriangle, Menu } from 'lucide-react'
+import { Bell, Search, Sparkles, Check, ExternalLink, Package, ShoppingCart, Receipt, AlertTriangle, Menu, X, Trash2 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useSidebar } from '@/context/SidebarContext'
@@ -15,7 +15,7 @@ interface TopbarProps {
 
 export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false)
-  const { notifications, unreadCount, markAllRead } = useNotifications()
+  const { notifications, unreadCount, markAllRead, dismissNotification, clearAll } = useNotifications()
   const { toggleSidebar } = useSidebar()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -110,9 +110,27 @@ export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
                       Tandai Dibaca
                     </button>
                   )}
+                  {notifications.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={clearAll}
+                      className="text-[10px] text-slate-400 hover:text-rose-500 font-bold transition-colors cursor-pointer"
+                      title="Bersihkan semua notifikasi"
+                    >
+                      Hapus Semua
+                    </button>
+                  )}
                   <span className="text-[10px] bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2] px-2 py-0.5 rounded-full font-bold">
                     {unreadCount} Baru
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowNotifications(false)}
+                    className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                    title="Tutup panel notifikasi"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
@@ -123,40 +141,65 @@ export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
                   </div>
                 ) : (
                   notifications.map(n => {
-                    const CardContent = (
+                    return (
                       <div
                         key={n.id}
                         className={clsx(
-                          'p-3 rounded-2xl transition-colors text-xs border border-slate-100/80 space-y-1',
+                          'p-3 rounded-2xl transition-colors text-xs border border-slate-100/80 space-y-1 relative group',
                           n.isRead
                             ? 'bg-slate-50/60 opacity-80'
                             : 'bg-white hover:bg-[#FFF6EC]/60 shadow-sm'
                         )}
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-extrabold text-slate-800 flex items-center gap-1.5">
-                            {getTypeIcon(n.type)}
-                            {n.title}
-                          </span>
-                          <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                            {n.timeAgo}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 leading-snug">{n.detail}</p>
-                      </div>
-                    )
+                        <div className="flex items-start justify-between gap-2">
+                          {n.link ? (
+                            <Link
+                              href={n.link}
+                              onClick={() => setShowNotifications(false)}
+                              className="font-extrabold text-slate-800 hover:text-[#FF8F2B] flex items-center gap-1.5 flex-1 min-w-0 transition-colors"
+                            >
+                              {getTypeIcon(n.type)}
+                              <span className="truncate">{n.title}</span>
+                            </Link>
+                          ) : (
+                            <span className="font-extrabold text-slate-800 flex items-center gap-1.5 flex-1 min-w-0">
+                              {getTypeIcon(n.type)}
+                              <span className="truncate">{n.title}</span>
+                            </span>
+                          )}
 
-                    return n.link ? (
-                      <Link
-                        key={n.id}
-                        href={n.link}
-                        onClick={() => setShowNotifications(false)}
-                        className="block hover:scale-[0.99] transition-transform"
-                      >
-                        {CardContent}
-                      </Link>
-                    ) : (
-                      <div key={n.id}>{CardContent}</div>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                              {n.timeAgo}
+                            </span>
+                            {/* Tombol X Hapus Notifikasi */}
+                            <button
+                              type="button"
+                              onClick={e => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                                dismissNotification(n.id)
+                              }}
+                              className="w-5 h-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Hapus notifikasi ini"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {n.link ? (
+                          <Link
+                            href={n.link}
+                            onClick={() => setShowNotifications(false)}
+                            className="block"
+                          >
+                            <p className="text-[11px] text-slate-500 leading-snug">{n.detail}</p>
+                          </Link>
+                        ) : (
+                          <p className="text-[11px] text-slate-500 leading-snug">{n.detail}</p>
+                        )}
+                      </div>
                     )
                   })
                 )}

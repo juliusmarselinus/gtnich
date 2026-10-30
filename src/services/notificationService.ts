@@ -167,6 +167,38 @@ export const notificationService = {
       .eq('is_read', false)
   },
 
+  // Hapus notifikasi berdasarkan ID
+  async deleteNotification(id: string): Promise<void> {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
+
+    // Jika bukan ID sintesis, hapus dari tabel DB
+    if (!id.startsWith('synth-')) {
+      await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id)
+    }
+  },
+
+  // Hapus semua notifikasi
+  async clearAllNotifications(): Promise<void> {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase
+      .from('notifications')
+      .delete()
+      .eq('user_id', user.id)
+  },
+
   // Buat notifikasi kustom baru
   async createNotification(payload: {
     title: string
