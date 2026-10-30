@@ -1,20 +1,27 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { MenuItem } from '@/app/dashboard/(pos)/menu/types'
 import { formatRupiah } from '@/lib/mock-data'
-import { Plus, Minus, ChefHat, Sparkles, Check, ShoppingCart, X } from 'lucide-react'
+import { Plus, Minus, ChefHat, Sparkles, Check, ShoppingCart, X, ArrowRight, RotateCcw } from 'lucide-react'
 
 interface MenuKatalogGridProps {
   menus: MenuItem[]
   cartItemCounts: Record<string, number>
   onAddToCart: (m: MenuItem, qty?: number) => void
+  rawMenuCount?: number
+  hasActiveFilters?: boolean
+  onResetFilters?: () => void
 }
 
 export default function MenuKatalogGrid({
   menus,
   cartItemCounts,
   onAddToCart,
+  rawMenuCount = 0,
+  hasActiveFilters = false,
+  onResetFilters,
 }: MenuKatalogGridProps) {
   // Modal State untuk memilih porsi / kuantitas sebelum add
   const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null)
@@ -47,20 +54,79 @@ export default function MenuKatalogGrid({
   }
 
   if (menus.length === 0) {
+    // Kondisi 1: Database benar-benar belum memiliki menu sama sekali
+    if (rawMenuCount === 0) {
+      return (
+        <div className="clay-card p-8 sm:p-12 text-center space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center mx-auto clay-pill shadow-sm">
+            <ChefHat className="w-8 h-8" />
+          </div>
+          <div className="max-w-md mx-auto space-y-1.5">
+            <h4 className="text-base font-extrabold text-slate-800">
+              Belum Ada Menu di Database Dapur
+            </h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Katalog kasir masih kosong. Buat menu masakan baru beserta komposisi resep bahan baku agar siap dijual di kasir dan stok otomatis terpotong.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/dashboard/menu?tambah=1"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#FF8F2B] hover:bg-[#E07A1E] text-white text-xs font-bold transition-all shadow-md shadow-[#FF8F2B]/20 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Menu Pertama Sekarang</span>
+            </Link>
+            <Link
+              href="/dashboard/menu"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
+            >
+              <span>Buka Halaman Menu & Resep</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      )
+    }
+
+    // Kondisi 2: Menu ada, tapi tidak cocok dengan filter pencarian / kategori
     return (
-      <div className="clay-card py-16 text-center text-slate-400 space-y-2">
-        <ChefHat className="w-8 h-8 mx-auto text-slate-300" />
-        <p className="text-xs font-semibold">Tidak ada menu yang sesuai dengan filter.</p>
-        <p className="text-[10px] text-slate-400">
-          Pastikan menu sudah dibuat dan aktif di tab "Menu & Resep".
-        </p>
+      <div className="clay-card p-8 sm:p-10 text-center space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+          <ChefHat className="w-7 h-7" />
+        </div>
+        <div className="max-w-md mx-auto space-y-1">
+          <h4 className="text-sm font-bold text-slate-800">Tidak Ada Menu yang Cocok</h4>
+          <p className="text-xs text-slate-500">
+            Kata kunci pencarian atau kategori yang dipilih tidak menghasilkan menu aktif.
+          </p>
+        </div>
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+          {hasActiveFilters && onResetFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Filter & Pencarian</span>
+            </button>
+          )}
+          <Link
+            href="/dashboard/menu?tambah=1"
+            className="px-4 py-2 rounded-xl bg-[#FFF6EC] hover:bg-[#FFE2C2] text-[#FF8F2B] text-xs font-bold transition-colors flex items-center gap-1.5"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Tambah Menu Baru</span>
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
         {menus.map(menu => {
           const inCartCount = cartItemCounts[menu.id] || 0
           const isJustAdded = justAddedId === menu.id
@@ -81,41 +147,41 @@ export default function MenuKatalogGrid({
             >
               {/* Badge Jumlah di Keranjang - Berada rapi di dalam kartu, tidak keluar box */}
               {inCartCount > 0 && (
-                <div className="mb-2 inline-flex items-center gap-1.5 self-start bg-[#FFF6EC] border border-[#FFE2C2] text-[#FF8F2B] font-mono text-[11px] font-extrabold px-2.5 py-1 rounded-xl shadow-xs animate-in zoom-in-75">
-                  <span className="w-2 h-2 rounded-full bg-[#FF8F2B] animate-pulse" />
-                  <ShoppingCart className="w-3.5 h-3.5 text-[#FF8F2B]" />
-                  <span>{inCartCount} Porsi Terpilih</span>
+                <div className="mb-2 inline-flex items-center gap-1.5 self-start max-w-full bg-[#FFF6EC] border border-[#FFE2C2] text-[#FF8F2B] font-mono text-[11px] font-extrabold px-2.5 py-1 rounded-xl shadow-xs animate-in zoom-in-75">
+                  <span className="w-2 h-2 rounded-full bg-[#FF8F2B] animate-pulse flex-shrink-0" />
+                  <ShoppingCart className="w-3.5 h-3.5 text-[#FF8F2B] flex-shrink-0" />
+                  <span className="truncate">{inCartCount} Porsi Terpilih</span>
                 </div>
               )}
 
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <span className="w-10 h-10 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center text-xl clay-pill flex-shrink-0 group-hover:bg-[#FF8F2B] group-hover:text-white transition-colors">
                     {menu.emoji || '🍽️'}
                   </span>
-                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 uppercase tracking-wider whitespace-nowrap">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-xl bg-slate-100 text-slate-600 uppercase tracking-wider truncate max-w-[110px]">
                     {menu.kategori}
                   </span>
                 </div>
 
-                <h4 className="font-extrabold text-xs sm:text-sm text-slate-800 leading-snug group-hover:text-[#FF8F2B] transition-colors line-clamp-2">
+                <h4 className="font-extrabold text-xs sm:text-sm text-slate-800 leading-snug group-hover:text-[#FF8F2B] transition-colors line-clamp-2 break-words">
                   {menu.nama}
                 </h4>
 
                 {menu.resep && menu.resep.length > 0 && (
-                  <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-medium">
-                    <Sparkles className="w-3 h-3 text-amber-500" />
-                    <span>{menu.resep.length} bahan resep</span>
+                  <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-medium truncate">
+                    <Sparkles className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                    <span className="truncate">{menu.resep.length} bahan resep</span>
                   </p>
                 )}
               </div>
 
-              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-end justify-between gap-2">
-                <div>
-                  <p className="text-xs sm:text-sm font-black font-mono text-[#FF8F2B] leading-tight">
+              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-black font-mono text-[#FF8F2B] leading-tight truncate">
                     {formatRupiah(menu.hargaJual)}
                   </p>
-                  <p className="text-[9px] text-slate-400 font-mono mt-0.5">
+                  <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">
                     HPP: {formatRupiah(menu.estimasiHPP)} ({marginPct}%)
                   </p>
                 </div>
@@ -125,7 +191,7 @@ export default function MenuKatalogGrid({
                   type="button"
                   onClick={e => handleQuickAdd(e, menu)}
                   title="Tambah 1 porsi langsung"
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center transition-all cursor-pointer ${
                     isJustAdded
                       ? 'bg-[#FF8F2B] text-white'
                       : 'bg-[#FFF6EC] text-[#FF8F2B] hover:bg-[#FF8F2B] hover:text-white clay-pill'

@@ -14,8 +14,12 @@ import {
   ArrowRight,
   Loader2,
   CheckCircle2,
+  ChevronUp,
+  ChevronDown,
+  X,
 } from 'lucide-react'
 import CustomSelect from '@/components/ui/CustomSelect'
+import clsx from 'clsx'
 
 interface CartPOSProps {
   cart: CartItem[]
@@ -43,6 +47,7 @@ export default function CartPOS({
   onCheckout,
 }: CartPOSProps) {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [channel, setChannel] = useState('Toko Langsung')
@@ -71,7 +76,8 @@ export default function CartPOS({
 
   return (
     <>
-      <div className="clay-card p-5 space-y-4 sticky top-24">
+      {/* 1. Panel Keranjang Desktop (Tampil pada layar lg ke atas) */}
+      <div className="hidden lg:block clay-card p-5 space-y-4 sticky top-24">
         {/* Header Keranjang */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
@@ -108,7 +114,7 @@ export default function CartPOS({
             </p>
           </div>
         ) : (
-          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
             {cart.map(item => (
               <div
                 key={item.menuId}
@@ -183,6 +189,195 @@ export default function CartPOS({
           <span>Proses Penjualan ({formatRupiah(totals.subtotal)})</span>
         </button>
       </div>
+
+      {/* 2. Sticky Floating Bottom Bar Ala Gojek / GrabFood (Hanya tampil di Mobile/Tablet: lg:hidden) */}
+      {cart.length > 0 && (
+        <>
+          <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 p-3 sm:p-4 pointer-events-none">
+            <div className="max-w-2xl mx-auto pointer-events-auto">
+              <div className="clay-card bg-white/95 backdrop-blur-md p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-[0_12px_32px_rgba(160,140,120,0.22)] border border-[#E6DCD0] animate-in slide-in-from-bottom-5 duration-200">
+                {/* Info Simpel ala Gojek: Badge Qty + Subtotal + Tombol buka rincian */}
+                <button
+                  type="button"
+                  onClick={() => setIsDrawerOpen(prev => !prev)}
+                  className="flex items-center gap-3 text-left hover:opacity-90 transition-opacity cursor-pointer flex-1 min-w-0"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2] flex items-center justify-center font-black text-xs font-mono flex-shrink-0 shadow-xs">
+                    {totals.totalItems}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
+                        Total {totals.totalItems} Menu
+                      </span>
+                      <span className="inline-flex items-center text-[10px] text-[#FF8F2B] font-bold">
+                        {isDrawerOpen ? (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        )}
+                      </span>
+                    </div>
+                    <p className="text-sm sm:text-base font-black font-mono text-slate-800 leading-tight">
+                      {formatRupiah(totals.subtotal)}
+                    </p>
+                  </div>
+                </button>
+
+                {/* Tombol Aksi Langsung Proses Bayar */}
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    setIsDrawerOpen(false)
+                    setShowCheckoutModal(true)
+                  }}
+                  className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl clay-btn-primary text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 cursor-pointer shadow-md active:scale-95 transition-all flex-shrink-0"
+                >
+                  <CreditCard className="w-4 h-4 hidden sm:inline" />
+                  <span>Bayar</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Drawer / Modal Rincian Pesanan Ala Gojek */}
+          {isDrawerOpen && (
+            <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/60 backdrop-blur-sm animate-in fade-in-0 duration-150">
+              <div
+                className="absolute inset-0"
+                onClick={() => setIsDrawerOpen(false)}
+              />
+
+              <div className="relative bg-white w-full max-w-xl mx-auto rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl max-h-[85vh] flex flex-col space-y-4 animate-in slide-in-from-bottom-8 duration-200 mb-0 sm:mb-6">
+                {/* Drag Handle Bar */}
+                <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto" />
+
+                {/* Header Drawer */}
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center font-bold">
+                      <ShoppingCart className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <h3 className="text-sm font-extrabold text-slate-800">
+                        Rincian Pesanan
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        {totals.totalItems} item dalam keranjang
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClear()
+                        setIsDrawerOpen(false)
+                      }}
+                      className="text-xs font-bold text-rose-500 hover:text-rose-700 cursor-pointer"
+                    >
+                      Hapus Semua
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsDrawerOpen(false)}
+                      className="p-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Daftar Item Rincian */}
+                <div className="space-y-2.5 overflow-y-auto flex-1 max-h-[45vh] pr-1">
+                  {cart.map(item => (
+                    <div
+                      key={item.menuId}
+                      className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 gap-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <span className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-lg flex-shrink-0">
+                          {item.emoji || '🍽️'}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-slate-800 truncate">{item.namaMenu}</p>
+                          <p className="text-xs font-mono font-extrabold text-[#FF8F2B]">
+                            {formatRupiah(item.hargaJual)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Stepper Qty */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => onUpdateQty(item.menuId, -1)}
+                          className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center font-bold"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="w-6 text-center font-mono font-bold text-xs text-slate-800">
+                          {item.cartQty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onUpdateQty(item.menuId, 1)}
+                          className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center justify-center font-bold"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onRemove(item.menuId)}
+                          className="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-500 flex items-center justify-center"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Subtotal & Ringkasan */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Subtotal:</span>
+                    <span className="font-mono font-bold text-slate-900">{formatRupiah(totals.subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Estimasi Beban HPP:</span>
+                    <span className="font-mono">{formatRupiah(totals.totalHPP)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1.5 border-t border-slate-200">
+                    <span className="font-bold text-[#FF8F2B] flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5" /> Estimasi Profit:
+                    </span>
+                    <span className="font-mono font-extrabold text-[#FF8F2B]">
+                      {formatRupiah(totals.profit)} ({totals.margin.toFixed(1)}%)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tombol Lanjut Bayar */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDrawerOpen(false)
+                    setShowCheckoutModal(true)
+                  }}
+                  className="w-full py-3 rounded-2xl bg-[#FF8F2B] hover:bg-[#E07A1E] text-white text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#FF8F2B]/30"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>Lanjut Pembayaran ({formatRupiah(totals.subtotal)})</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Modal Checkout Kasir */}
       {showCheckoutModal && (

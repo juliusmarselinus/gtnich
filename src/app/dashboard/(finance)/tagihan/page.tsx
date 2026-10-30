@@ -158,7 +158,7 @@ export default function TagihanPage() {
                 className="clay-btn flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>Kembali ke Purchase Order</span>
+                <span>Kembali ke Pembelian Stok</span>
               </Link>
             </div>
           </div>

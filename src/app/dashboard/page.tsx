@@ -60,7 +60,7 @@ const modulesCatalog = [
       },
       {
         href: '/dashboard/purchase-order',
-        label: 'Purchase Order',
+        label: 'Pembelian Stok',
         desc: 'Pemesanan bahan & verifikasi barang',
         icon: ClipboardList,
       },

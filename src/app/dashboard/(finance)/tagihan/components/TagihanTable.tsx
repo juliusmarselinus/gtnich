@@ -140,7 +140,7 @@ export default function TagihanTable({
 
       {list.length === 0 && (
         <div className="text-center py-16 text-slate-400 text-sm font-medium">
-          Belum ada data tagihan supplier. Tagihan akan otomatis masuk setelah barang pada Purchase Order diterima.
+          Belum ada data tagihan supplier. Tagihan akan otomatis masuk setelah barang pada Pembelian Stok diterima.
         </div>
       )}
     </div>

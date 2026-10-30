@@ -157,8 +157,8 @@ export const purchaseOrderService = {
       .insert({
         user_id: userId,
         no_po: noPO,
-        supplier_id: input.supplierId,
-        nama_supplier: input.namaSupplier,
+        supplier_id: input.supplierId || null,
+        nama_supplier: input.namaSupplier || 'Tanpa Supplier (Beli Langsung)',
         status: 'draft',
         total_estimasi: totalEstimasi,
         total_aktual: 0,

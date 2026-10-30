@@ -74,7 +74,7 @@ export default function RiwayatPage() {
               )}
             >
               <Truck className="w-3.5 h-3.5" />
-              <span>Purchase Order (PO)</span>
+              <span>Pembelian Stok</span>
               <span
                 className={clsx(
                   'px-1.5 py-0.5 rounded-full text-[10px] font-mono',

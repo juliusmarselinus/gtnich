@@ -6,6 +6,15 @@ import { penjualanService } from '../services/penjualanService'
 import { MenuItem } from '@/app/dashboard/(pos)/menu/types'
 import { CartItem, CheckoutFormInput, OrderRecord } from '../types'
 
+export type MenuSortOption =
+  | 'default'
+  | 'nama-asc'
+  | 'nama-desc'
+  | 'harga-asc'
+  | 'harga-desc'
+  | 'margin-desc'
+  | 'margin-asc'
+
 export function usePenjualan() {
   const [menus, setMenus] = useState<MenuItem[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
@@ -15,9 +24,10 @@ export function usePenjualan() {
   const [error, setError] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
 
-  // Filter katalog
+  // Filter & Sorting katalog
   const [selectedKategori, setSelectedKategori] = useState('Semua')
   const [searchMenu, setSearchMenu] = useState('')
+  const [sortBy, setSortBy] = useState<MenuSortOption>('default')
 
   // Ambil data menu dan transaksi awal
   const fetchData = useCallback(async () => {
@@ -70,14 +80,38 @@ export function usePenjualan() {
   }, [menus])
 
   const filteredMenus = useMemo(() => {
-    return menus.filter(m => {
+    const list = menus.filter(m => {
       const matchKategori = selectedKategori === 'Semua' || m.kategori === selectedKategori
       const matchSearch =
         m.nama.toLowerCase().includes(searchMenu.toLowerCase()) ||
         (m.sku && m.sku.toLowerCase().includes(searchMenu.toLowerCase()))
       return matchKategori && matchSearch
     })
-  }, [menus, selectedKategori, searchMenu])
+
+    const calculateMargin = (m: MenuItem) => {
+      if (!m.hargaJual || m.hargaJual <= 0) return 0
+      return ((m.hargaJual - (m.estimasiHPP || 0)) / m.hargaJual) * 100
+    }
+
+    return [...list].sort((a, b) => {
+      switch (sortBy) {
+        case 'nama-asc':
+          return a.nama.localeCompare(b.nama, 'id')
+        case 'nama-desc':
+          return b.nama.localeCompare(a.nama, 'id')
+        case 'harga-asc':
+          return a.hargaJual - b.hargaJual
+        case 'harga-desc':
+          return b.hargaJual - a.hargaJual
+        case 'margin-desc':
+          return calculateMargin(b) - calculateMargin(a)
+        case 'margin-asc':
+          return calculateMargin(a) - calculateMargin(b)
+        default:
+          return 0
+      }
+    })
+  }, [menus, selectedKategori, searchMenu, sortBy])
 
   // Operasi Keranjang (Cart) dengan penyesuaian quantity awal
   const addToCart = (menu: MenuItem, qty: number = 1) => {
@@ -172,6 +206,8 @@ export function usePenjualan() {
     setSelectedKategori,
     searchMenu,
     setSearchMenu,
+    sortBy,
+    setSortBy,
     cart,
     addToCart,
     updateCartQty,

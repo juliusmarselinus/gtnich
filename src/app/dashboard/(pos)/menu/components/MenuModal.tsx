@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { MenuItem, MenuFormData, BahanOption, ResepItemInput } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import { getUnitConversionFactor, getCompatibleRecipeUnits, DEFAULT_SATUAN_LIST } from '@/lib/satuan'
-import { Plus, X, Loader2 } from 'lucide-react'
+import { Plus, X, Loader2, CornerDownLeft, Sparkles } from 'lucide-react'
 import clsx from 'clsx'
 import CustomSelect from '@/components/ui/CustomSelect'
 
@@ -101,37 +101,55 @@ export default function MenuModal({
       }
     }
     setNewIngredient(p => ({ ...p, bahanId, satuan: defaultUnit }))
+    setErrorMsg(null)
   }
 
-  const addIngredient = () => {
-    if (!newIngredient.bahanId) {
+  const addIngredient = (targetIngredient = newIngredient): boolean => {
+    if (!targetIngredient.bahanId) {
       setErrorMsg('Pilih bahan terlebih dahulu')
-      return
+      return false
     }
-    if (newIngredient.qty <= 0) {
+    if (targetIngredient.qty <= 0) {
       setErrorMsg('Kuantitas takaran harus lebih dari 0')
-      return
+      return false
     }
 
-    const bahan = bahanList.find(b => b.id === newIngredient.bahanId)
-    if (!bahan) return
+    const bahan = bahanList.find(b => b.id === targetIngredient.bahanId)
+    if (!bahan) return false
 
-    setForm(prev => ({
-      ...prev,
-      resep: [
-        ...prev.resep,
-        {
-          bahanId: bahan.id,
-          namaBahan: bahan.nama,
-          satuan: newIngredient.satuan || bahan.satuan,
-          hargaPerSatuan: bahan.hargaPerSatuan,
-          qty: newIngredient.qty,
-        },
-      ],
-    }))
+    setForm(prev => {
+      // Cek apakah bahan dengan satuan yang sama sudah ada di list resep, jika ya jumlahkan kuantitasnya
+      const existingIdx = prev.resep.findIndex(
+        r => r.bahanId === bahan.id && r.satuan === (targetIngredient.satuan || bahan.satuan)
+      )
+
+      if (existingIdx >= 0) {
+        return {
+          ...prev,
+          resep: prev.resep.map((r, i) =>
+            i === existingIdx ? { ...r, qty: r.qty + targetIngredient.qty } : r
+          ),
+        }
+      }
+
+      return {
+        ...prev,
+        resep: [
+          ...prev.resep,
+          {
+            bahanId: bahan.id,
+            namaBahan: bahan.nama,
+            satuan: targetIngredient.satuan || bahan.satuan,
+            hargaPerSatuan: bahan.hargaPerSatuan,
+            qty: targetIngredient.qty,
+          },
+        ],
+      }
+    })
 
     setNewIngredient({ bahanId: '', qty: 0, satuan: 'gram' })
     setErrorMsg(null)
+    return true
   }
 
   const updateResepUnit = (index: number, newUnit: string) => {
@@ -157,6 +175,35 @@ export default function MenuModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // UX Protection: Jika user sudah memilih bahan & mengisi takaran tapi belum klik tombol "Tambah",
+    // otomatis masukkan bahan tersebut ke dalam daftar resep
+    let currentResep = [...form.resep]
+    if (newIngredient.bahanId && newIngredient.qty > 0) {
+      const bahan = bahanList.find(b => b.id === newIngredient.bahanId)
+      if (bahan) {
+        const targetSatuan = newIngredient.satuan || bahan.satuan
+        const existingIdx = currentResep.findIndex(
+          r => r.bahanId === bahan.id && r.satuan === targetSatuan
+        )
+        if (existingIdx >= 0) {
+          currentResep = currentResep.map((r, i) =>
+            i === existingIdx ? { ...r, qty: r.qty + newIngredient.qty } : r
+          )
+        } else {
+          currentResep.push({
+            bahanId: bahan.id,
+            namaBahan: bahan.nama,
+            satuan: targetSatuan,
+            hargaPerSatuan: bahan.hargaPerSatuan,
+            qty: newIngredient.qty,
+          })
+        }
+        // Bersihkan input draft setelah dimasukkan
+        setNewIngredient({ bahanId: '', qty: 0, satuan: 'gram' })
+      }
+    }
+
     if (!form.nama.trim()) {
       setErrorMsg('Nama menu wajib diisi')
       return
@@ -169,7 +216,10 @@ export default function MenuModal({
     setIsSubmitting(true)
     setErrorMsg(null)
     try {
-      await onSave(editingMenu ? editingMenu.id : null, form)
+      await onSave(editingMenu ? editingMenu.id : null, {
+        ...form,
+        resep: currentResep,
+      })
       onClose()
     } catch (err: unknown) {
       const e = err as Error
@@ -317,47 +367,89 @@ export default function MenuModal({
             </div>
 
             {/* Input Tambah Bahan ke Resep dengan Satuan yang dapat dipilih */}
-            <div className="flex flex-wrap items-center gap-2 bg-slate-50/70 p-3 rounded-2xl border border-slate-100">
-              <div className="flex-1 min-w-[160px]">
-                <CustomSelect
-                  value={newIngredient.bahanId}
-                  onChange={val => handleBahanChange(val)}
-                  placeholder="-- Pilih Bahan Baku --"
-                  searchable={true}
-                  searchPlaceholder="Cari bahan..."
-                  options={bahanList.map(b => ({
-                    value: b.id,
-                    label: b.nama,
-                    sublabel: `Master: ${b.satuan}`,
-                  }))}
-                />
+            <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-100 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex-1 min-w-[160px]">
+                  <CustomSelect
+                    value={newIngredient.bahanId}
+                    onChange={val => handleBahanChange(val)}
+                    placeholder="-- Pilih Bahan Baku --"
+                    searchable={true}
+                    searchPlaceholder="Cari bahan..."
+                    options={bahanList.map(b => ({
+                      value: b.id,
+                      label: b.nama,
+                      sublabel: `Master: ${b.satuan}`,
+                    }))}
+                  />
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0.001"
+                    step="any"
+                    placeholder="Takaran"
+                    value={newIngredient.qty || ''}
+                    onChange={e => {
+                      const val = Number(e.target.value)
+                      setNewIngredient(p => ({ ...p, qty: val }))
+                      if (errorMsg) setErrorMsg(null)
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        if (newIngredient.bahanId && newIngredient.qty > 0) {
+                          addIngredient()
+                        }
+                      }
+                    }}
+                    className="w-24 px-3 py-2 clay-inset text-xs text-slate-800 font-mono font-bold"
+                  />
+                </div>
+
+                <div className="w-28">
+                  <CustomSelect
+                    value={newIngredient.satuan}
+                    onChange={val => setNewIngredient(p => ({ ...p, satuan: val }))}
+                    options={[...availableUnitsForNew]}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => addIngredient()}
+                  className={clsx(
+                    'px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 rounded-xl transition-all cursor-pointer',
+                    newIngredient.bahanId && newIngredient.qty > 0
+                      ? 'clay-btn-primary shadow-sm text-white animate-pulse'
+                      : 'clay-btn text-slate-600 hover:text-slate-900'
+                  )}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah</span>
+                  <CornerDownLeft className="w-3 h-3 opacity-60 hidden sm:inline" />
+                </button>
               </div>
 
-              <input
-                type="number"
-                min="0.001"
-                step="any"
-                placeholder="Takaran"
-                value={newIngredient.qty || ''}
-                onChange={e => setNewIngredient(p => ({ ...p, qty: Number(e.target.value) }))}
-                className="w-24 px-3 py-2 clay-inset text-xs text-slate-800 font-mono font-bold"
-              />
-
-              <div className="w-28">
-                <CustomSelect
-                  value={newIngredient.satuan}
-                  onChange={val => setNewIngredient(p => ({ ...p, satuan: val }))}
-                  options={[...availableUnitsForNew]}
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={addIngredient}
-                className="clay-btn-primary px-3.5 py-2 text-xs font-bold flex items-center gap-1 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Tambah
-              </button>
+              {/* UX Hint: Notifikasi interaktif jika bahan sudah terisi */}
+              {newIngredient.bahanId && newIngredient.qty > 0 && (
+                <div className="flex items-center justify-between text-[11px] text-[#FF8F2B] bg-[#FFF6EC] px-3 py-1.5 rounded-xl border border-[#FFE2C2] animate-in fade-in-50">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Sparkles className="w-3.5 h-3.5 text-[#FF8F2B]" />
+                    <span>
+                      Siap dimasukkan: <strong>{selectedBahanForNew?.nama}</strong> ({newIngredient.qty} {newIngredient.satuan})
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => addIngredient()}
+                    className="underline font-bold hover:text-[#E07A1E] cursor-pointer"
+                  >
+                    + Masukkan sekarang
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

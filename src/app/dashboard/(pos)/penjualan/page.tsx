@@ -6,7 +6,8 @@ import Topbar from '@/components/Topbar'
 import MenuKatalogGrid from './components/MenuKatalogGrid'
 import CartPOS from './components/CartPOS'
 import RecentOrdersTable from './components/RecentOrdersTable'
-import { usePenjualan } from './hooks/usePenjualan'
+import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect'
+import { usePenjualan, MenuSortOption } from './hooks/usePenjualan'
 import {
   Search,
   Loader2,
@@ -16,6 +17,10 @@ import {
   ShoppingBag,
   History,
   CheckCircle,
+  Plus,
+  ArrowUpDown,
+  RotateCcw,
+  UtensilsCrossed,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -28,6 +33,8 @@ export default function PenjualanPage() {
     setSelectedKategori,
     searchMenu,
     setSearchMenu,
+    sortBy,
+    setSortBy,
     cart,
     addToCart,
     updateCartQty,
@@ -52,6 +59,16 @@ export default function PenjualanPage() {
     return acc
   }, {} as Record<string, number>)
 
+  const sortOptions: SelectOption[] = [
+    { value: 'default', label: 'Standar' },
+    { value: 'nama-asc', label: 'Nama: A - Z' },
+    { value: 'nama-desc', label: 'Nama: Z - A' },
+    { value: 'harga-asc', label: 'Harga: Termurah' },
+    { value: 'harga-desc', label: 'Harga: Tertinggi' },
+    { value: 'margin-desc', label: 'Margin: Tertinggi' },
+    { value: 'margin-asc', label: 'Margin: Terendah' },
+  ]
+
   const handleCheckout = async (form: any) => {
     const res = await processCheckout(form)
     setSuccessNotif(`Transaksi ${res.invoiceNumber} berhasil disimpan! Bahan baku telah dipotong dari stok.`)
@@ -61,7 +78,7 @@ export default function PenjualanPage() {
   }
 
   return (
-    <div className="flex-1 pb-16">
+    <div className="flex-1 pb-24 lg:pb-16">
       <Topbar
         title="Input Penjualan (Kasir Dapur)"
         subtitle="Pilih menu pesanan pembeli dari database, hitung keuntungan instan, dan potong stok bahan baku secara otomatis"
@@ -111,7 +128,7 @@ export default function PenjualanPage() {
         )}
 
         {/* Tab Switcher: Kasir Penjualan vs Transaksi Terkini */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -141,43 +158,100 @@ export default function PenjualanPage() {
               <span>Riwayat Transaksi Terkini ({recentOrders.length})</span>
             </button>
           </div>
+
+          {/* Quick Lead Button ke Manajemen Menu */}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/menu"
+              className="clay-btn px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 flex items-center gap-1.5 transition-all"
+              title="Buka daftar katalog menu lengkap dan resep"
+            >
+              <UtensilsCrossed className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden sm:inline">Kelola Menu ({rawMenuCount})</span>
+            </Link>
+            <Link
+              href="/dashboard/menu?tambah=1"
+              className="clay-btn-primary px-4 py-2 text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Buka formulir tambah menu baru"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Menu</span>
+            </Link>
+          </div>
         </div>
 
         {/* Tab 1: Kasir POS */}
         {activeTab === 'katalog' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-7 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Bagian Kiri: Pencarian, Kategori, & Grid Menu Database */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* Filter Bar */}
+            <div className="lg:col-span-7 xl:col-span-8 space-y-4 min-w-0">
+              {/* Filter Bar & Sorting */}
               <div className="clay-card p-4 space-y-3">
-                <div className="relative w-full">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={searchMenu}
-                    onChange={e => setSearchMenu(e.target.value)}
-                    placeholder="Cari menu masakan, kue, minuman, SKU..."
-                    className="w-full pl-10 pr-4 py-2.5 clay-inset text-xs text-slate-700 placeholder:text-slate-400"
-                  />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={searchMenu}
+                      onChange={e => setSearchMenu(e.target.value)}
+                      placeholder="Cari menu masakan, kue, minuman, SKU..."
+                      className="w-full pl-10 pr-4 py-2.5 clay-inset text-xs text-slate-700 placeholder:text-slate-400"
+                    />
+                  </div>
+
+                  {/* Custom Dropdown Sorting */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-44 sm:w-48 flex-shrink-0">
+                      <CustomSelect
+                        value={sortBy}
+                        onChange={val => setSortBy(val as MenuSortOption)}
+                        options={sortOptions}
+                        placeholder="Urutkan..."
+                        size="md"
+                        variant="inset"
+                      />
+                    </div>
+
+                    {(searchMenu || selectedKategori !== 'Semua' || sortBy !== 'default') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchMenu('')
+                          setSelectedKategori('Semua')
+                          setSortBy('default')
+                        }}
+                        title="Reset semua filter dan sortir"
+                        className="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer flex-shrink-0"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                {/* Kategori Pills */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                  {kategoriList.map(kat => (
-                    <button
-                      key={kat}
-                      type="button"
-                      onClick={() => setSelectedKategori(kat)}
-                      className={clsx(
-                        'px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer',
-                        selectedKategori === kat
-                          ? 'clay-btn-primary text-white shadow-sm'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      )}
-                    >
-                      {kat}
-                    </button>
-                  ))}
+                {/* Kategori Pills & Total Counter */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none flex-1 min-w-0">
+                    {kategoriList.map(kat => (
+                      <button
+                        key={kat}
+                        type="button"
+                        onClick={() => setSelectedKategori(kat)}
+                        className={clsx(
+                          'px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer flex-shrink-0',
+                          selectedKategori === kat
+                            ? 'clay-btn-primary text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        )}
+                      >
+                        {kat}
+                      </button>
+                    ))}
+                  </div>
+
+                  <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap pl-2 flex-shrink-0">
+                    {menus.length} dari {rawMenuCount} menu
+                  </span>
                 </div>
               </div>
 
@@ -192,12 +266,19 @@ export default function PenjualanPage() {
                   menus={menus}
                   cartItemCounts={cartItemCounts}
                   onAddToCart={addToCart}
+                  rawMenuCount={rawMenuCount}
+                  hasActiveFilters={Boolean(searchMenu || selectedKategori !== 'Semua' || sortBy !== 'default')}
+                  onResetFilters={() => {
+                    setSearchMenu('')
+                    setSelectedKategori('Semua')
+                    setSortBy('default')
+                  }}
                 />
               )}
             </div>
 
             {/* Bagian Kanan: Keranjang Kasir & POS Summary */}
-            <div className="space-y-4">
+            <div className="lg:col-span-5 xl:col-span-4 space-y-4 min-w-0">
               <CartPOS
                 cart={cart}
                 onUpdateQty={updateCartQty}

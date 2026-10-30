@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Topbar from '@/components/Topbar'
 import MenuCardGrid from './components/MenuCardGrid'
@@ -30,6 +31,15 @@ export default function MenuPage() {
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<MenuItem | null>(null)
+  const searchParams = useSearchParams()
+
+  // Buka modal otomatis jika datang dari navigasi ?tambah=1
+  useEffect(() => {
+    if (searchParams.get('tambah') === '1') {
+      setEditing(null)
+      setShowModal(true)
+    }
+  }, [searchParams])
 
   function openAdd() {
     setEditing(null)

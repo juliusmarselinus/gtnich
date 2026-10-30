@@ -33,7 +33,7 @@ const navSections: NavSection[] = [
     icon: ShoppingCart,
     items: [
       { href: '/dashboard/penjualan', label: 'Input Penjualan', icon: ShoppingCart },
-      { href: '/dashboard/purchase-order', label: 'Purchase Order', icon: ClipboardList },
+      { href: '/dashboard/purchase-order', label: 'Pembelian Stok', icon: ClipboardList },
       { href: '/dashboard/tagihan', label: 'Tagihan Supplier', icon: Receipt },
     ],
   },
