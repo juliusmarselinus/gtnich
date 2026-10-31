@@ -2,112 +2,59 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
-import { useSidebar } from '@/context/SidebarContext'
-import DapiFace from './ui/DapiFace'
-import {
-  LayoutDashboard, Package, BarChart2, ChefHat, LogOut,
-  Truck, ClipboardList, ShoppingCart, History, BoxSelect,
-  Lightbulb, Image, Database, Sparkles, UtensilsCrossed, Receipt, X,
-  ChevronDown,
-} from 'lucide-react'
+import { ChevronDown, LayoutDashboard, LogOut, X } from 'lucide-react'
 import clsx from 'clsx'
-
-interface NavItem {
-  href: string
-  label: string
-  icon: React.ElementType
-}
-
-interface NavSection {
-  id: string
-  label: string
-  icon: React.ElementType
-  items: NavItem[]
-}
-
-const navSections: NavSection[] = [
-  {
-    id: 'operasional',
-    label: 'Operasional',
-    icon: ShoppingCart,
-    items: [
-      { href: '/dashboard/penjualan', label: 'Input Penjualan', icon: ShoppingCart },
-      { href: '/dashboard/purchase-order', label: 'Pembelian Stok', icon: ClipboardList },
-      { href: '/dashboard/tagihan', label: 'Tagihan Supplier', icon: Receipt },
-    ],
-  },
-  {
-    id: 'inventaris',
-    label: 'Inventaris',
-    icon: Package,
-    items: [
-      { href: '/dashboard/bahan', label: 'Data Bahan', icon: Package },
-      { href: '/dashboard/menu', label: 'Menu & Resep', icon: ChefHat },
-      { href: '/dashboard/suppliers', label: 'Supplier', icon: Truck },
-      { href: '/dashboard/kondisi-bahan', label: 'Kondisi Bahan', icon: BoxSelect },
-      { href: '/dashboard/stok-log', label: 'Stok Log & Opname', icon: Database },
-    ],
-  },
-  {
-    id: 'analitik',
-    label: 'Analitik & Laporan',
-    icon: BarChart2,
-    items: [
-      { href: '/dashboard/laporan', label: 'Laporan Keuangan', icon: BarChart2 },
-      { href: '/dashboard/riwayat', label: 'Riwayat Transaksi', icon: History },
-      { href: '/dashboard/simulasi', label: 'Simulasi Bisnis', icon: Sparkles },
-      { href: '/dashboard/rekomendasi', label: 'Rekomendasi AI', icon: Lightbulb },
-    ],
-  },
-  {
-    id: 'tools',
-    label: 'Tools & Utilitas',
-    icon: Sparkles,
-    items: [
-      { href: '/dashboard/ocr-nota', label: 'OCR Nota', icon: Image },
-    ],
-  },
-]
+import { createClient } from '@/lib/supabase/client'
+import { useSidebar } from '@/context/SidebarContext'
+import { navSections } from '@/lib/navigation'
+import DapiHead from './ui/DapiHead'
+import DapurTwinLogo from './ui/DapurTwinLogo'
 
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
-  const { isOpen, closeSidebar } = useSidebar()
+  const { isOpen, closeSidebar, isCollapsed, toggleCollapsed } = useSidebar()
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const [user, setUser] = useState<{ email?: string } | null>(null)
+  const [storeName, setStoreName] = useState<string | null>(null)
   const [activeSectionId, setActiveSectionId] = useState<string | null>('operasional')
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setUser({ email: data.user.email || 'Admin' })
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return
+      setUser({ email: data.user.email || 'Admin' })
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('store_name')
+        .eq('id', data.user.id)
+        .maybeSingle()
+      setStoreName(profile?.store_name || data.user.user_metadata?.store_name || null)
     })
-  }, [supabase.auth])
+  }, [supabase])
 
-  // Automatically expand only the module that contains the currently active route
+  // Buka otomatis hanya modul yang berisi halaman aktif
   useEffect(() => {
-    const matchedSection = navSections.find((section) =>
-      section.items.some((item) =>
-        item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href)
-      )
+    const matchedSection = navSections.find(section =>
+      section.items.some(item => pathname.startsWith(item.href))
     )
-    if (matchedSection) {
-      setActiveSectionId(matchedSection.id)
-    }
+    if (matchedSection) setActiveSectionId(matchedSection.id)
   }, [pathname])
 
   const toggleSection = (sectionId: string) => {
-    setActiveSectionId((prev) => {
+    // Saat sidebar diciutkan, klik ikon modul = buka sidebar + buka modul itu
+    if (isCollapsed) {
+      toggleCollapsed()
+      setActiveSectionId(sectionId)
+      return
+    }
+    setActiveSectionId(prev => {
       const willOpen = prev !== sectionId
       if (willOpen) {
         setTimeout(() => {
-          sectionRefs.current[sectionId]?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-          })
+          sectionRefs.current[sectionId]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
         }, 120)
         return sectionId
       }
@@ -122,197 +69,156 @@ export default function Sidebar() {
   }
 
   const isOverviewActive = pathname === '/dashboard'
-  const isItemActive = (href: string) =>
-    href === '/dashboard' ? pathname === href : pathname.startsWith(href)
+  const isItemActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
+  const onNavigate = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) closeSidebar()
+  }
+
+  // Mode ciut hanya berlaku di desktop (lg); drawer mobile selalu lebar penuh
+  const collapsed = isCollapsed
+  const hideWhenCollapsed = collapsed ? 'lg:hidden' : ''
+
+  const rowClass = (active: boolean) =>
+    clsx(
+      'flex min-h-[46px] w-full items-center gap-3 rounded-2xl px-2 text-sm transition-colors',
+      collapsed && 'lg:justify-center lg:px-0',
+      active ? 'bg-[#FFF1CC] font-bold text-kopi' : 'font-semibold text-[#3D3027] hover:bg-[#FFF7E3]'
+    )
+
+  const iconClass = (active: boolean) =>
+    clsx(
+      'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
+      active ? 'bg-kuning text-kopi' : 'bg-[#FFF7E3] text-kuning-teks'
+    )
 
   return (
     <>
-      {/* Mobile Backdrop Overlay */}
-      {isOpen && (
-        <div
-          onClick={closeSidebar}
-          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-200"
-        />
-      )}
+      {/* Backdrop mobile */}
+      {isOpen && <div onClick={closeSidebar} className="fixed inset-0 z-40 bg-kopi/30 backdrop-blur-sm lg:hidden" />}
 
-      {/* Sidebar Drawer: Clean Warm White Aesthetic */}
       <aside
+        aria-label="Navigasi samping"
         className={clsx(
-          'w-64 h-screen max-h-screen bg-[#FFFFFF] border-r border-[#EBE3D7] flex flex-col flex-shrink-0 select-none z-50 p-3 transition-transform duration-300 ease-in-out',
-          'lg:static lg:translate-x-0',
-          'fixed inset-y-0 left-0',
+          'fixed inset-y-0 left-0 z-50 flex w-[264px] select-none flex-col gap-3 bg-white p-3 transition-[transform,width] duration-300 ease-in-out',
+          'lg:static lg:z-auto lg:h-full lg:translate-x-0 lg:rounded-[28px] lg:shadow-kartu',
+          collapsed ? 'lg:w-[84px]' : 'lg:w-[248px]',
           isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         )}
       >
-        {/* Brand Header */}
-        <div className="clay-card p-3 flex-shrink-0 mb-2.5 flex items-center justify-between border-[#EBE3D7]">
-          <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] flex items-center justify-center text-white shadow-xs transition-transform duration-300 group-hover:scale-105 flex-shrink-0">
-              <UtensilsCrossed className="w-5 h-5 drop-shadow-xs" />
-            </div>
-            <div>
-              <span className="font-extrabold text-base tracking-tight text-slate-900 block leading-tight flex items-center gap-1.5">
-                DapurTwin
-                <span className="inline-block w-2 h-2 rounded-full bg-[#FF8F2B]" />
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium">
-                Manajemen Dapur & Stok
-              </span>
-            </div>
+        {/* Blok brand: kuning + Dapi */}
+        <div
+          className={clsx(
+            'relative flex-shrink-0 overflow-hidden rounded-[22px] bg-kuning',
+            collapsed ? 'min-h-[132px] p-4 lg:h-[60px] lg:min-h-0 lg:p-0' : 'min-h-[132px] p-4'
+          )}
+        >
+          <span aria-hidden="true" className={clsx('absolute right-4 top-4 h-7 w-7 rounded-full bg-koral-terang', hideWhenCollapsed)} />
+          <DapiHead
+            size={collapsed ? 50 : 84}
+            className={clsx('absolute -bottom-4 -right-1', collapsed && 'lg:-bottom-2 lg:left-[5px] lg:right-auto')}
+          />
+          <Link href="/dashboard" onClick={onNavigate} className={clsx('relative flex flex-col gap-2', hideWhenCollapsed)}>
+            <DapurTwinLogo realFill="#FFFFFF" />
+            <span className="flex flex-col">
+              <span className="text-[11px] font-medium text-[#5A3E05]">Dapur aktif</span>
+              <span className="max-w-[130px] text-base font-bold leading-tight text-kopi">{storeName || 'Dapur Saya'}</span>
+            </span>
           </Link>
 
-          {/* Tombol Close di Mobile */}
           <button
             type="button"
             onClick={closeSidebar}
-            className="lg:hidden p-1 rounded-xl clay-btn text-slate-500 hover:text-slate-900 cursor-pointer"
+            aria-label="Tutup menu navigasi"
+            className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-kopi lg:hidden"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* STANDALONE OVERVIEW BUTTON */}
-        <div className="mb-2 px-0.5 flex-shrink-0">
-          <Link
-            href="/dashboard"
-            onClick={() => {
-              if (window.innerWidth < 1024) closeSidebar()
-            }}
-            className={clsx(
-              'flex items-center gap-2.5 px-3 py-2 text-xs font-bold transition-all duration-150 rounded-xl border',
-              isOverviewActive
-                ? 'bg-[#FFF5EB] text-[#FF8F2B] border-[#FFD8B0] shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 bg-[#FAF7F2] hover:bg-white border-[#EBE3D7]'
-            )}
-          >
-            <div
-              className={clsx(
-                'w-6 h-6 rounded-lg flex items-center justify-center transition-colors flex-shrink-0',
-                isOverviewActive
-                  ? 'bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] text-white shadow-2xs'
-                  : 'bg-white text-[#FF8F2B] border border-[#EBE3D7]'
-              )}
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-            </div>
-            <div className="flex-1 min-w-0 leading-tight">
-              <span className="block text-xs font-extrabold tracking-tight">Overview</span>
-              <span className="block text-[10px] text-slate-500 font-normal">
-                Pusat Kendali & Modul
-              </span>
-            </div>
-            <span
-              className={clsx(
-                'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                isOverviewActive ? 'bg-[#FF8F2B]' : 'bg-transparent'
-              )}
-            />
-          </Link>
+        {/* Overview */}
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          aria-current={isOverviewActive ? 'page' : undefined}
+          title={collapsed ? 'Overview' : undefined}
+          className={clsx(rowClass(isOverviewActive), 'flex-shrink-0')}
+        >
+          <span className={iconClass(isOverviewActive)}>
+            <LayoutDashboard className="h-4 w-4" />
+          </span>
+          <span className={hideWhenCollapsed}>Overview</span>
+        </Link>
+
+        <div className={clsx('flex flex-shrink-0 items-center justify-between px-2.5', hideWhenCollapsed)}>
+          <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#7A6A5C]">Daftar modul</span>
+          <span className="text-[11px] font-semibold text-[#7A6A5C]">{navSections.length} modul</span>
         </div>
 
-        {/* Header Label Modul */}
-        <div className="px-2 pb-1 flex items-center justify-between flex-shrink-0">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">
-            Daftar Modul
-          </span>
-          <span className="text-[10px] text-slate-500 font-mono font-semibold">
-            {navSections.length} Modul
-          </span>
-        </div>
-
-        {/* Nav Sections with Accordion */}
-        <nav className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 scrollbar-thin">
-          {navSections.map((section) => {
-            const isExpanded = activeSectionId === section.id
+        {/* Modul: dropdown, satu terbuka */}
+        <nav className="flex-1 space-y-1 overflow-y-auto pr-0.5">
+          {navSections.map(section => {
             const SectionIcon = section.icon
-            const hasActiveChild = section.items.some((item) => isItemActive(item.href))
+            const expanded = activeSectionId === section.id && !collapsed
+            const hasActiveChild = section.items.some(item => isItemActive(item.href))
 
             return (
               <div
                 key={section.id}
-                ref={(el) => {
+                ref={el => {
                   sectionRefs.current[section.id] = el
                 }}
-                className={clsx(
-                  'rounded-xl transition-all duration-150 p-1',
-                  hasActiveChild
-                    ? 'bg-[#FFF8F0] border border-[#FFD8B0]'
-                    : 'bg-transparent'
-                )}
+                className={clsx('rounded-2xl', expanded && 'bg-kuning-pucat')}
               >
-                {/* Module Dropdown Header Button */}
                 <button
                   type="button"
                   onClick={() => toggleSection(section.id)}
-                  className={clsx(
-                    'w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 cursor-pointer',
-                    hasActiveChild
-                      ? 'text-[#FF8F2B]'
-                      : 'text-slate-800 hover:text-slate-950 hover:bg-[#FAF7F2]'
-                  )}
+                  aria-expanded={expanded}
+                  title={collapsed ? section.label : undefined}
+                  className={rowClass(hasActiveChild && !expanded)}
                 >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={clsx(
-                        'w-5 h-5 rounded-md flex items-center justify-center transition-colors flex-shrink-0',
-                        hasActiveChild
-                          ? 'bg-[#FF8F2B] text-white shadow-2xs'
-                          : 'bg-[#F0EBE1] text-slate-700'
-                      )}
-                    >
-                      <SectionIcon className="w-3 h-3" />
-                    </div>
-                    <span className="tracking-tight text-[11px] uppercase font-bold text-slate-850">
-                      {section.label}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[9px] px-1.5 py-0.2 rounded-full font-mono bg-white text-slate-600 font-semibold border border-[#EBE3D7]">
-                      {section.items.length}
-                    </span>
-                    <ChevronDown
-                      className={clsx(
-                        'w-3.5 h-3.5 text-slate-500 transition-transform duration-200',
-                        isExpanded ? 'rotate-180 text-[#FF8F2B]' : 'rotate-0'
-                      )}
-                    />
-                  </div>
+                  <span className={iconClass(hasActiveChild)}>
+                    <SectionIcon className="h-4 w-4" />
+                  </span>
+                  <span className={clsx('flex-1 text-left', hideWhenCollapsed)}>{section.label}</span>
+                  <span
+                    className={clsx(
+                      'rounded-full bg-white px-1.5 text-[11px] font-bold text-kopi-muted ring-1 ring-krim-garis',
+                      hideWhenCollapsed
+                    )}
+                  >
+                    {section.items.length}
+                  </span>
+                  <ChevronDown
+                    className={clsx(
+                      'h-4 w-4 text-kopi-muted transition-transform duration-200',
+                      expanded && 'rotate-180',
+                      hideWhenCollapsed
+                    )}
+                  />
                 </button>
 
-                {/* Submenu Dropdown Container */}
                 <div
                   className={clsx(
                     'overflow-hidden transition-all duration-200 ease-in-out',
-                    isExpanded ? 'max-h-72 opacity-100 mt-1' : 'max-h-0 opacity-0'
+                    expanded ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
                   )}
                 >
-                  <div className="space-y-0.5 pl-2 pr-1 py-0.5 border-l-2 border-[#FFD8B0] ml-3">
-                    {section.items.map(({ href, label, icon: Icon }) => {
+                  <div className="ml-6 space-y-0.5 border-l-2 border-krim-garis py-1 pl-2 pr-1">
+                    {section.items.map(({ href, label }) => {
                       const active = isItemActive(href)
                       return (
                         <Link
                           key={href}
                           href={href}
-                          onClick={() => {
-                            if (window.innerWidth < 1024) closeSidebar()
-                          }}
+                          onClick={onNavigate}
+                          tabIndex={expanded ? 0 : -1}
+                          aria-current={active ? 'page' : undefined}
                           className={clsx(
-                            'flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 rounded-lg',
-                            active
-                              ? 'bg-white text-[#FF8F2B] border border-[#FFD8B0] shadow-xs font-bold'
-                              : 'text-slate-700 hover:text-slate-950 hover:bg-[#FAF7F2]'
+                            'flex min-h-[40px] items-center rounded-xl px-3 text-sm transition-colors',
+                            active ? 'bg-white font-bold text-kopi ring-2 ring-kuning' : 'text-[#3D3027] hover:bg-white'
                           )}
                         >
-                          <div
-                            className={clsx(
-                              'w-5 h-5 rounded-md flex items-center justify-center transition-colors flex-shrink-0',
-                              active ? 'bg-[#FFF0E0] text-[#FF8F2B]' : 'text-slate-500'
-                            )}
-                          >
-                            <Icon className="w-3 h-3" />
-                          </div>
-                          <span className="truncate text-[11px]">{label}</span>
+                          <span className="truncate">{label}</span>
                         </Link>
                       )
                     })}
@@ -323,25 +229,32 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* User Footer Clay Card */}
-        <div className="clay-card p-3 m-4 flex-shrink-0 border-[#EBE3D7] bg-white flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 flex-shrink-0">
-               <DapiFace mood="idle" size="compact" hideBubble />
-            </div>
-            <div className="flex-1 min-w-0">
-               <p className="text-xs font-bold text-slate-900 truncate">{user?.email || "Admin"}</p>
-               <p className="text-[10px] text-[#FF8F2B] font-semibold">Active Session</p>
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              title="Keluar"
-              className="text-slate-500 hover:text-rose-600 transition-colors p-1.5 rounded-lg hover:bg-rose-50 cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+        {/* Pengguna */}
+        <div
+          className={clsx(
+            'flex flex-shrink-0 items-center gap-2.5 rounded-[18px] bg-[#FFF7E3] p-2',
+            collapsed && 'lg:justify-center'
+          )}
+        >
+          <span className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-kuning text-[13px] font-extrabold uppercase text-kopi">
+            {(user?.email || 'A').charAt(0)}
+          </span>
+          <span className={clsx('flex min-w-0 flex-1 flex-col', hideWhenCollapsed)}>
+            <span className="truncate text-[13px] font-bold">{user?.email || 'Admin'}</span>
+            <span className="text-xs text-kopi-muted">Sesi aktif</span>
+          </span>
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Keluar"
+            title="Keluar"
+            className={clsx(
+              'flex h-[38px] w-[38px] items-center justify-center rounded-full text-kopi-muted hover:bg-white hover:text-koral',
+              hideWhenCollapsed
+            )}
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </aside>
     </>

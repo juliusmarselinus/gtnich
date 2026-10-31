@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import { SidebarProvider } from '@/context/SidebarContext'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2 } from 'lucide-react'
+import DapiHead from '@/components/ui/DapiHead'
 
 export default function DashboardLayout({
   children,
@@ -44,28 +44,28 @@ export default function DashboardLayout({
     }
   }, [router])
 
-  // Tampilkan loading screen sementara saat sesi diverifikasi
+  // Layar tunggu saat sesi diverifikasi
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center clay-bg text-slate-600 gap-3">
-        <Loader2 className="w-7 h-7 animate-spin text-[#FF8F2B]" />
-        <p className="text-xs font-semibold tracking-wide">Memverifikasi sesi akun...</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-krim text-kopi">
+        <span className="flex h-20 w-20 items-end justify-center overflow-hidden rounded-[24px] bg-kuning">
+          <DapiHead size={64} className="animate-bounce [animation-duration:1.6s]" />
+        </span>
+        <p className="text-sm font-semibold">Dapi cek sesi dulu…</p>
       </div>
     )
   }
 
-  // Jika tidak authenticated (sedang proses redirect ke /login)
+  // Sedang dialihkan ke /login
   if (!isAuthenticated) {
     return null
   }
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen clay-bg text-slate-800 selection:bg-orange-500/20 selection:text-orange-950 relative">
+      <div className="flex h-screen bg-krim text-kopi selection:bg-kuning/40 lg:p-4">
         <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto max-h-screen relative">
-          {children}
-        </div>
+        <div className="relative flex min-w-0 flex-1 flex-col overflow-y-auto">{children}</div>
       </div>
     </SidebarProvider>
   )

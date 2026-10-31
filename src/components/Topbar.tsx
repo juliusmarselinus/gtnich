@@ -1,7 +1,21 @@
 'use client'
 
-import { Bell, Search, Check, ExternalLink, Package, ShoppingCart, Receipt, AlertTriangle, Menu, X, Trash2, TrendingUp, CheckCircle2, Loader2 } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import {
+  Bell,
+  Search,
+  Package,
+  ShoppingCart,
+  Receipt,
+  AlertTriangle,
+  Menu,
+  X,
+  TrendingUp,
+  CheckCircle2,
+  Loader2,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useSidebar } from '@/context/SidebarContext'
 import { formatRupiah } from '@/lib/mock-data'
@@ -12,13 +26,15 @@ interface TopbarProps {
   title: string
   subtitle?: string
   onSearch?: (term: string) => void
+  /** elemen tambahan di kanan, sebelum kolom cari (mis. status kasir, tombol segarkan) */
+  actions?: ReactNode
 }
 
-export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
+export default function Topbar({ title, subtitle, onSearch, actions }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [updatingPriceId, setUpdatingPriceId] = useState<string | null>(null)
   const { notifications, unreadCount, markAllRead, dismissNotification, clearAll, applyPriceUpdate } = useNotifications()
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, isCollapsed, toggleCollapsed } = useSidebar()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const handleApplyPrice = async (notifId: string, bahanId: string, newPrice: number) => {
@@ -48,228 +64,209 @@ export default function Topbar({ title, subtitle, onSearch }: TopbarProps) {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'penjualan':
-        return <ShoppingCart className="w-3.5 h-3.5 text-[#FF8F2B]" />
+        return <ShoppingCart className="h-3.5 w-3.5 text-kuning-teks" />
       case 'stok':
-        return <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+        return <AlertTriangle className="h-3.5 w-3.5 text-koral" />
       case 'tagihan':
-        return <Receipt className="w-3.5 h-3.5 text-amber-500" />
+        return <Receipt className="h-3.5 w-3.5 text-kuning-teks" />
       case 'po':
-        return <Package className="w-3.5 h-3.5 text-blue-500" />
+        return <Package className="h-3.5 w-3.5 text-kuning-teks" />
       default:
-        return <Bell className="w-3.5 h-3.5 text-purple-500" />
+        return <Bell className="h-3.5 w-3.5 text-kuning-teks" />
     }
   }
 
-  return (
-    <header className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 md:px-8 py-3.5 sm:py-4 bg-[#F7F5F0]/90 backdrop-blur-md border-b border-[#EBE3D7]">
-      <div className="flex items-center gap-3">
-        {/* Mobile Hamburger Button */}
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          aria-label="Buka menu navigasi"
-          className="lg:hidden p-2 rounded-xl clay-card text-slate-600 hover:text-slate-900 cursor-pointer"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+  const roundBtn =
+    'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white text-kopi transition-colors hover:bg-kuning-muda cursor-pointer'
 
-        <div>
-          <h2 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            {title}
-          </h2>
-          {subtitle && <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 line-clamp-1">{subtitle}</p>}
-        </div>
+  return (
+    <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 bg-krim/90 px-4 py-3 backdrop-blur-md sm:px-6 md:px-8">
+      {/* Mobile: buka drawer */}
+      <button type="button" onClick={toggleSidebar} aria-label="Buka menu navigasi" className={clsx(roundBtn, 'lg:hidden')}>
+        <Menu className="h-5 w-5" />
+      </button>
+      {/* Desktop: ciutkan / buka sidebar */}
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        aria-label={isCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+        aria-expanded={!isCollapsed}
+        className={clsx(roundBtn, 'hidden lg:flex')}
+      >
+        {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+      </button>
+
+      <div className="min-w-0 flex-1 basis-56">
+        <h1 className="truncate text-xl font-extrabold tracking-tight text-kopi sm:text-[26px]">{title}</h1>
+        {subtitle && <p className="mt-0.5 line-clamp-1 text-[13px] text-kopi-muted sm:text-sm">{subtitle}</p>}
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative hidden md:block w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Cari transaksi, item, invoice..."
-            onChange={e => onSearch && onSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 clay-inset text-xs text-slate-700 placeholder:text-slate-400"
-          />
-        </div>
+      {actions}
 
-        {/* Notifications */}
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2.5 rounded-2xl clay-card hover:bg-white text-slate-600 hover:text-slate-900 transition-all relative cursor-pointer"
-            title="Notifikasi Dapur"
-          >
-            <Bell className="w-4 h-4" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF8F2B] text-white text-[9px] font-black flex items-center justify-center shadow-sm shadow-[#FF8F2B]/40">
-                {unreadCount > 9 ? '9+' : unreadCount}
+      {/* Cari */}
+      <label className="relative hidden w-full max-w-[260px] md:block">
+        <span className="sr-only">Cari</span>
+        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8A7B6E]" />
+        <input
+          type="search"
+          placeholder="Cari bahan, menu, invoice"
+          onChange={e => onSearch && onSearch(e.target.value)}
+          className="h-11 w-full rounded-full bg-white pl-10 pr-4 text-sm text-kopi placeholder:text-[#8A7B6E] outline-none focus:ring-2 focus:ring-kuning"
+        />
+      </label>
+
+      {/* Notifikasi */}
+      <div className="relative" ref={dropdownRef}>
+        <button
+          type="button"
+          onClick={() => setShowNotifications(!showNotifications)}
+          aria-label={`Notifikasi, ${unreadCount} baru`}
+          aria-expanded={showNotifications}
+          className={clsx(roundBtn, 'relative')}
+        >
+          <Bell className="h-[18px] w-[18px]" />
+          {unreadCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-koral px-1 text-[9px] font-black text-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
+
+        {showNotifications && (
+          <div className="absolute right-0 z-50 mt-3 flex max-h-[85vh] w-[22rem] max-w-[90vw] flex-col rounded-[24px] bg-white p-4 shadow-kartu ring-1 ring-krim-garis">
+            <div className="mb-2.5 flex flex-shrink-0 items-center justify-between border-b border-krim-garis pb-2.5">
+              <span className="flex items-center gap-1.5 text-sm font-extrabold text-kopi">
+                <Bell className="h-4 w-4 text-kuning-teks" />
+                Notifikasi dapur
               </span>
-            )}
-          </button>
-
-          {showNotifications && (
-            <div className="absolute right-0 mt-3 w-88 max-w-[90vw] clay-card p-4 z-50 animate-in fade-in zoom-in-95 duration-100 border border-white max-h-[85vh] flex flex-col">
-              <div className="flex justify-between items-center pb-2.5 mb-2.5 border-b border-slate-100 flex-shrink-0">
-                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Bell className="w-3.5 h-3.5 text-[#FF8F2B]" />
-                  Notifikasi Dapur
-                </span>
-                <div className="flex items-center gap-2">
-                  {unreadCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={markAllRead}
-                      className="text-[10px] text-slate-400 hover:text-[#FF8F2B] font-bold transition-colors cursor-pointer"
-                    >
-                      Tandai Dibaca
-                    </button>
-                  )}
-                  {notifications.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={clearAll}
-                      className="text-[10px] text-slate-400 hover:text-rose-500 font-bold transition-colors cursor-pointer"
-                      title="Bersihkan semua notifikasi"
-                    >
-                      Hapus Semua
-                    </button>
-                  )}
-                  <span className="text-[10px] bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2] px-2 py-0.5 rounded-full font-bold">
-                    {unreadCount} Baru
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowNotifications(false)}
-                    className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                    title="Tutup panel notifikasi"
-                  >
-                    <X className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button type="button" onClick={markAllRead} className="text-[11px] font-bold text-kopi-muted hover:text-kopi">
+                    Tandai dibaca
                   </button>
-                </div>
-              </div>
-
-              <div className="space-y-2 overflow-y-auto pr-1 flex-1">
-                {notifications.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-400">
-                    Tidak ada notifikasi aktivitas baru.
-                  </div>
-                ) : (
-                  notifications.map(n => {
-                    return (
-                      <div
-                        key={n.id}
-                        className={clsx(
-                          'p-3 rounded-2xl transition-colors text-xs border border-slate-100/80 space-y-1 relative group',
-                          n.isRead
-                            ? 'bg-slate-50/60 opacity-80'
-                            : 'bg-white hover:bg-[#FFF6EC]/60 shadow-sm'
-                        )}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          {n.link ? (
-                            <Link
-                              href={n.link}
-                              onClick={() => setShowNotifications(false)}
-                              className="font-extrabold text-slate-800 hover:text-[#FF8F2B] flex items-center gap-1.5 flex-1 min-w-0 transition-colors"
-                            >
-                              {getTypeIcon(n.type)}
-                              <span className="truncate">{n.title}</span>
-                            </Link>
-                          ) : (
-                            <span className="font-extrabold text-slate-800 flex items-center gap-1.5 flex-1 min-w-0">
-                              {getTypeIcon(n.type)}
-                              <span className="truncate">{n.title}</span>
-                            </span>
-                          )}
-
-                          <div className="flex items-center gap-1.5 flex-shrink-0">
-                            <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                              {n.timeAgo}
-                            </span>
-                            {/* Tombol X Hapus Notifikasi */}
-                            <button
-                              type="button"
-                              onClick={e => {
-                                e.stopPropagation()
-                                e.preventDefault()
-                                dismissNotification(n.id)
-                              }}
-                              className="w-5 h-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
-                              title="Hapus notifikasi ini"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {n.link ? (
-                          <Link
-                            href={n.link}
-                            onClick={() => setShowNotifications(false)}
-                            className="block"
-                          >
-                            <p className="text-[11px] text-slate-500 leading-snug">{n.detail}</p>
-                          </Link>
-                        ) : (
-                          <p className="text-[11px] text-slate-500 leading-snug">{n.detail}</p>
-                        )}
-
-                        {/* Opsi Interaktif: Update Harga Master Bahan & HPP dari Purchase Order */}
-                        {n.metadata?.isPriceUpdate && n.metadata?.bahanId && (
-                          <div className="mt-2 p-2.5 rounded-xl bg-amber-50/90 border border-amber-200/90 space-y-2">
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="text-slate-500 font-medium">Harga Master Lama:</span>
-                              <span className="font-mono font-bold text-slate-500 line-through">
-                                {formatRupiah(n.metadata.oldPrice || 0)}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="font-bold text-amber-950">Harga Baru PO:</span>
-                              <span className="font-mono font-black text-amber-700 text-xs">
-                                {formatRupiah(n.metadata.newPrice || 0)} / {n.metadata.satuan || 'satuan'}
-                              </span>
-                            </div>
-
-                            {n.metadata.applied ? (
-                              <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-100/80 px-2.5 py-1.5 rounded-lg border border-emerald-200">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                                <span>Harga master & HPP resep telah diperbarui</span>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                disabled={updatingPriceId === n.id}
-                                onClick={e => {
-                                  e.stopPropagation()
-                                  e.preventDefault()
-                                  handleApplyPrice(n.id, n.metadata!.bahanId!, n.metadata!.newPrice!)
-                                }}
-                                className="w-full py-1.5 px-3 bg-[#FF8F2B] hover:bg-[#E07A1E] active:scale-98 text-white text-[11px] font-bold rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
-                              >
-                                {updatingPriceId === n.id ? (
-                                  <>
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                    <span>Memperbarui Harga...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <TrendingUp className="w-3 h-3" />
-                                    <span>Update Harga Master (HPP)</span>
-                                  </>
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })
                 )}
+                {notifications.length > 0 && (
+                  <button type="button" onClick={clearAll} className="text-[11px] font-bold text-kopi-muted hover:text-koral">
+                    Hapus semua
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowNotifications(false)}
+                  aria-label="Tutup panel notifikasi"
+                  className="rounded-full p-1 text-kopi-muted hover:bg-kuning-muda hover:text-kopi"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
-          )}
-        </div>
+
+            <div className="flex-1 space-y-2 overflow-y-auto pr-1">
+              {notifications.length === 0 ? (
+                <div className="py-8 text-center text-sm text-kopi-muted">Belum ada notifikasi baru.</div>
+              ) : (
+                notifications.map(n => (
+                  <div
+                    key={n.id}
+                    className={clsx(
+                      'relative space-y-1 rounded-2xl p-3 text-xs transition-colors',
+                      n.isRead ? 'bg-kuning-pucat opacity-80' : 'bg-white ring-1 ring-krim-garis hover:bg-kuning-pucat'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      {n.link ? (
+                        <Link
+                          href={n.link}
+                          onClick={() => setShowNotifications(false)}
+                          className="flex min-w-0 flex-1 items-center gap-1.5 font-extrabold text-kopi hover:text-koral-gelap"
+                        >
+                          {getTypeIcon(n.type)}
+                          <span className="truncate">{n.title}</span>
+                        </Link>
+                      ) : (
+                        <span className="flex min-w-0 flex-1 items-center gap-1.5 font-extrabold text-kopi">
+                          {getTypeIcon(n.type)}
+                          <span className="truncate">{n.title}</span>
+                        </span>
+                      )}
+                      <div className="flex flex-shrink-0 items-center gap-1.5">
+                        <span className="whitespace-nowrap text-[10px] text-kopi-muted">{n.timeAgo}</span>
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            dismissNotification(n.id)
+                          }}
+                          aria-label="Hapus notifikasi ini"
+                          className="flex h-5 w-5 items-center justify-center rounded-full text-kopi-muted hover:bg-koral-muda hover:text-koral"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {n.link ? (
+                      <Link href={n.link} onClick={() => setShowNotifications(false)} className="block">
+                        <p className="text-[12px] leading-snug text-kopi-muted">{n.detail}</p>
+                      </Link>
+                    ) : (
+                      <p className="text-[12px] leading-snug text-kopi-muted">{n.detail}</p>
+                    )}
+
+                    {/* Update harga master bahan & HPP dari Purchase Order */}
+                    {n.metadata?.isPriceUpdate && n.metadata?.bahanId && (
+                      <div className="mt-2 space-y-2 rounded-xl bg-kuning-muda p-2.5">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-medium text-kopi-muted">Harga master lama</span>
+                          <span className="font-bold text-kopi-muted line-through">
+                            {formatRupiah(n.metadata.oldPrice || 0)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-kopi">Harga baru dari PO</span>
+                          <span className="text-xs font-black text-kopi">
+                            {formatRupiah(n.metadata.newPrice || 0)} / {n.metadata.satuan || 'satuan'}
+                          </span>
+                        </div>
+
+                        {n.metadata.applied ? (
+                          <div className="flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-[11px] font-bold text-aman">
+                            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span>Harga master & HPP resep sudah diperbarui</span>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={updatingPriceId === n.id}
+                            onClick={e => {
+                              e.stopPropagation()
+                              e.preventDefault()
+                              handleApplyPrice(n.id, n.metadata!.bahanId!, n.metadata!.newPrice!)
+                            }}
+                            className="flex w-full items-center justify-center gap-1.5 rounded-full bg-koral px-3 py-2 text-[11px] font-bold text-white hover:bg-koral-gelap disabled:opacity-50"
+                          >
+                            {updatingPriceId === n.id ? (
+                              <>
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <span>Memperbarui harga…</span>
+                              </>
+                            ) : (
+                              <>
+                                <TrendingUp className="h-3 w-3" />
+                                <span>Update harga master (HPP)</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   )

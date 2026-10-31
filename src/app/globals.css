@@ -1,4 +1,30 @@
 @import "tailwindcss";
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./fonts/Satoshi-Variable.woff2') format('woff2');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+@theme {
+  --color-kuning: #FFB800;
+  --color-kuning-muda: #FFF4D6;
+  --color-kuning-pucat: #FFFAF0;
+  --color-kuning-batang: #FFE6A3;
+  --color-kuning-teks: #8A5A00;
+  --color-krim: #FDF0DC;
+  --color-krim-garis: #F1E3CF;
+  --color-koral: #D24426;
+  --color-koral-gelap: #B8391E;
+  --color-koral-terang: #FF7A59;
+  --color-koral-muda: #FDE7E1;
+  --color-kopi: #2B221C;
+  --color-kopi-muted: #6F6259;
+  --color-aman: #2E8A5C;
+
+  --font-sans: 'Satoshi', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --shadow-kartu: 0 10px 30px -18px rgba(150, 95, 20, 0.35);
+}
 
 :root {
   --background: #f8fafc;
@@ -8,7 +34,7 @@
 body {
   background-color: #f8fafc;
   color: #0f172a;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: var(--font-sans);
   letter-spacing: -0.01em;
   min-height: 100vh;
 }
