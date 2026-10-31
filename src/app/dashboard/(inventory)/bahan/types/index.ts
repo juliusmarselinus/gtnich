@@ -22,6 +22,7 @@ export interface Bahan {
   stokMinimum: number
   supplierId?: string | null
   supplier?: Supplier | null
+  foto?: string | null
   createdAt?: string
   updatedAt?: string
 }
@@ -37,4 +38,5 @@ export interface BahanFormData {
   stok: number
   stokMinimum: number
   supplierId: string
+  foto?: string | null
 }
