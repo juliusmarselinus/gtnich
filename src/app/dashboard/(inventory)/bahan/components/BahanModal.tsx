@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Bahan, BahanFormData, Supplier } from '../types'
 import { DEFAULT_SATUAN_LIST } from '@/lib/satuan'
-import { Loader2, PlusCircle } from 'lucide-react'
+import { Loader2, PlusCircle, Camera, X, Upload } from 'lucide-react'
 import CustomSelect from '@/components/ui/CustomSelect'
 
 interface BahanModalProps {
@@ -21,6 +21,7 @@ const emptyForm: BahanFormData = {
   stok: 0,
   stokMinimum: 0,
   supplierId: '',
+  foto: null,
 }
 
 export default function BahanModal({
@@ -35,6 +36,8 @@ export default function BahanModal({
   const [customSatuanText, setCustomSatuanText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (editingBahan) {
@@ -46,7 +49,9 @@ export default function BahanModal({
         stok: editingBahan.stok,
         stokMinimum: editingBahan.stokMinimum,
         supplierId: editingBahan.supplierId || '',
+        foto: editingBahan.foto || null,
       })
+      setFotoPreview(editingBahan.foto || null)
       if (!isPredefined && editingBahan.satuan) {
         setIsCustomSatuan(true)
         setCustomSatuanText(editingBahan.satuan)
@@ -56,6 +61,7 @@ export default function BahanModal({
       }
     } else {
       setForm(emptyForm)
+      setFotoPreview(null)
       setIsCustomSatuan(false)
       setCustomSatuanText('')
     }
@@ -72,6 +78,31 @@ export default function BahanModal({
       setIsCustomSatuan(false)
       setForm(p => ({ ...p, satuan: val }))
     }
+  }
+
+  /** Baca file foto → data URL → simpan ke form & preview */
+  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('File harus berupa gambar (JPG, PNG, WebP, dll.)')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = ev => {
+      const dataUrl = ev.target?.result as string
+      setFotoPreview(dataUrl)
+      setForm(p => ({ ...p, foto: dataUrl }))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveFoto = () => {
+    setFotoPreview(null)
+    setForm(p => ({ ...p, foto: null }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,7 +136,7 @@ export default function BahanModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="clay-card p-6 w-full max-w-md mx-auto space-y-4">
+      <div className="clay-card p-6 w-full max-w-lg mx-auto space-y-4 max-h-[90vh] overflow-y-auto">
         <h3 className="text-base font-extrabold text-slate-800">
           {editingBahan ? 'Edit Data Bahan' : 'Tambah Bahan Baru'}
         </h3>
@@ -117,6 +148,59 @@ export default function BahanModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
+
+          {/* ── Upload Foto ── */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1.5">
+              Foto Bahan (Opsional)
+            </label>
+
+            {fotoPreview ? (
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-[#EBE3D7] bg-[#F7F5F0]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={fotoPreview}
+                  alt="Preview foto bahan"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveFoto}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-rose-600 text-white hover:bg-rose-700 shadow-md transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 text-xs font-bold text-slate-700 hover:bg-white shadow-md transition-colors"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  Ganti Foto
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full aspect-video rounded-2xl border-2 border-dashed border-[#D9CDBF] hover:border-[#FF8F2B] bg-[#F7F5F0] hover:bg-[#FFF6EC] transition-colors flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-[#FF8F2B]"
+              >
+                <Upload className="w-7 h-7" />
+                <span className="text-[11px] font-semibold">Klik untuk upload foto bahan</span>
+                <span className="text-[10px]">JPG, PNG, WebP — maks. 5MB</span>
+              </button>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFotoChange}
+            />
+          </div>
+
+          {/* ── Nama Bahan ── */}
           <div>
             <label className="block text-[11px] font-bold text-slate-500 mb-1">
               Nama Bahan
@@ -131,7 +215,7 @@ export default function BahanModal({
             />
           </div>
 
-          {/* Pemilihan Satuan Bahan Baku */}
+          {/* ── Satuan ── */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-[11px] font-bold text-slate-500">
@@ -189,6 +273,7 @@ export default function BahanModal({
             )}
           </div>
 
+          {/* ── Harga ── */}
           <div>
             <label className="block text-[11px] font-bold text-slate-500 mb-1">
               Harga per Satuan (Rp / {isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
@@ -204,6 +289,7 @@ export default function BahanModal({
             />
           </div>
 
+          {/* ── Stok ── */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
@@ -237,6 +323,7 @@ export default function BahanModal({
             </div>
           </div>
 
+          {/* ── Supplier ── */}
           <div>
             <label className="block text-[11px] font-bold text-slate-500 mb-1">
               Supplier Terkait (Opsional)
@@ -256,6 +343,7 @@ export default function BahanModal({
             />
           </div>
 
+          {/* ── Actions ── */}
           <div className="flex gap-3 pt-3">
             <button
               type="button"

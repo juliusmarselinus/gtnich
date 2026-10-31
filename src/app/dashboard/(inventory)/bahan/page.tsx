@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Topbar from '@/components/Topbar'
 import BahanFilterBar from './components/BahanFilterBar'
-import BahanTable from './components/BahanTable'
+import BahanCard from './components/BahanCard'
 import BahanModal from './components/BahanModal'
 import { useBahan } from './hooks/useBahan'
 import { Bahan } from './types'
@@ -106,7 +106,7 @@ export default function BahanPage() {
             <p className="text-xs font-semibold">Mengambil data bahan dari database Supabase...</p>
           </div>
         ) : (
-          <BahanTable
+          <BahanCard
             list={list}
             getStockCondition={getStockCondition}
             onEdit={openEdit}
