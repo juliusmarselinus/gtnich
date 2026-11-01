@@ -3,7 +3,7 @@ import './globals.css'
 
 
 export const metadata: Metadata = {
-  title: 'DapurTwin — Kembaran digital dapurmu',
+  title: 'DapurTwin | Kembaran digital dapurmu',
   description: 'Manajemen dapur, stok, dan pembelian untuk UMKM kuliner',
 }
 
