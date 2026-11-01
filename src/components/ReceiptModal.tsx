@@ -1,6 +1,8 @@
-'use client'
+﻿'use client'
 
 import { Order, formatRupiah } from '@/lib/mock-data'
+import DapiHead from './ui/DapiHead'
+import DapiMascot from './ui/DapiMascot'
 import { X, Printer, CheckCircle2, AlertCircle, Share2, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
 
@@ -45,11 +47,23 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
 
         {/* Receipt Paper Area */}
         <div className="p-6 overflow-y-auto flex-1 bg-gradient-to-b from-stone-50/40 to-white">
-          <div className="bg-white border border-stone-200/70 rounded-2xl p-5 shadow-sm relative">
+          <div className="bg-white border border-stone-200/70 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+            {/* Watermark Maskot Dapi */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0"
+            >
+              <DapiMascot
+                width={240}
+                mood="senang"
+                className="opacity-[0.06] transform -rotate-12 translate-y-6"
+              />
+            </div>
+            <div className="relative z-10">
             {/* Top decorative receipt cutout line */}
             <div className="text-center pb-4 border-b border-dashed border-stone-300">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#FFBF35] to-[#FF8F2B] text-white font-black text-base shadow-sm mb-2">
-                OH
+              <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[#FFF6D6] border border-[#FFE49A] shadow-xs mb-2">
+                <DapiHead size={32} mood="senang" />
               </div>
               <h4 className="font-extrabold text-stone-800 text-base tracking-tight">DAPURTWIN</h4>
               <p className="text-[11px] text-stone-400">Jl. Inovasi Digital No. 26, UMKM Hub</p>
@@ -147,6 +161,7 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
               <p className="mt-0.5">Barang yang sudah dibeli tidak dapat ditukar kecuali ada perjanjian.</p>
             </div>
           </div>
+            </div>
         </div>
 
         {/* Modal Action Buttons */}
@@ -191,3 +206,6 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
     </div>
   )
 }
+
+
+

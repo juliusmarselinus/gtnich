@@ -15,8 +15,22 @@ export type MenuSortOption =
   | 'margin-desc'
   | 'margin-asc'
 
+// sisa = berapa porsi lagi yang masih bisa ditambahkan (Infinity = menu tanpa resep)
+export interface StockInfo {
+  sisa: number
+  bahanPembatas?: string
+}
+export type StockInfoMap = Record<string, StockInfo>
+
+export interface AddResult {
+  ok: boolean
+  added: number
+  message?: string
+}
+
 export function usePenjualan() {
   const [menus, setMenus] = useState<MenuItem[]>([])
+  const [stokMap, setStokMap] = useState<Record<string, number>>({})
   const [cart, setCart] = useState<CartItem[]>([])
   const [recentOrders, setRecentOrders] = useState<OrderRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -24,12 +38,14 @@ export function usePenjualan() {
   const [error, setError] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
 
-  // Filter & Sorting katalog
   const [selectedKategori, setSelectedKategori] = useState('Semua')
   const [searchMenu, setSearchMenu] = useState('')
   const [sortBy, setSortBy] = useState<MenuSortOption>('default')
 
-  // Ambil data menu dan transaksi awal
+  const refreshStok = useCallback(async () => {
+    setStokMap(await penjualanService.getStokBahan())
+  }, [])
+
   const fetchData = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -50,13 +66,15 @@ export function usePenjualan() {
 
       setUserEmail(session.user.email || null)
 
-      const [menuData, ordersData] = await Promise.all([
+      const [menuData, ordersData, stok] = await Promise.all([
         penjualanService.getKatalogMenu(),
         penjualanService.getRecentOrders(8),
+        penjualanService.getStokBahan(),
       ])
 
       setMenus(menuData || [])
       setRecentOrders(ordersData || [])
+      setStokMap(stok)
     } catch (err: unknown) {
       const e = err as Error
       console.error('Fetch penjualan data error:', e)
@@ -70,7 +88,33 @@ export function usePenjualan() {
     fetchData()
   }, [fetchData])
 
-  // Filter daftar menu
+  // Sisa porsi tiap menu = stok database - bahan yang sudah "dibooking" keranjang
+  const stockInfo = useMemo<StockInfoMap>(() => {
+    const used: Record<string, number> = {}
+    cart.forEach(c =>
+      (c.resep || []).forEach(r => {
+        used[r.bahanId] = (used[r.bahanId] || 0) + r.qty * c.cartQty
+      })
+    )
+
+    const map: StockInfoMap = {}
+    menus.forEach(m => {
+      let sisa = Infinity
+      let pembatas: string | undefined
+      ;(m.resep || []).forEach(r => {
+        if (!r.qty || r.qty <= 0) return
+        const free = (stokMap[r.bahanId] ?? 0) - (used[r.bahanId] || 0)
+        const porsi = Math.max(0, Math.floor(free / r.qty + 1e-9))
+        if (porsi < sisa) {
+          sisa = porsi
+          pembatas = r.namaBahan
+        }
+      })
+      map[m.id] = { sisa, bahanPembatas: pembatas }
+    })
+    return map
+  }, [menus, cart, stokMap])
+
   const kategoriList = useMemo(() => {
     const setKat = new Set<string>()
     menus.forEach(m => {
@@ -113,9 +157,22 @@ export function usePenjualan() {
     })
   }, [menus, selectedKategori, searchMenu, sortBy])
 
-  // Operasi Keranjang (Cart) dengan penyesuaian quantity awal
-  const addToCart = (menu: MenuItem, qty: number = 1) => {
-    const addQuantity = Math.max(1, qty)
+  // Tambah ke keranjang, otomatis dibatasi sisa stok
+  const addToCart = (menu: MenuItem, qty: number = 1): AddResult => {
+    const info = stockInfo[menu.id]
+    const sisa = info?.sisa ?? Infinity
+
+    if (sisa <= 0) {
+      return {
+        ok: false,
+        added: 0,
+        message: `Stok ${info?.bahanPembatas ?? 'bahan'} habis, ${menu.nama} tidak bisa ditambah.`,
+      }
+    }
+
+    const wanted = Math.max(1, qty)
+    const addQuantity = Math.min(wanted, sisa)
+
     setCart(prev => {
       const existing = prev.find(c => c.menuId === menu.id)
       if (existing) {
@@ -124,7 +181,6 @@ export function usePenjualan() {
         )
       }
 
-      // Format komposisi resep menu agar siap dipotong stoknya
       const resepList = (menu.resep || []).map(r => ({
         bahanId: r.bahanId,
         namaBahan: r.namaBahan,
@@ -146,9 +202,19 @@ export function usePenjualan() {
         },
       ]
     })
+
+    return {
+      ok: true,
+      added: addQuantity,
+      message:
+        addQuantity < wanted
+          ? `Hanya ${addQuantity} porsi ditambahkan, stok ${info?.bahanPembatas} terbatas.`
+          : undefined,
+    }
   }
 
   const updateCartQty = (menuId: string, delta: number) => {
+    if (delta > 0 && (stockInfo[menuId]?.sisa ?? Infinity) <= 0) return
     setCart(prev => {
       const updated = prev.map(c =>
         c.menuId === menuId ? { ...c, cartQty: Math.max(0, c.cartQty + delta) } : c
@@ -163,24 +229,15 @@ export function usePenjualan() {
 
   const clearCart = () => setCart([])
 
-  // Kalkulasi Total Finansial Live
   const totals = useMemo(() => {
     const subtotal = cart.reduce((s, c) => s + c.hargaJual * c.cartQty, 0)
     const totalHPP = cart.reduce((s, c) => s + c.hpp * c.cartQty, 0)
     const profit = subtotal - totalHPP
     const margin = subtotal > 0 ? (profit / subtotal) * 100 : 0
     const totalItems = cart.reduce((s, c) => s + c.cartQty, 0)
-
-    return {
-      subtotal,
-      totalHPP,
-      profit,
-      margin,
-      totalItems,
-    }
+    return { subtotal, totalHPP, profit, margin, totalItems }
   }, [cart])
 
-  // Proses Checkout & Simpan Transaksi
   const processCheckout = async (form: CheckoutFormInput): Promise<OrderRecord> => {
     setIsSubmitting(true)
     setError(null)
@@ -194,6 +251,7 @@ export function usePenjualan() {
       setError(e.message || 'Gagal menyimpan transaksi.')
       throw e
     } finally {
+      await refreshStok() // stok sekarang sudah terpotong di database
       setIsSubmitting(false)
     }
   }
@@ -201,6 +259,7 @@ export function usePenjualan() {
   return {
     menus: filteredMenus,
     rawMenuCount: menus.length,
+    stockInfo,
     kategoriList,
     selectedKategori,
     setSelectedKategori,

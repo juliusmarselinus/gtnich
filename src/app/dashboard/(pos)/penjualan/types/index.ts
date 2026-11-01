@@ -9,7 +9,7 @@ export interface CartItem {
   resep?: Array<{
     bahanId: string
     namaBahan: string
-    qty: number // takaran per porsi (dalam satuan master bahan)
+    qty: number
     satuan: string
   }>
 }
@@ -17,11 +17,14 @@ export interface CartItem {
 export interface CheckoutFormInput {
   customerName?: string
   customerPhone?: string
-  channel: string // WhatsApp, Toko Offline, GrabFood, GoFood, dsb.
-  paymentMethod: string // Tunai / Cash, QRIS, Transfer BCA, Mandiri, dsb.
+  channel: string
+  paymentMethod: string
   cashierName?: string
   notes?: string
   discount?: number
+  cashReceived?: number
+  changeAmount?: number
+  midtransOrderId?: string
 }
 
 export interface OrderItemRecord {
@@ -54,6 +57,9 @@ export interface OrderRecord {
   profit: number
   cashierName: string
   notes?: string | null
+  cashReceived?: number | null
+  changeAmount?: number | null
+  midtransOrderId?: string | null
   createdAt: string
   updatedAt: string
   items?: OrderItemRecord[]
