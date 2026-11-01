@@ -44,22 +44,12 @@ export default function Sidebar() {
   }, [pathname])
 
   const toggleSection = (sectionId: string) => {
-    // Saat sidebar diciutkan, klik ikon modul = buka sidebar + buka modul itu
     if (isCollapsed) {
       toggleCollapsed()
       setActiveSectionId(sectionId)
       return
     }
-    setActiveSectionId(prev => {
-      const willOpen = prev !== sectionId
-      if (willOpen) {
-        setTimeout(() => {
-          sectionRefs.current[sectionId]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-        }, 120)
-        return sectionId
-      }
-      return null
-    })
+    setActiveSectionId(prev => (prev === sectionId ? null : sectionId))
   }
 
   const handleLogout = async () => {
@@ -74,20 +64,19 @@ export default function Sidebar() {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) closeSidebar()
   }
 
-  // Mode ciut hanya berlaku di desktop (lg); drawer mobile selalu lebar penuh
   const collapsed = isCollapsed
   const hideWhenCollapsed = collapsed ? 'lg:hidden' : ''
 
   const rowClass = (active: boolean) =>
     clsx(
-      'flex min-h-[46px] w-full items-center gap-3 rounded-2xl px-2 text-sm transition-colors',
+      'flex min-h-[42px] w-full items-center gap-2.5 rounded-2xl px-2.5 text-[13px] transition-colors cursor-pointer',
       collapsed && 'lg:justify-center lg:px-0',
       active ? 'bg-[#FFF1CC] font-bold text-kopi' : 'font-semibold text-[#3D3027] hover:bg-[#FFF7E3]'
     )
 
   const iconClass = (active: boolean) =>
     clsx(
-      'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
+      'flex h-7.5 w-7.5 flex-shrink-0 items-center justify-center rounded-full transition-colors',
       active ? 'bg-kuning text-kopi' : 'bg-[#FFF7E3] text-kuning-teks'
     )
 
@@ -99,149 +88,175 @@ export default function Sidebar() {
       <aside
         aria-label="Navigasi samping"
         className={clsx(
-          'fixed inset-y-0 left-0 z-50 flex w-[264px] select-none flex-col gap-3 bg-white p-3 transition-[transform,width] duration-300 ease-in-out',
+          'fixed inset-y-0 left-0 z-50 flex w-[268px] select-none flex-col justify-between gap-2 bg-white p-2.5 sm:p-3 transition-[transform,width] duration-300 ease-in-out',
           'lg:static lg:z-auto lg:h-full lg:translate-x-0 lg:rounded-[28px] lg:shadow-kartu',
-          collapsed ? 'lg:w-[84px]' : 'lg:w-[248px]',
+          collapsed ? 'lg:w-[86px]' : 'lg:w-[256px]',
           isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         )}
       >
-        {/* Blok brand: kuning + Dapi */}
-        <div
-          className={clsx(
-            'relative flex-shrink-0 overflow-hidden rounded-[22px] bg-kuning',
-            collapsed ? 'min-h-[132px] p-4 lg:h-[60px] lg:min-h-0 lg:p-0' : 'min-h-[132px] p-4'
-          )}
-        >
-          <span aria-hidden="true" className={clsx('absolute right-4 top-4 h-7 w-7 rounded-full bg-koral-terang', hideWhenCollapsed)} />
-          <DapiHead
-            size={collapsed ? 50 : 84}
-            className={clsx('absolute -bottom-4 -right-1', collapsed && 'lg:-bottom-2 lg:left-[5px] lg:right-auto')}
-          />
-          <Link href="/dashboard" onClick={onNavigate} className={clsx('relative flex flex-col gap-2', hideWhenCollapsed)}>
-            <DapurTwinLogo realFill="#FFFFFF" />
-            <span className="flex flex-col">
-              <span className="text-[11px] font-medium text-[#5A3E05]">Dapur aktif</span>
-              <span className="max-w-[130px] text-base font-bold leading-tight text-kopi">{storeName || 'Dapur Saya'}</span>
+        {/* Bagian Atas: Brand + Overview + Daftar Modul */}
+        <div className="flex flex-col gap-2 min-h-0 flex-1">
+          {/* Blok brand: kuning + Dapi Mascot */}
+          <div
+            className={clsx(
+              'relative flex-shrink-0 overflow-hidden rounded-[22px] bg-kuning',
+              collapsed
+                ? 'h-[66px] p-2 flex items-center justify-center'
+                : 'h-[80px] px-4 py-2.5 flex items-center justify-between shadow-2xs'
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={clsx('absolute right-14 top-2 h-7 w-7 rounded-full bg-koral-terang/80', hideWhenCollapsed)}
+            />
+
+            <Link
+              href="/dashboard"
+              onClick={onNavigate}
+              className={clsx('relative z-10 flex flex-col justify-center min-w-0', hideWhenCollapsed)}
+            >
+              <DapurTwinLogo realFill="#FFFFFF" />
+              <span className="text-[12px] font-bold text-kopi truncate max-w-[136px] leading-tight mt-0.5">
+                {storeName || 'Dapur Saya'}
+              </span>
+            </Link>
+
+            {/* Maskot Dapi */}
+            <div
+              className={clsx(
+                'relative flex-shrink-0 pointer-events-none',
+                collapsed ? 'flex items-center justify-center' : '-mr-3 -mb-3'
+              )}
+            >
+              <DapiHead size={collapsed ? 46 : 60} mood="senang" />
+            </div>
+
+            <button
+              type="button"
+              onClick={closeSidebar}
+              aria-label="Tutup menu navigasi"
+              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/70 text-kopi lg:hidden cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Overview Button */}
+          <Link
+            href="/dashboard"
+            onClick={onNavigate}
+            aria-current={isOverviewActive ? 'page' : undefined}
+            title={collapsed ? 'Overview' : undefined}
+            className={clsx(rowClass(isOverviewActive), 'flex-shrink-0')}
+          >
+            <span className={iconClass(isOverviewActive)}>
+              <LayoutDashboard className="h-4 w-4" />
             </span>
+            <span className={clsx('truncate', hideWhenCollapsed)}>Overview</span>
           </Link>
 
-          <button
-            type="button"
-            onClick={closeSidebar}
-            aria-label="Tutup menu navigasi"
-            className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-kopi lg:hidden"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+          {/* Label Header Modul */}
+          <div className={clsx('flex flex-shrink-0 items-center justify-between px-2 pt-0.5', hideWhenCollapsed)}>
+            <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-[#7A6A5C]">
+              Daftar Modul
+            </span>
+            <span className="text-[10px] font-semibold text-[#A89A8E]">{navSections.length} modul</span>
+          </div>
 
-        {/* Overview */}
-        <Link
-          href="/dashboard"
-          onClick={onNavigate}
-          aria-current={isOverviewActive ? 'page' : undefined}
-          title={collapsed ? 'Overview' : undefined}
-          className={clsx(rowClass(isOverviewActive), 'flex-shrink-0')}
-        >
-          <span className={iconClass(isOverviewActive)}>
-            <LayoutDashboard className="h-4 w-4" />
-          </span>
-          <span className={hideWhenCollapsed}>Overview</span>
-        </Link>
+          {/* Navigasi Modul (Semua sub-item terbuka penuh tanpa scroll terpisah) */}
+          <nav className="space-y-1 overflow-y-auto flex-1 pr-0.5 scrollbar-none">
+            {navSections.map(section => {
+              const SectionIcon = section.icon
+              const expanded = activeSectionId === section.id && !collapsed
+              const hasActiveChild = section.items.some(item => isItemActive(item.href))
 
-        <div className={clsx('flex flex-shrink-0 items-center justify-between px-2.5', hideWhenCollapsed)}>
-          <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#7A6A5C]">Daftar modul</span>
-          <span className="text-[11px] font-semibold text-[#7A6A5C]">{navSections.length} modul</span>
-        </div>
-
-        {/* Modul: dropdown, satu terbuka */}
-        <nav className="flex-1 space-y-1 overflow-y-auto pr-0.5">
-          {navSections.map(section => {
-            const SectionIcon = section.icon
-            const expanded = activeSectionId === section.id && !collapsed
-            const hasActiveChild = section.items.some(item => isItemActive(item.href))
-
-            return (
-              <div
-                key={section.id}
-                ref={el => {
-                  sectionRefs.current[section.id] = el
-                }}
-                className={clsx('rounded-2xl', expanded && 'bg-kuning-pucat')}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleSection(section.id)}
-                  aria-expanded={expanded}
-                  title={collapsed ? section.label : undefined}
-                  className={rowClass(hasActiveChild && !expanded)}
+              return (
+                <div
+                  key={section.id}
+                  ref={el => {
+                    sectionRefs.current[section.id] = el
+                  }}
+                  className={clsx('rounded-2xl transition-colors', expanded && 'bg-kuning-pucat/80')}
                 >
-                  <span className={iconClass(hasActiveChild)}>
-                    <SectionIcon className="h-4 w-4" />
-                  </span>
-                  <span className={clsx('flex-1 text-left', hideWhenCollapsed)}>{section.label}</span>
-                  <span
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.id)}
+                    aria-expanded={expanded}
+                    title={collapsed ? section.label : undefined}
+                    className={rowClass(hasActiveChild && !expanded)}
+                  >
+                    <span className={iconClass(hasActiveChild)}>
+                      <SectionIcon className="h-4 w-4" />
+                    </span>
+                    <span className={clsx('flex-1 text-left truncate', hideWhenCollapsed)}>
+                      {section.label}
+                    </span>
+                    <span
+                      className={clsx(
+                        'rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-kopi-muted ring-1 ring-krim-garis/80',
+                        hideWhenCollapsed
+                      )}
+                    >
+                      {section.items.length}
+                    </span>
+                    <ChevronDown
+                      className={clsx(
+                        'h-3.5 w-3.5 text-kopi-muted transition-transform duration-200',
+                        expanded && 'rotate-180',
+                        hideWhenCollapsed
+                      )}
+                    />
+                  </button>
+
+                  {/* Sub-menu: TAMPIL PENUH TANPA SCROLLBAR */}
+                  <div
                     className={clsx(
-                      'rounded-full bg-white px-1.5 text-[11px] font-bold text-kopi-muted ring-1 ring-krim-garis',
-                      hideWhenCollapsed
+                      'overflow-hidden transition-all duration-250 ease-in-out',
+                      expanded ? 'max-h-[320px] opacity-100 py-1' : 'max-h-0 opacity-0 py-0 pointer-events-none'
                     )}
                   >
-                    {section.items.length}
-                  </span>
-                  <ChevronDown
-                    className={clsx(
-                      'h-4 w-4 text-kopi-muted transition-transform duration-200',
-                      expanded && 'rotate-180',
-                      hideWhenCollapsed
-                    )}
-                  />
-                </button>
-
-                <div
-                  className={clsx(
-                    'overflow-hidden transition-all duration-200 ease-in-out',
-                    expanded ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
-                  )}
-                >
-                  <div className="ml-6 space-y-0.5 border-l-2 border-krim-garis py-1 pl-2 pr-1">
-                    {section.items.map(({ href, label }) => {
-                      const active = isItemActive(href)
-                      return (
-                        <Link
-                          key={href}
-                          href={href}
-                          onClick={onNavigate}
-                          tabIndex={expanded ? 0 : -1}
-                          aria-current={active ? 'page' : undefined}
-                          className={clsx(
-                            'flex min-h-[40px] items-center rounded-xl px-3 text-sm transition-colors',
-                            active ? 'bg-white font-bold text-kopi ring-2 ring-kuning' : 'text-[#3D3027] hover:bg-white'
-                          )}
-                        >
-                          <span className="truncate">{label}</span>
-                        </Link>
-                      )
-                    })}
+                    <div className="ml-5 space-y-0.5 border-l-2 border-krim-garis/90 pl-2.5 pr-1">
+                      {section.items.map(({ href, label }) => {
+                        const active = isItemActive(href)
+                        return (
+                          <Link
+                            key={href}
+                            href={href}
+                            onClick={onNavigate}
+                            tabIndex={expanded ? 0 : -1}
+                            aria-current={active ? 'page' : undefined}
+                            className={clsx(
+                              'flex min-h-[34px] items-center rounded-xl px-2.5 text-[12.5px] transition-colors',
+                              active
+                                ? 'bg-white font-bold text-kopi ring-1.5 ring-kuning shadow-2xs'
+                                : 'text-[#3D3027] hover:bg-white/80'
+                            )}
+                          >
+                            <span className="truncate">{label}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
-        </nav>
+              )
+            })}
+          </nav>
+        </div>
 
-        {/* Pengguna */}
+        {/* Bagian Bawah: Profil Pengguna */}
         <div
           className={clsx(
-            'flex flex-shrink-0 items-center gap-2.5 rounded-[18px] bg-[#FFF7E3] p-2',
+            'flex flex-shrink-0 items-center gap-2.5 rounded-[20px] bg-[#FFF7E3] p-1.5 sm:p-2 border border-[#FFE49A]/60 shadow-2xs',
             collapsed && 'lg:justify-center'
           )}
         >
-          <span className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-kuning text-[13px] font-extrabold uppercase text-kopi">
+          <span className="flex h-[35px] w-[35px] flex-shrink-0 items-center justify-center rounded-full bg-kuning text-xs font-extrabold uppercase text-kopi shadow-2xs">
             {(user?.email || 'A').charAt(0)}
           </span>
           <span className={clsx('flex min-w-0 flex-1 flex-col', hideWhenCollapsed)}>
-            <span className="truncate text-[13px] font-bold">{user?.email || 'Admin'}</span>
-            <span className="text-xs text-kopi-muted">Sesi aktif</span>
+            <span className="truncate text-xs font-bold text-slate-800">{user?.email || 'Admin'}</span>
+            <span className="text-[10px] text-kopi-muted font-medium">Sesi aktif</span>
           </span>
           <button
             type="button"
@@ -249,7 +264,7 @@ export default function Sidebar() {
             aria-label="Keluar"
             title="Keluar"
             className={clsx(
-              'flex h-[38px] w-[38px] items-center justify-center rounded-full text-kopi-muted hover:bg-white hover:text-koral',
+              'flex h-[34px] w-[34px] items-center justify-center rounded-full text-kopi-muted hover:bg-white hover:text-koral transition-colors cursor-pointer',
               hideWhenCollapsed
             )}
           >
