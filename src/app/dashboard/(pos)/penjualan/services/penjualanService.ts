@@ -22,6 +22,9 @@ interface RawOrderDB {
   profit: number | string
   cashier_name: string
   notes?: string | null
+  cash_received?: number | string | null
+  change_amount?: number | string | null
+  midtrans_order_id?: string | null
   created_at: string
   updated_at: string
   order_items?: RawOrderItemDB[] | null
@@ -79,6 +82,9 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
     profit: Number(row.profit) || 0,
     cashierName: row.cashier_name,
     notes: row.notes,
+    cashReceived: row.cash_received == null ? null : Number(row.cash_received),
+    changeAmount: row.change_amount == null ? null : Number(row.change_amount),
+    midtransOrderId: row.midtrans_order_id ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     items,
@@ -86,13 +92,22 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
 }
 
 export const penjualanService = {
-  // Ambil menu aktif beserta komposisi resepnya langsung dari Supabase
   async getKatalogMenu(): Promise<MenuItem[]> {
     const menus = await menuService.getAll()
     return menus.filter(m => m.isActive)
   },
 
-  // Ambil transaksi penjualan terkini milik user
+  // Stok semua bahan: { [bahanId]: stok }
+  async getStokBahan(): Promise<Record<string, number>> {
+    const supabase = createClient()
+    const { data, error } = await supabase.from('bahan').select('id, stok')
+    if (error) {
+      console.warn('Error fetching stok bahan:', error)
+      return {}
+    }
+    return Object.fromEntries((data || []).map(b => [b.id as string, Number(b.stok) || 0]))
+  },
+
   async getRecentOrders(limit = 10): Promise<OrderRecord[]> {
     const supabase = createClient()
     const { data, error } = await supabase
@@ -106,17 +121,30 @@ export const penjualanService = {
       return []
     }
 
-    return (data as RawOrderDB[] || []).map(mapOrderFromDB)
+    return ((data as RawOrderDB[]) || []).map(mapOrderFromDB)
   },
 
-  // Simpan transaksi penjualan kasir (POS)
-  // 1. Simpan order ke orders
-  // 2. Simpan setiap item ke order_items
-  // 3. Potong stok bahan baku sesuai komposisi resep
-  // 4. Catat mutasi keluar (-) di stok_logs
+  // 1. Validasi stok  2. Simpan order  3. Simpan item  4. Potong stok  5. Catat stok_logs
   async createPenjualan(cart: CartItem[], form: CheckoutFormInput): Promise<OrderRecord> {
     if (cart.length === 0) {
       throw new Error('Keranjang belanja masih kosong.')
+    }
+
+    // Validasi stok terbaru langsung dari database
+    const need = new Map<string, { namaBahan: string; qty: number }>()
+    for (const item of cart) {
+      for (const r of item.resep || []) {
+        const cur = need.get(r.bahanId)
+        const add = r.qty * item.cartQty
+        if (cur) cur.qty += add
+        else need.set(r.bahanId, { namaBahan: r.namaBahan, qty: add })
+      }
+    }
+    const stokNow = await penjualanService.getStokBahan()
+    for (const [id, { namaBahan, qty }] of Array.from(need.entries())) {
+      if ((stokNow[id] ?? 0) + 1e-9 < qty) {
+        throw new Error(`Stok ${namaBahan} tidak cukup untuk pesanan ini. Muat ulang halaman lalu kurangi porsinya.`)
+      }
     }
 
     const supabase = createClient()
@@ -127,14 +155,12 @@ export const penjualanService = {
     }
     const userId = sessionData.session.user.id
 
-    // Hitung akumulasi angka
     const subtotal = cart.reduce((s, c) => s + c.hargaJual * c.cartQty, 0)
     const totalHPP = cart.reduce((s, c) => s + c.hpp * c.cartQty, 0)
     const discount = form.discount || 0
     const totalPrice = Math.max(0, subtotal - discount)
     const profit = totalPrice - totalHPP
 
-    // Generate Invoice Number Unik
     const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
     const randCode = Math.floor(100 + Math.random() * 900)
     const invoiceNumber = `INV/${todayStr}/${randCode}`
@@ -146,7 +172,7 @@ export const penjualanService = {
     const cashierName = form.cashierName || 'Kasir Dapur'
     const notes = form.notes?.trim() || null
 
-    // 1. Insert ke tabel orders
+    // 1. orders
     const { data: orderData, error: orderErr } = await supabase
       .from('orders')
       .insert({
@@ -166,6 +192,9 @@ export const penjualanService = {
         profit,
         cashier_name: cashierName,
         notes,
+        cash_received: form.cashReceived ?? null,
+        change_amount: form.changeAmount ?? null,
+        midtrans_order_id: form.midtransOrderId ?? null,
       })
       .select('*')
       .single()
@@ -177,7 +206,7 @@ export const penjualanService = {
 
     const orderId = orderData.id
 
-    // 2. Insert order_items
+    // 2. order_items
     const orderItemsPayload = cart.map(c => ({
       user_id: userId,
       order_id: orderId,
@@ -198,30 +227,18 @@ export const penjualanService = {
       console.error('Error insert order_items:', itemsErr)
     }
 
-    // 3. Potong stok bahan baku & catat stok_logs
-    // Kita agregasikan total kebutuhan bahan dari semua menu yang dibeli di cart
+    // 3. Potong stok + stok_logs
     const bahanDeductionMap = new Map<string, { namaBahan: string; qtyToDeduct: number }>()
-
     for (const item of cart) {
-      if (item.resep && item.resep.length > 0) {
-        for (const r of item.resep) {
-          const totalBahanNeeded = r.qty * item.cartQty
-          const existing = bahanDeductionMap.get(r.bahanId)
-          if (existing) {
-            existing.qtyToDeduct += totalBahanNeeded
-          } else {
-            bahanDeductionMap.set(r.bahanId, {
-              namaBahan: r.namaBahan,
-              qtyToDeduct: totalBahanNeeded,
-            })
-          }
-        }
+      for (const r of item.resep || []) {
+        const totalBahanNeeded = r.qty * item.cartQty
+        const existing = bahanDeductionMap.get(r.bahanId)
+        if (existing) existing.qtyToDeduct += totalBahanNeeded
+        else bahanDeductionMap.set(r.bahanId, { namaBahan: r.namaBahan, qtyToDeduct: totalBahanNeeded })
       }
     }
 
-    // Eksekusi pemotongan stok & pencatatan mutasi
-    for (const [bahanId, { namaBahan, qtyToDeduct }] of Array.from(bahanDeductionMap.entries())) {
-      // Ambil stok bahan saat ini
+    for (const [bahanId, { qtyToDeduct }] of Array.from(bahanDeductionMap.entries())) {
       const { data: bhn } = await supabase
         .from('bahan')
         .select('stok, satuan')
@@ -233,20 +250,15 @@ export const penjualanService = {
         const roundedDeduct = Number(qtyToDeduct.toFixed(3))
         const newStock = Number((currentStock - roundedDeduct).toFixed(3))
 
-        // Update stok fisik
         await supabase
           .from('bahan')
-          .update({
-            stok: newStock,
-            updated_at: new Date().toISOString(),
-          })
+          .update({ stok: newStock, updated_at: new Date().toISOString() })
           .eq('id', bahanId)
 
-        // Catat ke stok_logs (sumber: Penjualan)
         await supabase.from('stok_logs').insert({
           user_id: userId,
           bahan_id: bahanId,
-          perubahan: -roundedDeduct, // Nilai negatif untuk mutasi keluar
+          perubahan: -roundedDeduct,
           stok_sebelum: currentStock,
           stok_sesudah: newStock,
           sumber: 'Penjualan',
@@ -256,9 +268,6 @@ export const penjualanService = {
       }
     }
 
-    return mapOrderFromDB({
-      ...orderData,
-      order_items: itemsData || [],
-    })
+    return mapOrderFromDB({ ...orderData, order_items: itemsData || [] })
   },
 }
