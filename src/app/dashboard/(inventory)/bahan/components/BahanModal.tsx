@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bahan, BahanFormData, Supplier } from '../types'
 import { DEFAULT_SATUAN_LIST } from '@/lib/satuan'
-import { Loader2, PlusCircle, Camera, X, Upload } from 'lucide-react'
+import { Loader2, PlusCircle, Camera, X, Upload, PackagePlus, Edit3 } from 'lucide-react'
 import CustomSelect from '@/components/ui/CustomSelect'
+import DapiHead from '@/components/ui/DapiHead'
 
 interface BahanModalProps {
   isOpen: boolean
@@ -24,6 +25,9 @@ const emptyForm: BahanFormData = {
   foto: null,
 }
 
+const INPUT_STYLE =
+  'w-full px-4 py-2.5 rounded-2xl bg-[#FFF9EC] border border-[#FFE49A]/60 text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FFB800]/70 transition shadow-2xs'
+
 export default function BahanModal({
   isOpen,
   onClose,
@@ -41,7 +45,9 @@ export default function BahanModal({
 
   useEffect(() => {
     if (editingBahan) {
-      const isPredefined = DEFAULT_SATUAN_LIST.includes(editingBahan.satuan as unknown as typeof DEFAULT_SATUAN_LIST[number])
+      const isPredefined = DEFAULT_SATUAN_LIST.includes(
+        editingBahan.satuan as unknown as (typeof DEFAULT_SATUAN_LIST)[number]
+      )
       setForm({
         nama: editingBahan.nama,
         satuan: editingBahan.satuan,
@@ -80,13 +86,12 @@ export default function BahanModal({
     }
   }
 
-  /** Baca file foto → data URL → simpan ke form & preview */
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      setErrorMsg('File harus berupa gambar (JPG, PNG, WebP, dll.)')
+      setErrorMsg('File harus berupa gambar (JPG, PNG, WebP)')
       return
     }
 
@@ -135,28 +140,47 @@ export default function BahanModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="clay-card p-6 w-full max-w-lg mx-auto space-y-4 max-h-[90vh] overflow-y-auto">
-        <h3 className="text-base font-extrabold text-slate-800">
-          {editingBahan ? 'Edit Data Bahan' : 'Tambah Bahan Baru'}
-        </h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1D00]/45 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white rounded-[32px] shadow-2xl p-6 sm:p-7 w-full max-w-lg mx-auto space-y-4 max-h-[92vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 my-auto">
+        {/* Header Modal */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#FFF6D6] border border-[#FFE49A] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-xs">
+              <DapiHead size={34} mood="senang" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 leading-tight">
+                {editingBahan ? 'Edit Bahan Baku' : 'Tambah Bahan Baku Baru'}
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {editingBahan ? 'Perbarui satuan, harga beli, atau stok bahan' : 'Daftarkan bahan baku ke sistem inventaris dapur'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
         {errorMsg && (
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+          <div className="p-3.5 rounded-2xl bg-[#FDE8E4] border border-[#FAD3CB] text-[#B3361B] text-xs font-medium">
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-
-          {/* ── Upload Foto ── */}
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {/* Upload Foto */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 mb-1.5">
+            <label className="block text-[11px] font-bold text-slate-600 mb-1.5 px-1">
               Foto Bahan (Opsional)
             </label>
 
             {fotoPreview ? (
-              <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-[#EBE3D7] bg-[#F7F5F0]">
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-[#FFE49A] bg-[#FFF9EC] shadow-xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={fotoPreview}
@@ -166,16 +190,17 @@ export default function BahanModal({
                 <button
                   type="button"
                   onClick={handleRemoveFoto}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-rose-600 text-white hover:bg-rose-700 shadow-md transition-colors"
+                  className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-[#D8431F] text-white hover:bg-[#BF3818] shadow-md transition-colors cursor-pointer"
+                  title="Hapus foto"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 text-xs font-bold text-slate-700 hover:bg-white shadow-md transition-colors"
+                  className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 text-xs font-bold text-slate-700 hover:bg-white shadow-md transition-colors cursor-pointer"
                 >
-                  <Camera className="w-3.5 h-3.5" />
+                  <Camera className="w-3.5 h-3.5 text-[#D8431F]" />
                   Ganti Foto
                 </button>
               </div>
@@ -183,11 +208,15 @@ export default function BahanModal({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full aspect-video rounded-2xl border-2 border-dashed border-[#D9CDBF] hover:border-[#FF8F2B] bg-[#F7F5F0] hover:bg-[#FFF6EC] transition-colors flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-[#FF8F2B]"
+                className="w-full aspect-video rounded-2xl border-2 border-dashed border-[#FFE49A] hover:border-[#FFB800] bg-[#FFFBF2] hover:bg-[#FFF6E5] transition-colors flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-[#D8431F] cursor-pointer group"
               >
-                <Upload className="w-7 h-7" />
-                <span className="text-[11px] font-semibold">Klik untuk upload foto bahan</span>
-                <span className="text-[10px]">JPG, PNG, WebP — maks. 5MB</span>
+                <div className="w-10 h-10 rounded-full bg-white shadow-2xs flex items-center justify-center text-slate-400 group-hover:text-[#D8431F] transition-colors">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div className="text-center">
+                  <span className="text-xs font-bold text-slate-700 block">Klik untuk upload foto bahan</span>
+                  <span className="text-[10px] text-slate-400">JPG, PNG, atau WebP</span>
+                </div>
               </button>
             )}
 
@@ -200,10 +229,10 @@ export default function BahanModal({
             />
           </div>
 
-          {/* ── Nama Bahan ── */}
+          {/* Nama Bahan */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 mb-1">
-              Nama Bahan
+            <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
+              Nama Bahan Baku
             </label>
             <input
               type="text"
@@ -211,14 +240,14 @@ export default function BahanModal({
               onChange={e => setForm(p => ({ ...p, nama: e.target.value }))}
               placeholder="Contoh: Tepung Terigu Segitiga Biru"
               required
-              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+              className={INPUT_STYLE}
             />
           </div>
 
-          {/* ── Satuan ── */}
+          {/* Satuan Bahan */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-[11px] font-bold text-slate-500">
+            <div className="flex items-center justify-between mb-1 px-1">
+              <label className="block text-[11px] font-bold text-slate-600">
                 Satuan Dasar Bahan
               </label>
               <button
@@ -229,7 +258,7 @@ export default function BahanModal({
                     setCustomSatuanText(form.satuan)
                   }
                 }}
-                className="text-[11px] font-semibold text-[#FF8F2B] hover:text-[#E67215] flex items-center gap-1 cursor-pointer"
+                className="text-[11px] font-semibold text-[#D8431F] hover:text-[#BF3818] flex items-center gap-1 cursor-pointer"
               >
                 <PlusCircle className="w-3 h-3" />
                 {isCustomSatuan ? 'Pilih Satuan Standar' : '+ Satuan Kustom'}
@@ -245,8 +274,8 @@ export default function BahanModal({
                   setCustomSatuanText(e.target.value)
                   setForm(p => ({ ...p, satuan: e.target.value }))
                 }}
-                placeholder="Ketik satuan baru (contoh: ikat, karton, galon...)"
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+                placeholder="Ketik satuan baru (contoh: ikat, karton, porsi, galon...)"
+                className={INPUT_STYLE}
               />
             ) : (
               <CustomSelect
@@ -267,66 +296,69 @@ export default function BahanModal({
                         ? 'Mililiter'
                         : undefined,
                   })),
-                  { value: '__custom__', label: '+ Satuan Lainnya...' },
+                  { value: '__custom__', label: '+ Satuan Kustom Lainnya...' },
                 ]}
               />
             )}
           </div>
 
-          {/* ── Harga ── */}
+          {/* Harga Satuan */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 mb-1">
+            <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
               Harga per Satuan (Rp / {isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
             </label>
             <input
               type="number"
               min="0"
-              value={form.hargaPerSatuan}
+              value={form.hargaPerSatuan || ''}
               onChange={e =>
                 setForm(p => ({ ...p, hargaPerSatuan: Number(e.target.value) }))
               }
-              className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono font-bold"
+              placeholder="0"
+              className={`${INPUT_STYLE} font-mono font-bold text-slate-900`}
             />
           </div>
 
-          {/* ── Stok ── */}
+          {/* Stok Saat Ini & Min. Stok */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
                 Stok Saat Ini ({isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
               </label>
               <input
                 type="number"
                 step="any"
                 min="0"
-                value={form.stok}
+                value={form.stok ?? ''}
                 onChange={e =>
                   setForm(p => ({ ...p, stok: Number(e.target.value) }))
                 }
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono font-bold"
+                placeholder="0"
+                className={`${INPUT_STYLE} font-mono font-extrabold text-slate-900`}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                Min. Stok Alarm ({isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
+                Batas Aman / Min ({isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
               </label>
               <input
                 type="number"
                 step="any"
                 min="0"
-                value={form.stokMinimum}
+                value={form.stokMinimum ?? ''}
                 onChange={e =>
                   setForm(p => ({ ...p, stokMinimum: Number(e.target.value) }))
                 }
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono"
+                placeholder="0"
+                className={`${INPUT_STYLE} font-mono text-slate-800`}
               />
             </div>
           </div>
 
-          {/* ── Supplier ── */}
+          {/* Supplier */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 mb-1">
-              Supplier Terkait (Opsional)
+            <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
+              Supplier Rekanan (Opsional)
             </label>
             <CustomSelect
               value={form.supplierId}
@@ -343,23 +375,29 @@ export default function BahanModal({
             />
           </div>
 
-          {/* ── Actions ── */}
-          <div className="flex gap-3 pt-3">
+          {/* Tombol Aksi */}
+          <div className="flex gap-2.5 pt-3">
             <button
               type="button"
               disabled={isSubmitting}
               onClick={onClose}
-              className="flex-1 py-2.5 clay-btn text-xs font-bold text-slate-600 disabled:opacity-50 cursor-pointer"
+              className="flex-1 py-3 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-xs font-bold text-slate-700 cursor-pointer transition-colors disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-2.5 clay-btn-primary text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              className="flex-[2] py-3 rounded-full bg-[#D8431F] hover:bg-[#BF3818] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50 shadow-xs"
             >
-              {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Simpan</span>
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : editingBahan ? (
+                <Edit3 className="w-4 h-4" />
+              ) : (
+                <PackagePlus className="w-4 h-4" />
+              )}
+              <span>{editingBahan ? 'Simpan Perubahan' : 'Daftarkan Bahan'}</span>
             </button>
           </div>
         </form>
