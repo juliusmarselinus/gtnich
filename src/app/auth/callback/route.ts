@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { sendLoginNotificationEmail } from '@/lib/resend'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -100,6 +101,18 @@ export async function GET(request: Request) {
             },
             { onConflict: 'id' }
           )
+
+          // Kirim email notifikasi login Google via Resend
+          if (user.email) {
+            sendLoginNotificationEmail({
+              email: user.email,
+              userName: fullName || user.email.split('@')[0],
+              loginMethod: 'Google OAuth',
+              loginTime: new Date(),
+            }).catch((emailErr) => {
+              console.warn('Gagal kirim email notifikasi Google login:', emailErr)
+            })
+          }
         }
       } catch (profileErr) {
         console.warn('Gagal sync profile Google OAuth:', profileErr)

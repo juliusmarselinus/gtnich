@@ -196,6 +196,18 @@ export default function LoginPage() {
           }
 
           setIsSuccess(true)
+
+          // Picu notifikasi email login via Resend (non-blocking)
+          fetch('/api/notify-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: cleanEmail,
+              userName: resolvedName,
+              loginMethod: 'Pendaftaran Akun Baru',
+            }),
+          }).catch(() => {})
+
           await new Promise((r) => setTimeout(r, 600))
           router.push('/dashboard')
         } else {
@@ -203,7 +215,7 @@ export default function LoginPage() {
           setIsSignUp(false)
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error, data } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
           password: cleanPassword,
         })
@@ -212,6 +224,18 @@ export default function LoginPage() {
           setErrorMessage(friendlyError(error.message))
         } else {
           setIsSuccess(true)
+
+          // Picu notifikasi email login via Resend (non-blocking)
+          fetch('/api/notify-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: cleanEmail,
+              userName: data.user?.user_metadata?.full_name || cleanEmail.split('@')[0],
+              loginMethod: 'Email & Kata Sandi',
+            }),
+          }).catch(() => {})
+
           await new Promise((r) => setTimeout(r, 700)) // biar senyum Dapi kelihatan dulu
           router.push('/dashboard')
           router.refresh()

@@ -200,10 +200,49 @@ export const purchaseOrderService = {
       throw new Error(`Gagal menyimpan item PO: ${itemsErr.message}`)
     }
 
-    return mapPOFromDB({
+    const createdPO = mapPOFromDB({
       ...poData,
       po_items: itemsData,
     })
+
+    // Kirim notifikasi Purchase Order ke email pengguna via Resend (non-blocking)
+    try {
+      const userEmail = sessionData.session.user.email
+      if (userEmail) {
+        // Ambil nama profil & toko
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, store_name')
+          .eq('id', userId)
+          .maybeSingle()
+
+        fetch('/api/notify-po', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: userEmail,
+            storeName: profile?.store_name || sessionData.session.user.user_metadata?.store_name,
+            ownerName: profile?.full_name || sessionData.session.user.user_metadata?.full_name,
+            noPO: noPO,
+            supplierName: input.namaSupplier || 'Tanpa Supplier (Beli Langsung)',
+            totalEstimasi: totalEstimasi,
+            items: input.items.map((i) => ({
+              namaBahan: i.namaBahan,
+              qty: i.qty,
+              satuan: i.satuan,
+              hargaEstimasi: i.hargaEstimasi,
+            })),
+            catatan: input.catatan?.trim() || null,
+          }),
+        }).catch((err) => {
+          console.warn('Gagal memicu email notifikasi PO:', err)
+        })
+      }
+    } catch (emailErr) {
+      console.warn('Error async kirim email PO:', emailErr)
+    }
+
+    return createdPO
   },
 
   // Perbarui Status PO (misal: 'draft' -> 'dikirim' -> 'diterima' -> 'tagihan')
