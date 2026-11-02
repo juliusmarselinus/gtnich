@@ -44,10 +44,19 @@ function mapBahanFromDB(row: RawBahanDB): Bahan {
 export const bahanService = {
   async getAll(): Promise<Bahan[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('bahan')
       .select('*, suppliers(id, nama)')
       .order('created_at', { ascending: false })
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching bahan:', {
@@ -64,10 +73,19 @@ export const bahanService = {
 
   async getSuppliers(): Promise<Supplier[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('suppliers')
       .select('id, nama, kategori, telepon')
       .order('nama', { ascending: true })
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.warn('Suppliers note:', error.message)

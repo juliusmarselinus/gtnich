@@ -94,8 +94,8 @@ export function useKondisiBahan() {
   const counts = useMemo(() => {
     const segar = list.filter(b => b.aiStatusFreshness === 'segar').length
     const mendekati = list.filter(b => b.aiStatusFreshness === 'mendekati_expire').length
-    const expired = list.filter(b => b.aiStatusFreshness === 'kadaluarsa').length
-    const lowStock = list.filter(b => b.stok <= b.stokMinimum).length
+    const expired = list.filter(b => b.aiStatusFreshness === 'kadaluarsa' || b.expiredBatchesCount > 0).length
+    const lowStock = list.filter(b => b.totalStok <= b.stokMinimum).length
 
     return {
       total: list.length,

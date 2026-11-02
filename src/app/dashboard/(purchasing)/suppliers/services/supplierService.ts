@@ -107,25 +107,39 @@ export const supplierService = {
     return data as SupplierCategory
   },
 
-  // Ambil semua supplier (dengan relasi kategori dan riwayat)
+  // Ambil semua supplier milik user (dengan relasi kategori dan riwayat)
   async getAll(): Promise<Supplier[]> {
     const supabase = createClient()
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
 
     // Coba query dengan join supplier_categories
-    const withJoin = await supabase
+    let joinQuery = supabase
       .from('suppliers')
       .select('*, supplier_categories(id, nama, deskripsi), supplier_riwayat(*)')
       .order('created_at', { ascending: false })
+
+    if (userId) {
+      joinQuery = joinQuery.eq('user_id', userId)
+    }
+
+    const withJoin = await joinQuery
 
     if (!withJoin.error && withJoin.data) {
       return (withJoin.data as RawSupplierDB[]).map(mapSupplierFromDB)
     }
 
     // Fallback jika migrasi FK supplier_categories belum dijalankan di DB
-    const fallback = await supabase
+    let fallbackQuery = supabase
       .from('suppliers')
       .select('*, supplier_riwayat(*)')
       .order('created_at', { ascending: false })
+
+    if (userId) {
+      fallbackQuery = fallbackQuery.eq('user_id', userId)
+    }
+
+    const fallback = await fallbackQuery
 
     if (fallback.error) {
       console.error('Error fetching suppliers:', fallback.error)

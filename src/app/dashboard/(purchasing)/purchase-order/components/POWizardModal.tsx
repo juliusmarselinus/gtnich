@@ -8,7 +8,6 @@ import { Plus, X, Loader2, CheckCircle2, AlertCircle, Building2, ExternalLink, S
 import clsx from 'clsx'
 import CustomSelect from '@/components/ui/CustomSelect'
 import { getCompatibleOrderUnits, getUnitConversionFactor, DEFAULT_SATUAN_LIST } from '@/lib/satuan'
-import { bahanList as mockBahanList, suppliers as mockSuppliers } from '@/lib/dapur-data'
 import QuickAddSupplierModal from './QuickAddSupplierModal'
 import QuickAddBahanModal from './QuickAddBahanModal'
 
@@ -32,35 +31,18 @@ export default function POWizardModal({
   onBahanCreated,
 }: POWizardModalProps) {
   const [step, setStep] = useState(1)
-  const [suppliers, setSuppliers] = useState<SupplierOption[]>(() => {
-    if (initialSuppliers && initialSuppliers.length > 0) return initialSuppliers
-    return mockSuppliers.map(s => ({
-      id: s.id,
-      nama: s.nama,
-      kategori: s.kategori || undefined,
-      minimalOrder: s.minimalOrder || 0,
-    }))
-  })
-  const [bahanList, setBahanList] = useState<BahanOption[]>(() => {
-    if (initialBahanList && initialBahanList.length > 0) return initialBahanList
-    return mockBahanList.map(b => ({
-      id: b.id,
-      nama: b.nama,
-      satuan: b.satuan,
-      hargaPerSatuan: b.hargaPerSatuan || 0,
-      stok: b.stok || 0,
-    }))
-  })
+  const [suppliers, setSuppliers] = useState<SupplierOption[]>(() => initialSuppliers || [])
+  const [bahanList, setBahanList] = useState<BahanOption[]>(() => initialBahanList || [])
 
   // Sinkronkan state lokal saat props initialSuppliers atau initialBahanList ter-load dari database
   useEffect(() => {
-    if (initialSuppliers && initialSuppliers.length > 0) {
+    if (initialSuppliers) {
       setSuppliers(initialSuppliers)
     }
   }, [initialSuppliers])
 
   useEffect(() => {
-    if (initialBahanList && initialBahanList.length > 0) {
+    if (initialBahanList) {
       setBahanList(initialBahanList)
     }
   }, [initialBahanList])

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, X, Loader2, Building2 } from 'lucide-react'
 import { SupplierOption } from '../types'
+import { supplierService } from '@/app/dashboard/(purchasing)/suppliers/services/supplierService'
 
 interface QuickAddSupplierModalProps {
   isOpen: boolean
@@ -24,7 +25,7 @@ export default function QuickAddSupplierModal({
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const cleanNama = nama.trim()
     if (!cleanNama) {
@@ -36,15 +37,22 @@ export default function QuickAddSupplierModal({
     setErrorMsg(null)
 
     try {
-      // Buat supplier lokal instan untuk form modal tanpa ketergantungan database
-      const newSupplier: SupplierOption = {
-        id: `custom_sup_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      // Simpan langsung ke database Supabase via supplierService
+      const savedSupplier = await supplierService.create({
         nama: cleanNama,
-        kategori: alamat.trim() || undefined,
+        telepon: telepon.trim() || '-',
+        alamat: alamat.trim() || '-',
         minimalOrder: minimalOrder || 0,
+      })
+
+      const newOption: SupplierOption = {
+        id: savedSupplier.id,
+        nama: savedSupplier.nama,
+        kategori: savedSupplier.kategoriNama || alamat.trim() || undefined,
+        minimalOrder: savedSupplier.minimalOrder || 0,
       }
 
-      onCreated(newSupplier)
+      onCreated(newOption)
       // Reset input form
       setNama('')
       setTelepon('')
@@ -53,7 +61,7 @@ export default function QuickAddSupplierModal({
       onClose()
     } catch (err: unknown) {
       const e = err as Error
-      setErrorMsg(e.message || 'Gagal menambahkan supplier.')
+      setErrorMsg(e.message || 'Gagal menambahkan supplier ke database.')
     } finally {
       setIsSubmitting(false)
     }

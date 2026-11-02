@@ -36,13 +36,22 @@ function formatDate(isoStr: string): string {
 }
 
 export const stokLogService = {
-  // Ambil data bahan aktif untuk opname & mutasi
+  // Ambil data bahan aktif milik user untuk opname & mutasi
   async getBahanList(): Promise<BahanSimple[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('bahan')
       .select('id, code, nama, satuan, stok')
       .order('nama', { ascending: true })
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching bahan for stok log:', error)
@@ -58,13 +67,22 @@ export const stokLogService = {
     }))
   },
 
-  // Ambil riwayat log mutasi
+  // Ambil riwayat log mutasi milik user
   async getLogs(): Promise<StokLog[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('stok_logs')
       .select('*, bahan(id, nama, satuan, code)')
       .order('created_at', { ascending: false })
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching stok_logs:', error)

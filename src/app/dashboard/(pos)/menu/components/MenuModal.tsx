@@ -163,10 +163,10 @@ export default function MenuModal({
     return true
   }
 
-  // Handle pencarian komposisi resep via 9Router AI
+  // Handle pencarian komposisi resep via Asisten AI Dapur
   const handleSearchKomposisiAI = async () => {
     if (!form.nama.trim()) {
-      setErrorMsg('Isi nama menu terlebih dahulu untuk mencari komposisi via AI.')
+      setErrorMsg('Isi nama menu terlebih dahulu untuk mencari takaran komposisi via AI.')
       return
     }
 
@@ -175,12 +175,12 @@ export default function MenuModal({
     setAiSuccessMsg(null)
 
     try {
-      // 1. Panggil 9Router AI endpoint
+      // 1. Panggil Asisten AI endpoint
       const fetchSearch = searchResepAI || menuService.searchResepAI
       const aiData = await fetchSearch(form.nama.trim(), currentBahanList)
 
       if (!aiData.items || aiData.items.length === 0) {
-        setErrorMsg('AI tidak menemukan komposisi bahan yang sesuai untuk menu ini.')
+        setErrorMsg('Asisten AI belum menemukan takaran bahan yang pas untuk menu ini.')
         return
       }
 
@@ -212,13 +212,13 @@ export default function MenuModal({
       }))
 
       const createdNote = newlyCreatedBahan.length > 0
-        ? ` (${newlyCreatedBahan.length} bahan baru didaftarkan ke master dapur)`
+        ? ` (${newlyCreatedBahan.length} bahan otomatis ditambahkan ke daftar bahan dapur)`
         : ''
-      setAiSuccessMsg(`Berhasil menemukan ${resolvedResep.length} bahan komposisi via 9Router untuk "${form.nama.trim()}"${createdNote}.`)
+      setAiSuccessMsg(`Berhasil menyiapkan ${resolvedResep.length} bahan komposisi resep untuk "${form.nama.trim()}"${createdNote}.`)
     } catch (err: unknown) {
       const e = err as Error
       console.error('Error searching AI recipe:', e)
-      setErrorMsg(e.message || 'Gagal mencari komposisi bahan via 9Router AI.')
+      setErrorMsg(e.message || 'Gagal mencari komposisi bahan via Asisten AI.')
     } finally {
       setIsSearchingAI(false)
     }
@@ -358,19 +358,19 @@ export default function MenuModal({
             </div>
           </div>
 
-          {/* Opsi Bantuan AI 9Router: Muncul HANYA ketika pengguna sudah mengisi judul/nama menu */}
+          {/* Bantuan AI Komposisi Resep */}
           {form.nama.trim().length > 0 && (
-            <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50/90 to-teal-50/90 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in-50">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0 text-white shadow-sm">
+            <div className="p-3.5 rounded-2xl clay-card border border-[#F2E3D0] bg-[#FFFBF5] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in-50">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-[#FFF6EC] border border-[#FFE2C2] text-[#FF8F28] flex items-center justify-center flex-shrink-0 shadow-xs">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-emerald-950 truncate">
-                    Cari Komposisi via AI (9Router)
+                  <p className="text-xs font-bold text-slate-800 truncate">
+                    Bantuan AI Komposisi Resep
                   </p>
-                  <p className="text-[11px] text-emerald-700 truncate">
-                    Otomatis cari takaran & masukkan bahan baku untuk &ldquo;{form.nama.trim()}&rdquo;
+                  <p className="text-[11px] text-slate-500 truncate">
+                    Otomatis buat takaran & bahan yang dibutuhkan untuk &ldquo;{form.nama.trim()}&rdquo;
                   </p>
                 </div>
               </div>
@@ -378,12 +378,12 @@ export default function MenuModal({
                 type="button"
                 onClick={handleSearchKomposisiAI}
                 disabled={isSearchingAI || isSubmitting}
-                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-sm flex-shrink-0"
+                className="px-4 py-2 clay-btn-primary active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-xs flex-shrink-0"
               >
                 {isSearchingAI ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Mencari via 9Router...</span>
+                    <span>Mencari takaran resep...</span>
                   </>
                 ) : (
                   <>

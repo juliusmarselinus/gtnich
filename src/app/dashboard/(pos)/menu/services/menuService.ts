@@ -319,7 +319,7 @@ export const menuService = {
 
     const json = await res.json()
     if (!res.ok || !json.success) {
-      throw new Error(json.error || 'Gagal mencari komposisi resep via 9Router AI')
+      throw new Error(json.error || 'Gagal mencari komposisi resep via Asisten AI')
     }
 
     return json.data

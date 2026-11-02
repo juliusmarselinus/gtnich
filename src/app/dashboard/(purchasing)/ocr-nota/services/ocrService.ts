@@ -57,7 +57,7 @@ export const ocrService = {
       const existingNames = existingBahanList.map(b => b.nama)
       formData.append('existingBahan', existingNames.join(', '))
 
-      if (onProgress) onProgress(50, 'Menganalisis nota via 9Router (Gemini 3.1 Flash Lite)...')
+      if (onProgress) onProgress(50, 'Menganalisis nota belanja bahan dapur...')
 
       const response = await fetch('/dashboard/ocr-nota/api', {
         method: 'POST',

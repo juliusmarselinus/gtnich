@@ -5,6 +5,7 @@ import { Plus, X, Loader2, Package } from 'lucide-react'
 import { BahanOption } from '../types'
 import { DEFAULT_SATUAN_LIST } from '@/lib/satuan'
 import CustomSelect from '@/components/ui/CustomSelect'
+import { bahanService } from '@/app/dashboard/(inventory)/bahan/services/bahanService'
 
 interface QuickAddBahanModalProps {
   isOpen: boolean
@@ -17,6 +18,7 @@ export default function QuickAddBahanModal({
   isOpen,
   onClose,
   onCreated,
+  defaultSupplierId,
 }: QuickAddBahanModalProps) {
   const [nama, setNama] = useState('')
   const [satuan, setSatuan] = useState('kg')
@@ -27,7 +29,7 @@ export default function QuickAddBahanModal({
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const cleanNama = nama.trim()
     if (!cleanNama) {
@@ -44,16 +46,26 @@ export default function QuickAddBahanModal({
     setErrorMsg(null)
 
     try {
-      // Buat bahan lokal instan untuk form modal tanpa ketergantungan database
-      const newBahan: BahanOption = {
-        id: `custom_bhn_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      // Simpan langsung ke database Supabase via bahanService
+      const savedBahan = await bahanService.create({
         nama: cleanNama,
         satuan: satuan || 'kg',
         hargaPerSatuan: Number(hargaPerSatuan) || 0,
         stok: Number(stokAwal) || 0,
+        stokMinimum: 0,
+        supplierId: defaultSupplierId || '',
+        foto: null,
+      })
+
+      const newOption: BahanOption = {
+        id: savedBahan.id,
+        nama: savedBahan.nama,
+        satuan: savedBahan.satuan,
+        hargaPerSatuan: savedBahan.hargaPerSatuan || 0,
+        stok: savedBahan.stok || 0,
       }
 
-      onCreated(newBahan)
+      onCreated(newOption)
       // Reset input form
       setNama('')
       setSatuan('kg')
@@ -62,7 +74,7 @@ export default function QuickAddBahanModal({
       onClose()
     } catch (err: unknown) {
       const e = err as Error
-      setErrorMsg(e.message || 'Gagal menambahkan bahan baku.')
+      setErrorMsg(e.message || 'Gagal menambahkan bahan baku ke database.')
     } finally {
       setIsSubmitting(false)
     }

@@ -10,7 +10,6 @@ import {
 } from '../types'
 import { getUnitConversionFactor } from '@/lib/satuan'
 import { formatRupiah } from '@/lib/mock-data'
-import { suppliers as mockSuppliers, bahanList as mockBahanList } from '@/lib/dapur-data'
 
 interface RawPOItemDB {
   id: string
@@ -77,13 +76,22 @@ function mapPOFromDB(row: RawPODB): PurchaseOrder {
 }
 
 export const purchaseOrderService = {
-  // Ambil daftar PO beserta item-itemnya
+  // Ambil daftar PO beserta item-itemnya milik user yang sedang login
   async getAll(): Promise<PurchaseOrder[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('purchase_orders')
       .select('*, po_items(*)')
       .order('created_at', { ascending: false })
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching purchase_orders:', error)
@@ -96,23 +104,26 @@ export const purchaseOrderService = {
   // Ambil daftar supplier untuk dropdown wizard
   async getSuppliers(): Promise<SupplierOption[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('suppliers')
       .select('id, nama, kategori, minimal_order')
       .order('nama', { ascending: true })
 
-    if (error || !data || data.length === 0) {
-      if (error) console.warn('Error fetching suppliers for PO:', error)
-      // Fallback ke master mock suppliers jika DB kosong
-      return mockSuppliers.map(s => ({
-        id: s.id,
-        nama: s.nama,
-        kategori: s.kategori || undefined,
-        minimalOrder: s.minimalOrder || 0,
-      }))
+    if (userId) {
+      query = query.eq('user_id', userId)
     }
 
-    return data.map(s => ({
+    const { data, error } = await query
+
+    if (error) {
+      console.warn('Error fetching suppliers for PO:', error)
+      return []
+    }
+
+    return (data || []).map(s => ({
       id: s.id,
       nama: s.nama,
       kategori: s.kategori || undefined,
@@ -123,24 +134,26 @@ export const purchaseOrderService = {
   // Ambil daftar bahan baku aktif untuk dropdown item
   async getBahanList(): Promise<BahanOption[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('bahan')
       .select('id, nama, satuan, harga_per_satuan, stok')
       .order('nama', { ascending: true })
 
-    if (error || !data || data.length === 0) {
-      if (error) console.warn('Error fetching bahan for PO:', error)
-      // Fallback ke master mock bahan jika DB belum ada data
-      return mockBahanList.map(b => ({
-        id: b.id,
-        nama: b.nama,
-        satuan: b.satuan,
-        hargaPerSatuan: b.hargaPerSatuan || 0,
-        stok: b.stok || 0,
-      }))
+    if (userId) {
+      query = query.eq('user_id', userId)
     }
 
-    return data.map(b => ({
+    const { data, error } = await query
+
+    if (error) {
+      console.warn('Error fetching bahan for PO:', error)
+      return []
+    }
+
+    return (data || []).map(b => ({
       id: b.id,
       nama: b.nama,
       satuan: b.satuan,

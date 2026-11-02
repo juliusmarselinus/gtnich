@@ -51,7 +51,7 @@ export default function OCRConfigBar({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-extrabold text-slate-800">
-                Mesin Pemindai AI Vision OCR (9Router / Gemini Multimodal)
+                Mesin Pemindai Cerdas Nota (Kamera / AI Vision)
               </span>
               <span
                 className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -60,11 +60,11 @@ export default function OCRConfigBar({
                     : 'bg-rose-50 text-rose-700 border border-rose-200'
                 }`}
               >
-                {isConfigured ? '✓ Router / API Terhubung' : '! Belum Dikonfigurasi'}
+                {isConfigured ? '✓ Pemindai Aktif' : '! Belum Diaktifkan'}
               </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Mengekstrak teks nota fisik supplier menggunakan AI Vision (mendukung endpoint 9router & Google Gemini).
+              Membaca otomatis nota fisik belanja dari toko/supplier menggunakan kecerdasan buatan (AI) tanpa perlu ketik manual.
             </p>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function OCRConfigBar({
           className="px-3.5 py-1.5 rounded-xl clay-btn text-xs font-bold text-slate-600 hover:text-slate-800 flex items-center gap-1.5 cursor-pointer self-end sm:self-auto"
         >
           <Server className="w-3.5 h-3.5 text-purple-500" />
-          <span>{isConfigured ? 'Konfigurasi Router' : 'Pasang Router Key'}</span>
+          <span>{isConfigured ? 'Pengaturan Mesin AI' : 'Pasang Kunci Mesin AI'}</span>
           {isOpen ? <ChevronUp className="w-3.5 h-3.5 ml-1" /> : <ChevronDown className="w-3.5 h-3.5 ml-1" />}
         </button>
       </div>
@@ -90,26 +90,26 @@ export default function OCRConfigBar({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                Router URL (NEXT_9ROUTER_URL)
+                Alamat Layanan AI (Opsional)
               </label>
               <input
                 type="text"
                 value={inputUrl}
                 onChange={e => setInputUrl(e.target.value)}
-                placeholder="Contoh: https://api.9router.com/v1"
+                placeholder="Contoh: https://api.openai.com/v1"
                 className="w-full px-3.5 py-2 clay-inset text-xs text-slate-800 font-mono"
               />
             </div>
 
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                Router Model
+                Tipe Model AI (Opsional)
               </label>
               <input
                 type="text"
                 value={inputModel}
                 onChange={e => setInputModel(e.target.value)}
-                placeholder="Contoh: google/gemini-2.0-flash"
+                placeholder="Contoh: gemini-2.0-flash"
                 className="w-full px-3.5 py-2 clay-inset text-xs text-slate-800 font-mono"
               />
             </div>
@@ -117,13 +117,13 @@ export default function OCRConfigBar({
 
           <div>
             <label className="block text-[11px] font-bold text-slate-500 mb-1">
-              Router Key / Gemini API Key (NEXT_9ROUTER_KEY)
+              Kunci Rahasia Mesin AI (API Key)
             </label>
             <input
               type="password"
               value={inputKey}
               onChange={e => setInputKey(e.target.value)}
-              placeholder="Tempel 9Router Key atau Google Gemini Key di sini..."
+              placeholder="Tempel Kunci Akses / API Key di sini..."
               className="w-full px-3.5 py-2 clay-inset text-xs text-slate-800 font-mono"
             />
           </div>
