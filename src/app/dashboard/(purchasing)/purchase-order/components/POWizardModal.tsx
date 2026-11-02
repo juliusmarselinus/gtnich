@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { SupplierOption, BahanOption, CreatePOInput, POStatus } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
-import { Plus, X, Loader2, CheckCircle2, AlertCircle, Building2, ExternalLink, Send } from 'lucide-react'
+import { Plus, X, Loader2, CheckCircle2, AlertCircle, Building2, ExternalLink, Send, PackagePlus, Store } from 'lucide-react'
 import clsx from 'clsx'
 import CustomSelect from '@/components/ui/CustomSelect'
 import { getCompatibleOrderUnits, getUnitConversionFactor, DEFAULT_SATUAN_LIST } from '@/lib/satuan'
+import { bahanList as mockBahanList, suppliers as mockSuppliers } from '@/lib/dapur-data'
+import QuickAddSupplierModal from './QuickAddSupplierModal'
+import QuickAddBahanModal from './QuickAddBahanModal'
 
 interface POWizardModalProps {
   isOpen: boolean
@@ -15,16 +18,53 @@ interface POWizardModalProps {
   onSave: (input: CreatePOInput) => Promise<void>
   suppliers: SupplierOption[]
   bahanList: BahanOption[]
+  onSupplierCreated?: (newSupplier: SupplierOption) => void
+  onBahanCreated?: (newBahan: BahanOption) => void
 }
 
 export default function POWizardModal({
   isOpen,
   onClose,
   onSave,
-  suppliers,
-  bahanList,
+  suppliers: initialSuppliers,
+  bahanList: initialBahanList,
+  onSupplierCreated,
+  onBahanCreated,
 }: POWizardModalProps) {
   const [step, setStep] = useState(1)
+  const [suppliers, setSuppliers] = useState<SupplierOption[]>(() => {
+    if (initialSuppliers && initialSuppliers.length > 0) return initialSuppliers
+    return mockSuppliers.map(s => ({
+      id: s.id,
+      nama: s.nama,
+      kategori: s.kategori || undefined,
+      minimalOrder: s.minimalOrder || 0,
+    }))
+  })
+  const [bahanList, setBahanList] = useState<BahanOption[]>(() => {
+    if (initialBahanList && initialBahanList.length > 0) return initialBahanList
+    return mockBahanList.map(b => ({
+      id: b.id,
+      nama: b.nama,
+      satuan: b.satuan,
+      hargaPerSatuan: b.hargaPerSatuan || 0,
+      stok: b.stok || 0,
+    }))
+  })
+
+  // Sinkronkan state lokal saat props initialSuppliers atau initialBahanList ter-load dari database
+  useEffect(() => {
+    if (initialSuppliers && initialSuppliers.length > 0) {
+      setSuppliers(initialSuppliers)
+    }
+  }, [initialSuppliers])
+
+  useEffect(() => {
+    if (initialBahanList && initialBahanList.length > 0) {
+      setBahanList(initialBahanList)
+    }
+  }, [initialBahanList])
+
   const [supplierId, setSupplierId] = useState('')
   const [catatan, setCatatan] = useState('')
   const [items, setItems] = useState<CreatePOInput['items']>([])
@@ -37,7 +77,23 @@ export default function POWizardModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
+  // Sub-modal state untuk quick add
+  const [isQuickSupplierOpen, setIsQuickSupplierOpen] = useState(false)
+  const [isQuickBahanOpen, setIsQuickBahanOpen] = useState(false)
+
   if (!isOpen) return null
+
+  const handleSupplierAdded = (newSupplier: SupplierOption) => {
+    setSuppliers(prev => [newSupplier, ...prev])
+    setSupplierId(newSupplier.id)
+    onSupplierCreated?.(newSupplier)
+  }
+
+  const handleBahanAdded = (newBahan: BahanOption) => {
+    setBahanList(prev => [newBahan, ...prev])
+    handleBahanSelect(newBahan.id, [newBahan, ...bahanList])
+    onBahanCreated?.(newBahan)
+  }
 
   const selectedSupplier = suppliers.find(s => s.id === supplierId)
   const currentBahan = bahanList.find(b => b.id === newItem.bahanId)
@@ -45,8 +101,8 @@ export default function POWizardModal({
     ? getCompatibleOrderUnits(currentBahan.satuan)
     : [...DEFAULT_SATUAN_LIST]
 
-  const handleBahanSelect = (id: string) => {
-    const b = bahanList.find(x => x.id === id)
+  const handleBahanSelect = (id: string, list = bahanList) => {
+    const b = list.find(x => x.id === id)
     if (b) {
       const units = getCompatibleOrderUnits(b.satuan)
       const defaultUnit = units[0] || b.satuan || 'kg'
@@ -180,9 +236,20 @@ export default function POWizardModal({
 
             {/* Custom Dropdown Supplier */}
             <div className="space-y-2">
-              <label className="block text-[11px] font-bold text-slate-600">
-                Supplier Pemasok
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-[11px] font-bold text-slate-600">
+                  Supplier Pemasok
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsQuickSupplierOpen(true)}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8F2B] hover:text-[#E07A1E] hover:underline cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Tambah Supplier Baru</span>
+                </button>
+              </div>
+
               <CustomSelect
                 value={supplierId || 'none'}
                 onChange={val => {
@@ -207,21 +274,20 @@ export default function POWizardModal({
                 ]}
               />
 
-              {/* Lead Link ke Halaman Tambah Supplier */}
+              {/* Status info */}
               <div className="flex items-center justify-between pt-1 px-1 text-xs">
                 <span className="text-[11px] text-slate-400">
                   {supplierId === 'none' || !supplierId
                     ? 'Status: Transaksi tanpa tagihan distributor'
                     : `Terpilih: ${selectedSupplier?.nama || ''}`}
                 </span>
-                <Link
-                  href="/dashboard/suppliers"
-                  target="_blank"
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8F2B] hover:text-[#E07A1E] hover:underline"
+                <button
+                  type="button"
+                  onClick={() => setIsQuickSupplierOpen(true)}
+                  className="text-[11px] font-medium text-slate-500 hover:text-slate-800 transition"
                 >
-                  <span>+ Tambah Supplier Baru</span>
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
+                  Belum ada di daftar? Tambah cepat
+                </button>
               </div>
             </div>
 
@@ -260,73 +326,76 @@ export default function POWizardModal({
           </div>
         )}
 
-        {/* STEP 2: Tambah Item Bahan */}
+        {/* STEP 2: Input Bahan & Daftar Item PO */}
         {step === 2 && (
-          <div className="space-y-3">
-            <h3 className="text-sm font-extrabold text-slate-800">2. Tentukan Bahan & Kuantitas</h3>
-
-            {/* List Item yang sudah dimasukkan */}
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {items.map((item, i) => (
-                <div key={i} className="flex items-center justify-between clay-inset px-4 py-2.5 rounded-xl">
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">{item.namaBahan}</p>
-                    <p className="text-[10px] text-slate-500 font-mono">
-                      {item.qty} {item.satuan} × {formatRupiah(item.hargaEstimasi)} = {formatRupiah(item.qty * item.hargaEstimasi)}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(i)}
-                    className="text-rose-400 hover:text-rose-600 p-1 cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-              {items.length === 0 && (
-                <p className="text-xs text-slate-400 italic text-center py-2">Belum ada bahan di daftar.</p>
-              )}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-800">2. Input & Daftar Bahan PO</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Isi form bahan di atas, lalu tekan tombol <strong>Tambahkan ke Daftar PO</strong> untuk memasukkan ke keranjang pembelian.
+              </p>
             </div>
 
-            {/* Form Input Item */}
-            <div className="space-y-3 p-4 clay-inset rounded-2xl">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold text-slate-600">Pilih Bahan Masuk</p>
-                {currentBahan && (
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    Master: {formatRupiah(currentBahan.hargaPerSatuan)}/{currentBahan.satuan}
-                  </span>
-                )}
+            {/* SEKSI 1: Form Input Item (DI ATAS) */}
+            <div className="space-y-3 p-4 rounded-2xl bg-[#FFFBF5] border-2 border-[#F2E3D0] shadow-xs">
+              <div className="flex items-center justify-between pb-1 border-b border-[#F2E3D0]/60">
+                <span className="text-xs font-black text-[#2B221C] flex items-center gap-1.5">
+                  <PackagePlus className="w-4 h-4 text-[#FF8F2B]" />
+                  <span>Form Input Bahan</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  {currentBahan && (
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Master: {formatRupiah(currentBahan.hargaPerSatuan)}/{currentBahan.satuan}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsQuickBahanOpen(true)}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF8F2B] hover:text-[#E07A1E] hover:underline cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Tambah Bahan Baru</span>
+                  </button>
+                </div>
               </div>
-              <CustomSelect
-                value={newItem.bahanId}
-                onChange={val => handleBahanSelect(val)}
-                variant="card"
-                placeholder="-- Pilih Bahan Baku --"
-                searchable={true}
-                searchPlaceholder="Cari nama bahan..."
-                options={bahanList.map(b => ({
-                  value: b.id,
-                  label: b.nama,
-                  sublabel: `Stok: ${b.stok} ${b.satuan}`,
-                }))}
-              />
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                  Pilih Bahan Baku <span className="text-rose-500">*</span>
+                </label>
+                <CustomSelect
+                  value={newItem.bahanId}
+                  onChange={val => handleBahanSelect(val)}
+                  variant="card"
+                  placeholder="-- Pilih Bahan Baku --"
+                  searchable={true}
+                  searchPlaceholder="Cari nama bahan..."
+                  options={bahanList.map(b => ({
+                    value: b.id,
+                    label: b.nama,
+                    sublabel: `Stok: ${b.stok} ${b.satuan}`,
+                  }))}
+                />
+              </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold block mb-1">Qty Diorder</label>
+                  <label className="text-[10px] text-slate-600 font-bold block mb-1">
+                    Qty Diorder <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     type="number"
                     min="0.01"
                     step="any"
                     value={newItem.qty || ''}
                     onChange={e => setNewItem(p => ({ ...p, qty: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 clay-card text-xs text-slate-800 font-mono font-bold"
+                    placeholder="Contoh: 5"
+                    className="w-full px-3 py-2 bg-white border border-[#E8D7C3] rounded-xl text-xs text-slate-800 font-mono font-bold focus:outline-none focus:border-[#FF8F28]"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold block mb-1">Satuan Order</label>
+                  <label className="text-[10px] text-slate-600 font-bold block mb-1">Satuan Order</label>
                   <CustomSelect
                     value={newItem.satuan || currentBahan?.satuan || 'item'}
                     onChange={val => handleUnitChange(val)}
@@ -337,7 +406,7 @@ export default function POWizardModal({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold block mb-1">
+                  <label className="text-[10px] text-slate-600 font-bold block mb-1">
                     Harga / Satuan (Rp)
                   </label>
                   <input
@@ -345,27 +414,91 @@ export default function POWizardModal({
                     min="0"
                     value={newItem.hargaEstimasi || ''}
                     onChange={e => setNewItem(p => ({ ...p, hargaEstimasi: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 clay-card text-xs text-slate-800 font-mono font-bold"
+                    placeholder="Contoh: 15000"
+                    className="w-full px-3 py-2 bg-white border border-[#E8D7C3] rounded-xl text-xs text-slate-800 font-mono font-bold focus:outline-none focus:border-[#FF8F28]"
                   />
                 </div>
               </div>
 
               {newItem.bahanId && newItem.qty > 0 && newItem.hargaEstimasi > 0 && (
-                <div className="flex justify-between items-center px-3 py-1.5 rounded-xl bg-[#FFF6EC]/80 border border-[#FFE2C2] text-[11px]">
-                  <span className="text-[#FF8F2B] font-medium">Subtotal Estimasi:</span>
+                <div className="flex justify-between items-center px-3 py-2 rounded-xl bg-[#FFF6EC] border border-[#FFE2C2] text-xs">
+                  <span className="text-[#FF8F2B] font-semibold">Subtotal Item Ini:</span>
                   <span className="font-mono font-black text-slate-900">
                     {formatRupiah(newItem.qty * newItem.hargaEstimasi)}
                   </span>
                 </div>
               )}
 
+              {/* Tombol Eksekusi Masuk List yang Diperjelas */}
               <button
                 type="button"
                 onClick={addItem}
-                className="w-full py-2.5 clay-btn-primary text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-3 bg-[#FF8F28] hover:bg-[#FF9F3F] text-white text-xs font-black rounded-xl shadow-[0_3px_0_#C9620C] active:translate-y-[2px] active:shadow-[0_1px_0_#C9620C] transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Plus className="w-4 h-4" /> Masukkan ke Daftar PO
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>Tekan Disini: Tambahkan ke Daftar PO</span>
               </button>
+            </div>
+
+            {/* SEKSI 2: List Bahan yang Siap Dipesan (DI BAWAH) */}
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                  <span>Daftar Bahan Siap Dipesan</span>
+                  <span className="rounded-full bg-[#FF8F28] text-white text-[10px] font-bold px-2 py-0.5">
+                    {items.length} Bahan
+                  </span>
+                </span>
+                {items.length > 0 && (
+                  <span className="text-xs font-bold font-mono text-[#B5560A]">
+                    Total: {formatRupiah(items.reduce((sum, item) => sum + item.qty * item.hargaEstimasi, 0))}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                {items.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white border border-[#E8D7C3] shadow-2xs hover:border-[#FFBD80] transition"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-[#FFF5EA] text-[#FF8F28] text-[10px] font-black flex items-center justify-center border border-[#FFE2C2]">
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900 leading-tight">{item.namaBahan}</p>
+                        <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                          {item.qty} {item.satuan} × {formatRupiah(item.hargaEstimasi)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-black text-slate-800 font-mono">
+                        {formatRupiah(item.qty * item.hargaEstimasi)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(i)}
+                        title="Hapus bahan dari daftar"
+                        className="text-slate-400 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {items.length === 0 && (
+                  <div className="p-4 rounded-xl border-2 border-dashed border-[#E8D7C3] text-center bg-[#FFFDF9]">
+                    <p className="text-xs font-semibold text-slate-600">Daftar PO masih kosong</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Gunakan form di atas lalu klik tombol <em>"Tekan Disini: Tambahkan ke Daftar PO"</em>
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -461,6 +594,21 @@ export default function POWizardModal({
           )}
         </div>
       </div>
+
+      {/* Sub-modal: Tambah Supplier Cepat */}
+      <QuickAddSupplierModal
+        isOpen={isQuickSupplierOpen}
+        onClose={() => setIsQuickSupplierOpen(false)}
+        onCreated={handleSupplierAdded}
+      />
+
+      {/* Sub-modal: Tambah Bahan Cepat */}
+      <QuickAddBahanModal
+        isOpen={isQuickBahanOpen}
+        onClose={() => setIsQuickBahanOpen(false)}
+        onCreated={handleBahanAdded}
+        defaultSupplierId={supplierId}
+      />
     </div>
   )
 }

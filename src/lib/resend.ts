@@ -92,8 +92,29 @@ export async function sendLoginNotificationEmail({
               <div><strong>Waktu:</strong> ${formattedTime} WIB</div>
               ${ipAddress ? `<div><strong>IP Address:</strong> ${ipAddress}</div>` : ''}
             </div>
+
+            <!-- List data yang dikirim ke email ini -->
+            <div style="background-color: #F8F4EE; border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;">
+              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #6F5C4A; text-transform: uppercase; letter-spacing: 0.5px;">
+                📋 Rincian Data Dalam Email Ini:
+              </p>
+              <ul style="margin: 0; padding-left: 18px; font-size: 12.5px; color: #524336; line-height: 1.6;">
+                <li>Alamat email akun login DapurTwin</li>
+                <li>Metode autentikasi (Google OAuth / Email & Kata Sandi)</li>
+                <li>Waktu dan tanggal aktivitas masuk</li>
+                ${ipAddress ? '<li>Alamat IP perangkat login</li>' : '<li>Status keamanan sesi akun</li>'}
+              </ul>
+            </div>
+
+            <!-- Catatan No-Reply & Otomatis -->
+            <div style="background-color: #FFF0E0; border-left: 4px solid #FF8F28; border-radius: 8px; padding: 12px 14px; margin-bottom: 22px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #8F4C0D;">
+                ℹ️ <strong>Pemberitahuan Otomatis:</strong> Email ini dikirim secara otomatis oleh sistem DapurTwin untuk keamanan akun Anda. <strong>Mohon untuk tidak membalas email ini</strong> karena pesan balasan tidak dipantau.
+              </p>
+            </div>
+
             <p style="font-size: 13px; line-height: 1.6; color: #8C7560; margin: 0 0 24px 0;">
-              Jika ini adalah Anda, Anda tidak perlu melakukan tindakan apa pun. Apabila Anda tidak merasa melakukan aktivitas ini, segera amankan kata sandi atau akun Anda.
+              Jika ini adalah Anda, Anda tidak perlu melakukan tindakan apa pun. Apabila Anda tidak merasa melakukan aktivitas ini, segera amankan kata sandi akun Anda.
             </p>
             <div style="text-align: center;">
               <a href="https://dapurtwin.app/dashboard" style="display: inline-block; background-color: #FF8F28; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 50px;">
@@ -113,7 +134,7 @@ export async function sendLoginNotificationEmail({
     to: email,
     subject: `🔐 Notifikasi Masuk Akun DapurTwin (${greetingName})`,
     html,
-    text: `Halo ${greetingName}, akun DapurTwin Anda baru saja masuk pada ${formattedTime} WIB via ${loginMethod}.`,
+    text: `Halo ${greetingName}, akun DapurTwin Anda baru saja masuk pada ${formattedTime} WIB via ${loginMethod}. Email ini dikirim otomatis oleh sistem, mohon untuk tidak membalas.`,
   })
 }
 
@@ -194,7 +215,21 @@ export async function sendPurchaseOrderNotificationEmail({
               ${catatan ? `<div><strong>Catatan:</strong> <em>"${catatan}"</em></div>` : ''}
             </div>
 
-            <h3 style="font-size: 14px; font-weight: 800; margin: 20px 0 10px 0; color: #2B221C;">Daftar Bahan yang Dipesan:</h3>
+            <!-- List data yang dikirim ke email ini -->
+            <div style="background-color: #F8F4EE; border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;">
+              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #6F5C4A; text-transform: uppercase; letter-spacing: 0.5px;">
+                📋 Rincian Data Dalam Email Ini:
+              </p>
+              <ul style="margin: 0; padding-left: 18px; font-size: 12.5px; color: #524336; line-height: 1.6;">
+                <li>Nomor referensi Purchase Order (${noPO})</li>
+                <li>Nama vendor / supplier yang dituju (${supplierName})</li>
+                <li>Rincian ${items.length} item bahan baku (nama bahan, kuantitas, satuan, dan harga)</li>
+                <li>Total estimasi nominal pembelanjaan (${formattedTotal})</li>
+                <li>Catatan pengadaan bahan dari tim dapur</li>
+              </ul>
+            </div>
+
+            <h3 style="font-size: 14px; font-weight: 800; margin: 20px 0 10px 0; color: #2B221C;">Tabel Rincian Bahan yang Dipesan:</h3>
             <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 24px;">
               <thead>
                 <tr style="background-color: #FAF4EB; text-align: left; border-bottom: 2px solid #E8D7C3;">
@@ -208,6 +243,13 @@ export async function sendPurchaseOrderNotificationEmail({
                 ${itemsRows}
               </tbody>
             </table>
+
+            <!-- Catatan No-Reply & Otomatis -->
+            <div style="background-color: #FFF0E0; border-left: 4px solid #FF8F28; border-radius: 8px; padding: 12px 14px; margin-bottom: 22px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #8F4C0D;">
+                ℹ️ <strong>Pemberitahuan Otomatis:</strong> Email ini dibuat dan dikirim secara otomatis oleh sistem manajemen inventaris DapurTwin. <strong>Mohon untuk tidak membalas email ini</strong> secara langsung.
+              </p>
+            </div>
 
             <div style="text-align: center; margin-top: 24px;">
               <a href="https://dapurtwin.app/dashboard/purchase-order" style="display: inline-block; background-color: #FF8F28; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 50px;">
@@ -227,6 +269,6 @@ export async function sendPurchaseOrderNotificationEmail({
     to: email,
     subject: `📦 Purchase Order Baru: ${noPO} - ${supplierName} (${formattedTotal})`,
     html,
-    text: `Purchase Order baru ${noPO} untuk supplier ${supplierName} senilai ${formattedTotal} telah dibuat di DapurTwin.`,
+    text: `Purchase Order baru ${noPO} untuk supplier ${supplierName} senilai ${formattedTotal} telah dibuat di DapurTwin. Email ini dikirim secara otomatis, mohon untuk tidak membalas.`,
   })
 }

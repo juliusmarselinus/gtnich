@@ -10,6 +10,7 @@ import {
 } from '../types'
 import { getUnitConversionFactor } from '@/lib/satuan'
 import { formatRupiah } from '@/lib/mock-data'
+import { suppliers as mockSuppliers, bahanList as mockBahanList } from '@/lib/dapur-data'
 
 interface RawPOItemDB {
   id: string
@@ -100,12 +101,18 @@ export const purchaseOrderService = {
       .select('id, nama, kategori, minimal_order')
       .order('nama', { ascending: true })
 
-    if (error) {
-      console.warn('Error fetching suppliers for PO:', error)
-      return []
+    if (error || !data || data.length === 0) {
+      if (error) console.warn('Error fetching suppliers for PO:', error)
+      // Fallback ke master mock suppliers jika DB kosong
+      return mockSuppliers.map(s => ({
+        id: s.id,
+        nama: s.nama,
+        kategori: s.kategori || undefined,
+        minimalOrder: s.minimalOrder || 0,
+      }))
     }
 
-    return (data || []).map(s => ({
+    return data.map(s => ({
       id: s.id,
       nama: s.nama,
       kategori: s.kategori || undefined,
@@ -121,12 +128,19 @@ export const purchaseOrderService = {
       .select('id, nama, satuan, harga_per_satuan, stok')
       .order('nama', { ascending: true })
 
-    if (error) {
-      console.warn('Error fetching bahan for PO:', error)
-      return []
+    if (error || !data || data.length === 0) {
+      if (error) console.warn('Error fetching bahan for PO:', error)
+      // Fallback ke master mock bahan jika DB belum ada data
+      return mockBahanList.map(b => ({
+        id: b.id,
+        nama: b.nama,
+        satuan: b.satuan,
+        hargaPerSatuan: b.hargaPerSatuan || 0,
+        stok: b.stok || 0,
+      }))
     }
 
-    return (data || []).map(b => ({
+    return data.map(b => ({
       id: b.id,
       nama: b.nama,
       satuan: b.satuan,
@@ -145,6 +159,12 @@ export const purchaseOrderService = {
     }
     const userId = sessionData.session.user.id
 
+    // Helper validasi UUID
+    const isUUID = (str: string | null | undefined): boolean => {
+      if (!str) return false
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str)
+    }
+
     // Generate No. PO unik
     const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
     const randCode = Math.floor(100 + Math.random() * 900)
@@ -152,13 +172,16 @@ export const purchaseOrderService = {
 
     const totalEstimasi = input.items.reduce((sum, item) => sum + item.qty * item.hargaEstimasi, 0)
 
+    // Pastikan supplierId berupa UUID valid jika ada, jika custom/local id diset null
+    const validSupplierId = isUUID(input.supplierId) ? input.supplierId : null
+
     // 1. Simpan Header PO
     const { data: poData, error: poErr } = await supabase
       .from('purchase_orders')
       .insert({
         user_id: userId,
         no_po: noPO,
-        supplier_id: input.supplierId || null,
+        supplier_id: validSupplierId,
         nama_supplier: input.namaSupplier || 'Tanpa Supplier (Beli Langsung)',
         status: input.status || 'draft',
         total_estimasi: totalEstimasi,
@@ -176,23 +199,55 @@ export const purchaseOrderService = {
 
     const poId = poData.id
 
-    // 2. Simpan Item-item PO
-    const itemsPayload = input.items.map(item => ({
-      user_id: userId,
-      po_id: poId,
-      bahan_id: item.bahanId,
-      nama_bahan: item.namaBahan,
-      satuan: item.satuan,
-      qty: item.qty,
-      harga_estimasi: item.hargaEstimasi,
-      harga_aktual: 0,
-      stok_sebelum: item.stokSebelum,
-      diterima: false,
-    }))
+    // 2. Siapkan dan simpan Item-item PO
+    // Jika bahanId dari modal custom (bukan UUID valid di DB), daftarkan ke master bahan jika memungkinkan agar relasi stok terjaga
+    const preparedItems = await Promise.all(
+      input.items.map(async item => {
+        let finalBahanId: string | null = isUUID(item.bahanId) ? item.bahanId : null
+
+        // Jika bahanId belum UUID database, daftarkan bahan ke tabel bahan
+        if (!finalBahanId && item.namaBahan) {
+          try {
+            const { data: createdBahan } = await supabase
+              .from('bahan')
+              .insert({
+                user_id: userId,
+                nama: item.namaBahan,
+                satuan: item.satuan || 'item',
+                harga_per_satuan: item.hargaEstimasi || 0,
+                stok: item.stokSebelum || 0,
+                stok_minimum: 0,
+                supplier_id: validSupplierId,
+              })
+              .select('id')
+              .single()
+
+            if (createdBahan?.id) {
+              finalBahanId = createdBahan.id
+            }
+          } catch (insertBahanErr) {
+            console.warn('Gagal mendaftarkan bahan custom ke master bahan:', insertBahanErr)
+          }
+        }
+
+        return {
+          user_id: userId,
+          po_id: poId,
+          bahan_id: finalBahanId,
+          nama_bahan: item.namaBahan,
+          satuan: item.satuan,
+          qty: item.qty,
+          harga_estimasi: item.hargaEstimasi,
+          harga_aktual: 0,
+          stok_sebelum: item.stokSebelum,
+          diterima: false,
+        }
+      })
+    )
 
     const { data: itemsData, error: itemsErr } = await supabase
       .from('po_items')
-      .insert(itemsPayload)
+      .insert(preparedItems)
       .select('*')
 
     if (itemsErr) {

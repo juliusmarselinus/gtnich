@@ -191,6 +191,8 @@ export default function PurchaseOrderPage() {
         onSave={createPO}
         suppliers={suppliers}
         bahanList={bahanList}
+        onSupplierCreated={() => refresh()}
+        onBahanCreated={() => refresh()}
       />
 
       {/* Modal Verifikasi Penerimaan Barang */}
