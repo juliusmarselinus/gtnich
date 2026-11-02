@@ -198,19 +198,39 @@ export const notificationService = {
       }
     })
 
-    // Notifikasi Tagihan Supplier / Barang Diterima
+    // Notifikasi Tagihan Supplier / Barang Diterima & Peringatan Overdue > 1 Hari
+    const nowMs = Date.now()
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000
+
     ;(poRes.data || []).forEach(p => {
       if (p.status === 'tagihan') {
-        notifications.push({
-          id: `synth-po-tagihan-${p.id}`,
-          title: `Tagihan Menunggu Pembayaran (${p.no_po})`,
-          detail: `Tagihan dari ${p.nama_supplier || 'Supplier'} senilai ${formatRupiah(Number(p.total_aktual || p.total_estimasi) || 0)} siap diselesaikan.`,
-          type: 'tagihan',
-          link: '/dashboard/tagihan',
-          isRead: false,
-          createdAt: p.updated_at || p.created_at,
-          timeAgo: getTimeAgo(p.updated_at || p.created_at),
-        })
+        const poDateMs = new Date(p.updated_at || p.created_at).getTime()
+        const isOverdue = nowMs - poDateMs > ONE_DAY_MS
+        const daysLate = Math.max(1, Math.floor((nowMs - poDateMs) / ONE_DAY_MS))
+
+        if (isOverdue) {
+          notifications.push({
+            id: `synth-po-overdue-${p.id}`,
+            title: `Peringatan: Tagihan Lewat 1 Hari (${p.no_po})`,
+            detail: `Tagihan dari ${p.nama_supplier || 'Supplier'} sebesar ${formatRupiah(Number(p.total_aktual || p.total_estimasi) || 0)} telah melewati 1 hari (${daysLate} hari) dan belum diselesaikan. Segera lakukan pelunasan.`,
+            type: 'tagihan',
+            link: '/dashboard/tagihan',
+            isRead: false,
+            createdAt: p.updated_at || p.created_at,
+            timeAgo: getTimeAgo(p.updated_at || p.created_at),
+          })
+        } else {
+          notifications.push({
+            id: `synth-po-tagihan-${p.id}`,
+            title: `Tagihan Menunggu Pembayaran (${p.no_po})`,
+            detail: `Tagihan dari ${p.nama_supplier || 'Supplier'} senilai ${formatRupiah(Number(p.total_aktual || p.total_estimasi) || 0)} siap diselesaikan.`,
+            type: 'tagihan',
+            link: '/dashboard/tagihan',
+            isRead: false,
+            createdAt: p.updated_at || p.created_at,
+            timeAgo: getTimeAgo(p.updated_at || p.created_at),
+          })
+        }
       } else if (p.status === 'diterima') {
         notifications.push({
           id: `synth-po-diterima-${p.id}`,

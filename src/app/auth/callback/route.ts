@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { sendLoginNotificationEmail } from '@/lib/resend'
+import { sendLoginNotificationEmail, sendWelcomeRegistrationEmail } from '@/lib/resend'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -101,6 +101,23 @@ export async function GET(request: Request) {
             },
             { onConflict: 'id' }
           )
+
+          // Kirim email ucapan selamat registrasi (jika pendaftaran/login user baru dari Google)
+          const isNewUser =
+            !existingProfile ||
+            (user.created_at &&
+              new Date().getTime() - new Date(user.created_at).getTime() < 5 * 60 * 1000)
+
+          if (isNewUser && user.email) {
+            sendWelcomeRegistrationEmail({
+              email: user.email,
+              userName: fullName || user.user_metadata?.full_name || user.email.split('@')[0],
+              storeName: storeName || user.user_metadata?.store_name,
+              registrationMethod: 'Google Account (OAuth)',
+            }).catch((regErr) => {
+              console.warn('Gagal kirim email selamat datang Google:', regErr)
+            })
+          }
 
           // Kirim email notifikasi login Google via Resend
           if (user.email) {

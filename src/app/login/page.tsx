@@ -197,7 +197,19 @@ export default function LoginPage() {
 
           setIsSuccess(true)
 
-          // Picu notifikasi email login via Resend (non-blocking)
+          // 1. Picu notifikasi email registrasi berhasil & congratulations via Resend
+          fetch('/api/notify-register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: cleanEmail,
+              userName: resolvedName,
+              storeName: resolvedStore,
+              registrationMethod: 'Email & Kata Sandi',
+            }),
+          }).catch(() => {})
+
+          // 2. Picu notifikasi email login via Resend (non-blocking)
           fetch('/api/notify-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -211,6 +223,18 @@ export default function LoginPage() {
           await new Promise((r) => setTimeout(r, 600))
           router.push('/dashboard')
         } else {
+          // Jika konfirmasi email diaktifkan di Supabase, tetap kirim email ucapan pendaftaran berhasil
+          fetch('/api/notify-register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: cleanEmail,
+              userName: resolvedName,
+              storeName: resolvedStore,
+              registrationMethod: 'Email & Kata Sandi',
+            }),
+          }).catch(() => {})
+
           setMessage('Pendaftaran berhasil! Akun Anda telah siap. Silakan masuk untuk memulai.')
           setIsSignUp(false)
         }

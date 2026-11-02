@@ -45,6 +45,106 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
 }
 
 /**
+ * Template & Pengiriman Email Selamat Datang & Registrasi Berhasil (Congratulations)
+ */
+export async function sendWelcomeRegistrationEmail({
+  email,
+  userName,
+  storeName,
+  registrationMethod = 'Email & Kata Sandi',
+}: {
+  email: string
+  userName?: string
+  storeName?: string
+  registrationMethod?: string
+}) {
+  const greetingName = userName || email.split('@')[0]
+  const kitchenName = storeName || `Dapur ${greetingName}`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Selamat Datang di DapurTwin - Registrasi Berhasil!</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FFF8EE; margin: 0; padding: 24px; color: #2B221C;">
+        <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 24px; border: 1px solid #F2E3D0; overflow: hidden; box-shadow: 0 4px 20px rgba(178, 98, 20, 0.08);">
+          <div style="background-color: #FF8F28; padding: 28px 24px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800;">DapurTwin</h1>
+            <p style="color: #FFF2E0; margin: 6px 0 0 0; font-size: 13.5px;">Selamat Bergabung di Komunitas Kuliner Cerdas</p>
+          </div>
+          
+          <div style="padding: 28px 24px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <span style="font-size: 36px; display: inline-block;">🎉</span>
+              <h2 style="font-size: 20px; font-weight: 800; color: #2B221C; margin: 8px 0 4px 0;">Congratulations, ${greetingName}!</h2>
+              <p style="font-size: 14px; color: #6F5C4A; margin: 0;">Pendaftaran akun DapurTwin Anda telah berhasil dan akun Anda kini aktif.</p>
+            </div>
+
+            <p style="font-size: 13.5px; line-height: 1.6; color: #524336; margin: 0 0 20px 0;">
+              Selamat! Dapur kuliner Anda <strong>${kitchenName}</strong> sekarang siap dikelola secara lebih rapi, terotomasi, dan profesional bersama DapurTwin.
+            </p>
+
+            <div style="background-color: #FFFBF5; border: 1.5px solid #F2E3D0; border-radius: 16px; padding: 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.7;">
+              <div><strong>Email Terdaftar:</strong> <span style="font-family: monospace; color: #B5560A; font-weight: 700;">${email}</span></div>
+              <div><strong>Nama Pemilik / Chef:</strong> ${greetingName}</div>
+              <div><strong>Nama Usaha Dapur:</strong> ${kitchenName}</div>
+              <div><strong>Metode Pendaftaran:</strong> ${registrationMethod}</div>
+              <div><strong>Waktu Terdaftar:</strong> ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}</div>
+            </div>
+
+            <!-- List data yang dikirim ke email ini -->
+            <div style="background-color: #F8F4EE; border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;">
+              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #6F5C4A; text-transform: uppercase; letter-spacing: 0.5px;">
+                📋 Rincian Data Dalam Email Ini:
+              </p>
+              <ul style="margin: 0; padding-left: 18px; font-size: 12.5px; color: #524336; line-height: 1.6;">
+                <li>Konfirmasi status akun baru aktif</li>
+                <li>Data identitas akun pemilik & dapur kuliner</li>
+                <li>Metode pendaftaran (${registrationMethod})</li>
+                <li>Panduan langkah awal optimasi inventaris & kasir</li>
+              </ul>
+            </div>
+
+            <div style="background-color: #FAF4EB; border-radius: 14px; padding: 14px 16px; margin-bottom: 20px; font-size: 12.5px; line-height: 1.7; color: #524336;">
+              <strong style="color: #2B221C; display: block; margin-bottom: 6px;">🚀 3 Langkah Awal Menggunakan DapurTwin:</strong>
+              1. <strong>Input Bahan Baku:</strong> Catat stok dan harga beli bahan di menu Bahan Baku.<br/>
+              2. <strong>Rancang Menu:</strong> Masukkan resep menu agar HPP dan profit terhitung otomatis.<br/>
+              3. <strong>Gunakan Kasir POS:</strong> Setiap transaksi kasir akan langsung memotong stok bahan secara akurat.
+            </div>
+
+            <!-- Catatan No-Reply & Otomatis -->
+            <div style="background-color: #FFF0E0; border-left: 4px solid #FF8F28; border-radius: 8px; padding: 12px 14px; margin-bottom: 22px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #8F4C0D;">
+                ℹ️ <strong>Pemberitahuan Otomatis:</strong> Email konfirmasi pendaftaran ini dikirim secara otomatis oleh sistem DapurTwin. <strong>Mohon untuk tidak membalas email ini</strong> secara langsung.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="https://dapurtwin.app/dashboard" style="display: inline-block; background-color: #FF8F28; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 30px; border-radius: 50px; box-shadow: 0 4px 12px rgba(255, 143, 40, 0.3);">
+                Mulai Kelola Dapur Saya
+              </a>
+            </div>
+          </div>
+          
+          <div style="background-color: #FAF6F0; padding: 16px 24px; text-align: center; font-size: 11px; color: #BCA184; border-top: 1px solid #F2E3D0;">
+            © ${new Date().getFullYear()} DapurTwin · Sistem Manajemen Operasional & Finansial Dapur Kuliner.
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  return sendEmail({
+    to: email,
+    subject: `🎉 Congratulations! Registrasi Berhasil di DapurTwin (${greetingName})`,
+    html,
+    text: `Congratulations ${greetingName}! Pendaftaran akun Anda di DapurTwin telah berhasil. Kelola bahan baku, resep, dan kasir penjualan dapur Anda dengan mudah. Email ini dikirim secara otomatis, mohon untuk tidak membalas.`,
+  })
+}
+
+/**
  * Template & Pengiriman Email Notifikasi Login
  */
 export async function sendLoginNotificationEmail({
@@ -460,5 +560,263 @@ export async function sendSaleTransactionEmail({
     subject,
     html,
     text: `Struk Pembayaran ${storeName} - ${invoiceNumber}. Total: ${formattedTotal}. Metode: ${paymentMethod}. Email ini dikirim secara otomatis, mohon untuk tidak membalas.`,
+  })
+}
+
+/**
+ * Template & Pengiriman Email Peringatan Tagihan Supplier Melewati 1 Hari (Overdue)
+ */
+export async function sendOverdueBillEmail({
+  email,
+  ownerName,
+  storeName = 'DapurTwin',
+  noPO,
+  supplierName,
+  totalTagihan,
+  daysLate = 1,
+  tanggalTerima,
+}: {
+  email: string
+  ownerName?: string
+  storeName?: string
+  noPO: string
+  supplierName: string
+  totalTagihan: number
+  daysLate?: number
+  tanggalTerima?: string | Date
+}) {
+  const formattedTotal = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(totalTagihan)
+
+  const formattedDate = tanggalTerima
+    ? new Date(tanggalTerima).toLocaleDateString('id-ID', { dateStyle: 'full' })
+    : '-'
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Peringatan Tagihan Supplier - ${noPO}</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FFF8EE; margin: 0; padding: 24px; color: #2B221C;">
+        <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 24px; border: 1px solid #F2E3D0; overflow: hidden; box-shadow: 0 4px 20px rgba(178, 98, 20, 0.08);">
+          <div style="background-color: #D8431F; padding: 24px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800;">${storeName}</h1>
+            <p style="color: #FFF2E0; margin: 6px 0 0 0; font-size: 13px;">Peringatan Tagihan Supplier Melewati Waktu</p>
+          </div>
+          
+          <div style="padding: 26px 22px;">
+            <p style="font-size: 16px; margin: 0 0 8px 0; font-weight: 700; color: #B3361B;">
+              Tagihan Supplier Melewati Batas 1 Hari! ⚠️
+            </p>
+            <p style="font-size: 13.5px; line-height: 1.6; color: #6F5C4A; margin: 0 0 20px 0;">
+              Halo <strong>${ownerName || 'Chef / Owner'}</strong>, ada tagihan pengadaan barang supplier yang telah masuk dan belum diselesaikan lebih dari ${daysLate} hari sejak barang diterima.
+            </p>
+            
+            <div style="background-color: #FFFBF5; border: 1.5px solid #F2E3D0; border-radius: 16px; padding: 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.7;">
+              <div><strong>Nomor PO:</strong> <span style="font-family: monospace; color: #B5560A; font-weight: 700;">${noPO}</span></div>
+              <div><strong>Supplier / Vendor:</strong> ${supplierName}</div>
+              <div><strong>Tanggal Barang Diterima:</strong> ${formattedDate}</div>
+              <div><strong>Total Tagihan:</strong> <span style="font-size: 15px; font-weight: 800; color: #B3361B;">${formattedTotal}</span></div>
+              <div><strong>Status:</strong> <span style="color: #B3361B; font-weight: 700;">Belum Lunas (&gt; 1 hari)</span></div>
+            </div>
+
+            <!-- List data yang dikirim ke email ini -->
+            <div style="background-color: #F8F4EE; border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;">
+              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #6F5C4A; text-transform: uppercase; letter-spacing: 0.5px;">
+                📋 Rincian Data Dalam Email Ini:
+              </p>
+              <ul style="margin: 0; padding-left: 18px; font-size: 12.5px; color: #524336; line-height: 1.6;">
+                <li>Nomor referensi Purchase Order (${noPO})</li>
+                <li>Nama pihak supplier yang belum dibayarkan (${supplierName})</li>
+                <li>Total tagihan tertunggak (${formattedTotal})</li>
+                <li>Waktu keterlambatan pelunasan (${daysLate} hari)</li>
+              </ul>
+            </div>
+
+            <div style="background-color: #FFF0E0; border-left: 4px solid #FF8F28; border-radius: 8px; padding: 12px 14px; margin-bottom: 22px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #8F4C0D;">
+                ℹ️ <strong>Pemberitahuan Otomatis:</strong> Notifikasi ini dikirim secara otomatis oleh pengingat tagihan DapurTwin. <strong>Mohon untuk tidak membalas email ini</strong> secara langsung.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="https://dapurtwin.app/dashboard/tagihan" style="display: inline-block; background-color: #D8431F; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 50px;">
+                Buka & Selesaikan di Halaman Tagihan
+              </a>
+            </div>
+          </div>
+          
+          <div style="background-color: #FAF6F0; padding: 16px 24px; text-align: center; font-size: 11px; color: #BCA184; border-top: 1px solid #F2E3D0;">
+            © ${new Date().getFullYear()} ${storeName} · DapurTwin Manajemen Operasional Dapur.
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  return sendEmail({
+    to: email,
+    subject: `⚠️ Peringatan Tagihan Lewat 1 Hari: ${noPO} - ${supplierName} (${formattedTotal})`,
+    html,
+    text: `Tagihan supplier ${supplierName} untuk PO ${noPO} sebesar ${formattedTotal} telah melewati 1 hari dan belum diselesaikan. Email ini dikirim secara otomatis, mohon untuk tidak membalas.`,
+  })
+}
+
+/**
+ * Template & Pengiriman Email Laporan Harian Penjualan Otomatis (Jam 22:00)
+ */
+export async function sendDailySalesReportEmail({
+  email,
+  ownerName,
+  storeName = 'DapurTwin',
+  date = new Date(),
+  totalSales,
+  totalOrders,
+  totalProfit,
+  topMenus,
+  paymentBreakdown,
+}: {
+  email: string
+  ownerName?: string
+  storeName?: string
+  date?: Date | string
+  totalSales: number
+  totalOrders: number
+  totalProfit: number
+  topMenus: Array<{ namaMenu: string; qty: number; subtotal: number }>
+  paymentBreakdown?: Array<{ method: string; total: number; count: number }>
+}) {
+  const formattedSales = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(totalSales)
+
+  const formattedProfit = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(totalProfit)
+
+  const formattedDate = new Date(date).toLocaleDateString('id-ID', {
+    dateStyle: 'full',
+    timeZone: 'Asia/Jakarta',
+  })
+
+  const topMenuRows = topMenus.length > 0
+    ? topMenus
+        .map(
+          (m, idx) => `
+        <tr style="border-bottom: 1px solid #F2E3D0;">
+          <td style="padding: 9px 8px; font-weight: 600; color: #2B221C;">${idx + 1}. ${m.namaMenu}</td>
+          <td style="padding: 9px 8px; text-align: center; color: #6F5C4A;">${m.qty} porsi</td>
+          <td style="padding: 9px 8px; text-align: right; font-weight: 700; color: #B5560A;">
+            ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(m.subtotal)}
+          </td>
+        </tr>
+      `
+        )
+        .join('')
+    : `<tr><td colspan="3" style="padding: 12px; text-align: center; color: #8A725D;">Tidak ada menu terjual hari ini</td></tr>`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Laporan Harian Penjualan - ${formattedDate}</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FFF8EE; margin: 0; padding: 24px; color: #2B221C;">
+        <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 24px; border: 1px solid #F2E3D0; overflow: hidden; box-shadow: 0 4px 20px rgba(178, 98, 20, 0.08);">
+          <div style="background-color: #FF8F28; padding: 24px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800;">${storeName}</h1>
+            <p style="color: #FFF2E0; margin: 6px 0 0 0; font-size: 13px;">Rekap Harian Penjualan & Profit Dapur (Pukul 22:00)</p>
+          </div>
+          
+          <div style="padding: 26px 22px;">
+            <p style="font-size: 16px; margin: 0 0 8px 0; font-weight: 700;">
+              Laporan Penjualan Hari Ini Telah Siap! 📊
+            </p>
+            <p style="font-size: 13.5px; line-height: 1.6; color: #6F5C4A; margin: 0 0 20px 0;">
+              Halo <strong>${ownerName || 'Chef / Owner'}</strong>, berikut adalah rekapitulasi performa penjualan dan pendapatan dapur Anda untuk hari <strong>${formattedDate}</strong>.
+            </p>
+            
+            <!-- Ringkasan Kartu Metrik -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+              <div style="background-color: #FFFBF5; border: 1.5px solid #F2E3D0; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 11px; font-weight: 700; color: #8A725D; text-transform: uppercase;">Total Omset</div>
+                <div style="font-size: 17px; font-weight: 800; color: #2B221C; margin-top: 4px;">${formattedSales}</div>
+              </div>
+              <div style="background-color: #FFFBF5; border: 1.5px solid #F2E3D0; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 11px; font-weight: 700; color: #8A725D; text-transform: uppercase;">Estimasi Laba</div>
+                <div style="font-size: 17px; font-weight: 800; color: #2D7A1F; margin-top: 4px;">${formattedProfit}</div>
+              </div>
+            </div>
+
+            <div style="background-color: #FFFBF5; border: 1.5px solid #F2E3D0; border-radius: 14px; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.7;">
+              <div><strong>Jumlah Transaksi:</strong> ${totalOrders} transaksi berhasil</div>
+              <div><strong>Rata-rata per Pesanan:</strong> ${totalOrders > 0 ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(totalSales / totalOrders) : 'Rp 0'}</div>
+              <div><strong>Tanggal Rekap:</strong> ${formattedDate} (Penutupan Buku 22:00)</div>
+            </div>
+
+            <!-- List data yang dikirim ke email ini -->
+            <div style="background-color: #F8F4EE; border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;">
+              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #6F5C4A; text-transform: uppercase; letter-spacing: 0.5px;">
+                📋 Rincian Data Dalam Email Ini:
+              </p>
+              <ul style="margin: 0; padding-left: 18px; font-size: 12.5px; color: #524336; line-height: 1.6;">
+                <li>Total omset penjualan harian (${formattedSales})</li>
+                <li>Estimasi profit bersih (${formattedProfit}) dan total ${totalOrders} transaksi</li>
+                <li>Daftar menu terlaris hari ini</li>
+                <li>Status rekonsiliasi kasir penutupan pukul 22:00 WIB</li>
+              </ul>
+            </div>
+
+            <h3 style="font-size: 14px; font-weight: 800; margin: 20px 0 10px 0; color: #2B221C;">Menu Terlaris Hari Ini:</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 22px;">
+              <thead>
+                <tr style="background-color: #FAF4EB; text-align: left; border-bottom: 2px solid #E8D7C3;">
+                  <th style="padding: 9px 8px; color: #6F5C4A;">Menu</th>
+                  <th style="padding: 9px 8px; text-align: center; color: #6F5C4A;">Porsi</th>
+                  <th style="padding: 9px 8px; text-align: right; color: #6F5C4A;">Pendapatan</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${topMenuRows}
+              </tbody>
+            </table>
+
+            <!-- Catatan No-Reply & Otomatis -->
+            <div style="background-color: #FFF0E0; border-left: 4px solid #FF8F28; border-radius: 8px; padding: 12px 14px; margin-bottom: 22px;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #8F4C0D;">
+                ℹ️ <strong>Pemberitahuan Otomatis:</strong> Laporan harian ini dikirim otomatis setiap pukul 22:00 oleh sistem DapurTwin. <strong>Mohon untuk tidak membalas email ini</strong> secara langsung. Pengaturan email otomatis dapat disesuaikan di menu Pengaturan.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="https://dapurtwin.app/dashboard/laporan" style="display: inline-block; background-color: #FF8F28; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 50px;">
+                Lihat Laporan Lengkap di Dashboard
+              </a>
+            </div>
+          </div>
+          
+          <div style="background-color: #FAF6F0; padding: 16px 24px; text-align: center; font-size: 11px; color: #BCA184; border-top: 1px solid #F2E3D0;">
+            © ${new Date().getFullYear()} ${storeName} · DapurTwin Manajemen Operasional Dapur.
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  return sendEmail({
+    to: email,
+    subject: `📈 Laporan Harian Penjualan ${storeName} (${formattedDate}) - ${formattedSales}`,
+    html,
+    text: `Laporan Penjualan ${storeName} tanggal ${formattedDate}. Total Penjualan: ${formattedSales}, Profit: ${formattedProfit}, Jumlah Transaksi: ${totalOrders}. Email ini dikirim secara otomatis pada pukul 22:00, mohon untuk tidak membalas.`,
   })
 }

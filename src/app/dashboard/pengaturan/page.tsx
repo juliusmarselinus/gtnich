@@ -18,7 +18,16 @@ import {
   ShoppingBag,
   TrendingDown,
   Lock,
+  Bell,
+  Clock,
+  FileText,
+  AlertTriangle,
 } from 'lucide-react'
+import {
+  getNotificationPreferences,
+  saveNotificationPreferences,
+  UserNotificationPreferences,
+} from '@/lib/notificationSettings'
 
 const USAHA_OPTIONS = [
   { id: 'kafe', label: 'Kafe / kedai minuman', icon: '☕' },
@@ -66,11 +75,15 @@ export default function PengaturanPage() {
   // State Editable Box 4: Frekuensi Stok Habis
   const [stockoutFrequency, setStockoutFrequency] = useState<number>(2)
 
+  // State Editable Box 5: Pengaturan Notifikasi & Laporan Otomatis
+  const [notifyTagihanOverdue, setNotifyTagihanOverdue] = useState<boolean>(true)
+  const [notifyDailySales, setNotifyDailySales] = useState<boolean>(true)
+
   // Status Loading & Indikator Simpan per Box
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [savingBox, setSavingBox] = useState<'identitas' | 'usaha' | 'kanal' | 'stok' | null>(null)
-  const [successBox, setSuccessBox] = useState<'identitas' | 'usaha' | 'kanal' | 'stok' | null>(null)
-  const [errorBox, setErrorBox] = useState<{ box: 'identitas' | 'usaha' | 'kanal' | 'stok'; msg: string } | null>(null)
+  const [savingBox, setSavingBox] = useState<'identitas' | 'usaha' | 'kanal' | 'stok' | 'notifikasi' | null>(null)
+  const [successBox, setSuccessBox] = useState<'identitas' | 'usaha' | 'kanal' | 'stok' | 'notifikasi' | null>(null)
+  const [errorBox, setErrorBox] = useState<{ box: 'identitas' | 'usaha' | 'kanal' | 'stok' | 'notifikasi'; msg: string } | null>(null)
 
   // Ambil data profil dari database Supabase
   useEffect(() => {
@@ -125,6 +138,15 @@ export default function PengaturanPage() {
           user.user_metadata?.stockout_frequency ??
           2
         setStockoutFrequency(Number(stockFreq))
+
+        // Muat preferensi notifikasi dari storage / user metadata
+        const prefs = getNotificationPreferences()
+        setNotifyTagihanOverdue(
+          user.user_metadata?.notify_tagihan_overdue ?? prefs.notifyTagihanOverdue
+        )
+        setNotifyDailySales(
+          user.user_metadata?.notify_daily_sales ?? prefs.notifyDailySales
+        )
       } catch (err: unknown) {
         console.error('Error load profile:', err)
       } finally {
@@ -141,7 +163,7 @@ export default function PengaturanPage() {
     )
   }
 
-  const triggerSuccessIndicator = (boxName: 'identitas' | 'usaha' | 'kanal' | 'stok') => {
+  const triggerSuccessIndicator = (boxName: 'identitas' | 'usaha' | 'kanal' | 'stok' | 'notifikasi') => {
     setSuccessBox(boxName)
     setTimeout(() => {
       setSuccessBox((prev) => (prev === boxName ? null : prev))
@@ -328,6 +350,42 @@ export default function PengaturanPage() {
     } catch (err: unknown) {
       const e = err as Error
       setErrorBox({ box: 'stok', msg: e.message || 'Gagal menyimpan preferensi stok.' })
+    } finally {
+      setSavingBox(null)
+    }
+  }
+
+  // 5. Simpan Box Pengaturan Notifikasi & Laporan Otomatis
+  const handleSaveNotifikasi = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavingBox('notifikasi')
+    setErrorBox(null)
+
+    try {
+      const newPrefs: UserNotificationPreferences = {
+        notifyTagihanOverdue,
+        notifyDailySales,
+      }
+
+      // Simpan preferensi notifikasi ke local storage
+      saveNotificationPreferences(newPrefs)
+
+      // Simpan ke auth user_metadata agar konsisten lintas device
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            notify_tagihan_overdue: notifyTagihanOverdue,
+            notify_daily_sales: notifyDailySales,
+          },
+        })
+      } catch {
+        // non-blocking
+      }
+
+      triggerSuccessIndicator('notifikasi')
+    } catch (err: unknown) {
+      const e = err as Error
+      setErrorBox({ box: 'notifikasi', msg: e.message || 'Gagal menyimpan pengaturan notifikasi.' })
     } finally {
       setSavingBox(null)
     }
@@ -726,6 +784,112 @@ export default function PengaturanPage() {
                     </button>
                   )
                 })}
+              </div>
+            </form>
+
+            {/* BOX 5: Pengaturan Notifikasi & Laporan Otomatis */}
+            <form
+              onSubmit={handleSaveNotifikasi}
+              className="rounded-[28px] bg-white p-6 sm:p-7 border border-[#F2E3D0] shadow-sm transition hover:shadow-md"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#F2E3D0] pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#FFF5EA] text-[#FF8F28] flex items-center justify-center border border-[#FFE2C2]">
+                    <Bell className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-extrabold text-[#2B221C]">
+                      Notifikasi Email & In-App Otomatis
+                    </h2>
+                    <p className="text-xs text-[#8C7560]">
+                      Atur pengingat tagihan supplier jatuh tempo dan laporan harian pukul 22:00
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  {successBox === 'notifikasi' && (
+                    <span className="flex items-center gap-1.5 rounded-full bg-[#E8F6E3] px-3 py-1 text-xs font-bold text-[#1E6B24] border border-[#BDE8B5] animate-in fade-in duration-200">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#2E8B36]" />
+                      <span>Tersimpan!</span>
+                    </span>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={savingBox === 'notifikasi'}
+                    className="px-5 py-2 bg-[#FF8F28] hover:bg-[#FF9F3F] disabled:opacity-60 text-white font-bold text-xs rounded-full shadow-[0_3px_0_#C9620C] active:translate-y-[2px] active:shadow-[0_1px_0_#C9620C] transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {savingBox === 'notifikasi' ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Save className="w-3.5 h-3.5" />
+                    )}
+                    <span>{savingBox === 'notifikasi' ? 'Menyimpan...' : 'Simpan Notifikasi'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {errorBox?.box === 'notifikasi' && (
+                <div className="mt-4 rounded-xl bg-koral-muda p-3 text-xs font-semibold text-[#8F2A14] flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorBox.msg}</span>
+                </div>
+              )}
+
+              <div className="mt-5 space-y-4">
+                {/* Switch 1: Tagihan Supplier Melewati 1 Hari */}
+                <div className="p-4 rounded-2xl bg-[#FFFBF5] border border-[#F2E3D0] flex items-start justify-between gap-4">
+                  <div className="flex gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200/60 mt-0.5">
+                      <AlertTriangle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#2B221C]">
+                        Peringatan Tagihan Supplier Lewat 1 Hari
+                      </p>
+                      <p className="text-[11px] text-[#6F5C4A] mt-1 leading-relaxed">
+                        Kirim notifikasi in-app dan peringatan via email owner secara otomatis saat ada tagihan supplier yang belum diselesaikan lebih dari 1 hari sejak barang diterima.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+                    <input
+                      type="checkbox"
+                      checked={notifyTagihanOverdue}
+                      onChange={(e) => setNotifyTagihanOverdue(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF8F28]" />
+                  </label>
+                </div>
+
+                {/* Switch 2: Laporan Harian Jam 22:00 */}
+                <div className="p-4 rounded-2xl bg-[#FFFBF5] border border-[#F2E3D0] flex items-start justify-between gap-4">
+                  <div className="flex gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 mt-0.5">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#2B221C]">
+                        Laporan Harian Penjualan Otomatis (Pukul 22:00 WIB)
+                      </p>
+                      <p className="text-[11px] text-[#6F5C4A] mt-1 leading-relaxed">
+                        Kirimkan rekapitulasi penjualan, laba kotor, dan menu terlaris harian secara otomatis ke email owner setiap malam pukul 22:00 saat penutupan operasional dapur.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+                    <input
+                      type="checkbox"
+                      checked={notifyDailySales}
+                      onChange={(e) => setNotifyDailySales(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF8F28]" />
+                  </label>
+                </div>
               </div>
             </form>
           </div>

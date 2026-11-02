@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { notificationService, NotificationItem } from '@/services/notificationService'
+import { getNotificationPreferences } from '@/lib/notificationSettings'
+import { createClient } from '@/lib/supabase/client'
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
@@ -33,6 +35,82 @@ export function useNotifications() {
 
       const filtered = data.filter(n => !dismissed.includes(n.id))
       setNotifications(filtered)
+
+      // Cek dan kirim email otomatis jika fitur diaktifkan di Pengaturan
+      const prefs = getNotificationPreferences()
+
+      // 1. Tagihan supplier overdue melewati 1 hari
+      if (prefs.notifyTagihanOverdue) {
+        const overdueBills = filtered.filter(n => n.id.startsWith('synth-po-overdue-'))
+        if (overdueBills.length > 0) {
+          const supabase = createClient()
+          const { data: sessionData } = await supabase.auth.getSession()
+          const userEmail = sessionData?.session?.user?.email
+          const userId = sessionData?.session?.user?.id
+
+          if (userEmail && userId) {
+            // Cek log email yang sudah terkirim hari ini agar tidak spam (maksimal 1x per hari per PO)
+            const todayStr = new Date().toISOString().slice(0, 10)
+            let sentOverdueMap: Record<string, string> = {}
+            try {
+              const raw = localStorage.getItem('dapur_sent_overdue_emails')
+              if (raw) sentOverdueMap = JSON.parse(raw)
+            } catch {}
+
+            for (const bill of overdueBills) {
+              const lastSent = sentOverdueMap[bill.id]
+              if (lastSent !== todayStr) {
+                // Panggil endpoint kirim email overdue tagihan
+                fetch('/api/notify-overdue-tagihan', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    email: userEmail,
+                    noPO: bill.title.replace('Peringatan: Tagihan Lewat 1 Hari (', '').replace(')', ''),
+                    supplierName: bill.detail.split('dari ')[1]?.split(' sebesar')[0] || 'Supplier',
+                    totalTagihan: 0,
+                    daysLate: 1,
+                  }),
+                }).catch(e => console.warn('Gagal memicu email tagihan overdue:', e))
+
+                sentOverdueMap[bill.id] = todayStr
+              }
+            }
+            try {
+              localStorage.setItem('dapur_sent_overdue_emails', JSON.stringify(sentOverdueMap))
+            } catch {}
+          }
+        }
+      }
+
+      // 2. Pengiriman otomatis laporan harian penjualan pada jam 22:00
+      if (prefs.notifyDailySales) {
+        const now = new Date()
+        // Aktif jika jam sudah mencapai >= 22 (pukul 22:00 WIB ke atas)
+        if (now.getHours() >= 22) {
+          const todayStr = now.toISOString().slice(0, 10)
+          const lastDailySent = localStorage.getItem('dapur_last_daily_sales_email')
+          if (lastDailySent !== todayStr) {
+            const supabase = createClient()
+            const { data: sessionData } = await supabase.auth.getSession()
+            const userEmail = sessionData?.session?.user?.email
+            const userId = sessionData?.session?.user?.id
+
+            if (userEmail && userId) {
+              fetch('/api/notify-daily-sales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId,
+                  email: userEmail,
+                }),
+              }).catch(e => console.warn('Gagal memicu email laporan harian:', e))
+
+              localStorage.setItem('dapur_last_daily_sales_email', todayStr)
+            }
+          }
+        }
+      }
     } catch (err) {
       console.warn('Failed to fetch notifications:', err)
     } finally {
