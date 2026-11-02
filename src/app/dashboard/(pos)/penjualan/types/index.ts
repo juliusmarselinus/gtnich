@@ -17,6 +17,7 @@ export interface CartItem {
 export interface CheckoutFormInput {
   customerName?: string
   customerPhone?: string
+  customerEmail?: string
   channel: string
   paymentMethod: string
   cashierName?: string
@@ -45,6 +46,7 @@ export interface OrderRecord {
   invoiceNumber: string
   customerName: string
   customerPhone?: string | null
+  customerEmail?: string | null
   channel: string
   status: string
   paymentMethod: string

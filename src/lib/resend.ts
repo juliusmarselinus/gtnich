@@ -272,3 +272,193 @@ export async function sendPurchaseOrderNotificationEmail({
     text: `Purchase Order baru ${noPO} untuk supplier ${supplierName} senilai ${formattedTotal} telah dibuat di DapurTwin. Email ini dikirim secara otomatis, mohon untuk tidak membalas.`,
   })
 }
+
+/**
+ * Template & Pengiriman Email Struk Penjualan / Notifikasi Transaksi Kasir
+ * Bisa dikirim ke pelanggan (sebagai e-receipt) maupun ke owner dapur
+ */
+export async function sendSaleTransactionEmail({
+  email,
+  isCustomerCopy = false,
+  storeName = 'DapurTwin',
+  ownerName,
+  invoiceNumber,
+  customerName = 'Pelanggan Umum',
+  customerPhone,
+  customerEmail,
+  paymentMethod = 'Tunai / Cash',
+  paymentStatus = 'Lunas',
+  subtotal,
+  discount = 0,
+  totalPrice,
+  cashReceived,
+  changeAmount,
+  cashierName = 'Kasir Dapur',
+  notes,
+  items,
+  createdAt = new Date(),
+}: {
+  email: string
+  isCustomerCopy?: boolean
+  storeName?: string
+  ownerName?: string
+  invoiceNumber: string
+  customerName?: string
+  customerPhone?: string | null
+  customerEmail?: string | null
+  paymentMethod?: string
+  paymentStatus?: string
+  subtotal: number
+  discount?: number
+  totalPrice: number
+  cashReceived?: number | null
+  changeAmount?: number | null
+  cashierName?: string
+  notes?: string | null
+  items: Array<{
+    namaMenu: string
+    qty: number
+    hargaJual: number
+    subtotal: number
+  }>
+  createdAt?: Date | string
+}) {
+  const formattedTotal = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(totalPrice)
+
+  const tgl = new Date(createdAt).toLocaleString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Jakarta',
+  })
+
+  const showCash = paymentMethod?.toLowerCase().includes('tunai') || (cashReceived != null && cashReceived > 0)
+
+  // Desain struk thermal digital bersih, sama persis dengan struk POS
+  const itemsListHtml = items
+    .map(
+      (item) => `
+      <div style="margin-bottom: 10px;">
+        <div style="font-weight: 700; color: #1e293b; font-size: 13px;">${item.namaMenu}</div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #64748b; margin-top: 2px;">
+          <span>${item.qty} x ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.hargaJual)}</span>
+          <span style="font-weight: 700; color: #1e293b;">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.subtotal)}</span>
+        </div>
+      </div>
+    `
+    )
+    .join('')
+
+  const dashBorder = `border-top: 1px dashed #cbd5e1; margin: 12px 0;`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Struk Pembayaran - ${invoiceNumber}</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Courier New', Courier, monospace, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px 12px; color: #1e293b;">
+        <div style="max-width: 360px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 24px 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); font-family: 'Courier New', Courier, monospace, monospace;">
+          
+          <!-- Header Struk -->
+          <div style="text-align: center; margin-bottom: 12px;">
+            <div style="font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">${storeName}</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Struk Pembayaran</div>
+          </div>
+
+          <div style="${dashBorder}"></div>
+
+          <!-- Info Transaksi -->
+          <div style="font-size: 11.5px; line-height: 1.6; color: #334155;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b;">No. Nota</span>
+              <span style="font-weight: 700; color: #0f172a;">${invoiceNumber}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b;">Waktu</span>
+              <span>${tgl}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b;">Kasir</span>
+              <span>${cashierName}</span>
+            </div>
+            ${customerName && customerName !== 'Pelanggan Umum' ? `
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b;">Pelanggan</span>
+              <span>${customerName}</span>
+            </div>` : ''}
+          </div>
+
+          <div style="${dashBorder}"></div>
+
+          <!-- Daftar Menu Pesanan -->
+          <div style="margin: 8px 0;">
+            ${itemsListHtml}
+          </div>
+
+          <div style="${dashBorder}"></div>
+
+          <!-- Total Belanja -->
+          <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; color: #0f172a; margin: 4px 0;">
+            <span>TOTAL</span>
+            <span>${formattedTotal}</span>
+          </div>
+
+          <!-- Rincian Metode & Pembayaran -->
+          <div style="margin-top: 8px; font-size: 11.5px; line-height: 1.6; color: #334155;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b;">Metode</span>
+              <span>${paymentMethod}</span>
+            </div>
+            ${showCash && cashReceived != null && cashReceived > 0 ? `
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b;">Uang diterima</span>
+              <span>${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cashReceived)}</span>
+            </div>` : ''}
+            ${showCash && changeAmount != null ? `
+            <div style="display: flex; justify-content: space-between; font-weight: 700;">
+              <span style="color: #64748b; font-weight: normal;">Kembalian</span>
+              <span>${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(changeAmount)}</span>
+            </div>` : ''}
+          </div>
+
+          ${notes ? `
+          <div style="${dashBorder}"></div>
+          <div style="font-size: 11px; color: #475569;">
+            <span style="color: #64748b;">Catatan: </span>${notes}
+          </div>` : ''}
+
+          <div style="${dashBorder}"></div>
+
+          <!-- Ucapan Penutup Struk -->
+          <div style="text-align: center; font-size: 11px; color: #64748b; margin-top: 10px;">
+            Terima kasih, selamat menikmati!
+          </div>
+
+          <!-- Pemberitahuan Otomatis Ringkas Sesuai Aturan -->
+          <div style="margin-top: 18px; padding-top: 10px; border-top: 1px dotted #cbd5e1; text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+            Email struk ini dikirim secara otomatis. Mohon untuk tidak membalas.
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+
+  const subject = isCustomerCopy
+    ? `🧾 Struk Pembayaran ${storeName} - ${invoiceNumber} (${formattedTotal})`
+    : `💰 Transaksi Penjualan: ${invoiceNumber} - ${formattedTotal}`
+
+  return sendEmail({
+    to: email,
+    subject,
+    html,
+    text: `Struk Pembayaran ${storeName} - ${invoiceNumber}. Total: ${formattedTotal}. Metode: ${paymentMethod}. Email ini dikirim secara otomatis, mohon untuk tidak membalas.`,
+  })
+}

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useRef } from 'react'
 import { X, Printer } from 'lucide-react'
@@ -11,6 +11,8 @@ export interface ReceiptData {
   invoiceNumber?: string
   createdAt: string
   cashierName: string
+  customerName?: string | null
+  customerEmail?: string | null
   items: { namaMenu: string; qty: number; hargaJual: number; subtotal: number }[]
   total: number
   paymentMethod: string
@@ -25,6 +27,8 @@ export function orderToReceipt(o: OrderRecord): ReceiptData {
     invoiceNumber: o.invoiceNumber,
     createdAt: o.createdAt,
     cashierName: o.cashierName || '-',
+    customerName: o.customerName || null,
+    customerEmail: o.customerEmail || null,
     items: (o.items || []).map(i => ({
       namaMenu: i.namaMenu,
       qty: i.qty,
@@ -93,6 +97,18 @@ export function Receipt({ data }: { data: ReceiptData }) {
           <span className="text-slate-500">Kasir</span>
           <span className="text-right">{data.cashierName}</span>
         </div>
+        {data.customerName && (
+          <div className="flex justify-between gap-3">
+            <span className="text-slate-500">Pelanggan</span>
+            <span className="text-right font-medium">{data.customerName}</span>
+          </div>
+        )}
+        {data.customerEmail && (
+          <div className="flex justify-between gap-3">
+            <span className="text-slate-500">E-Receipt</span>
+            <span className="text-right font-mono text-[10px] text-amber-800">{data.customerEmail}</span>
+          </div>
+        )}
       </div>
 
       <Dash />

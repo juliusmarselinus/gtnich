@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { CartItem, CheckoutFormInput } from '../types'
@@ -77,6 +77,8 @@ export default function CartPOS({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [method, setMethod] = useState<PayMethod>('tunai')
   const [cashInput, setCashInput] = useState('')
+  const [customerEmail, setCustomerEmail] = useState('')
+  const [customerName, setCustomerName] = useState('')
   const [notes, setNotes] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [qr, setQr] = useState<QrState>({ status: 'idle' })
@@ -91,6 +93,8 @@ export default function CartPOS({
   const openCheckout = () => {
     setSubmitError(null)
     setCashInput('')
+    setCustomerEmail('')
+    setCustomerName('')
     setNotes('')
     setQr({ status: 'idle' })
     setMethod('tunai')
@@ -165,6 +169,8 @@ export default function CartPOS({
     try {
       await onCheckout({
         channel: 'Toko Langsung',
+        customerName: customerName.trim() || undefined,
+        customerEmail: customerEmail.trim() || undefined,
         paymentMethod: method === 'tunai' ? 'Tunai / Cash' : 'QRIS',
         cashReceived: method === 'tunai' ? cashReceived : undefined,
         changeAmount: method === 'tunai' ? change : undefined,
@@ -180,6 +186,8 @@ export default function CartPOS({
   const previewData: ReceiptData = {
     createdAt: new Date().toISOString(),
     cashierName: 'Kasir Dapur',
+    customerName: customerName.trim() || undefined,
+    customerEmail: customerEmail.trim() || undefined,
     items: cart.map(c => ({
       namaMenu: c.namaMenu,
       qty: c.cartQty,
@@ -625,6 +633,38 @@ export default function CartPOS({
                     )}
                   </div>
                 )}
+
+                {/* Informasi Pelanggan & Kirim Struk Email */}
+                <div className="space-y-2.5 p-3.5 rounded-[22px] bg-[#FFFBF0] border border-[#FFE8A3]">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                      <span>Kirim Struk ke Email Pelanggan</span>
+                      <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        Opsional
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      type="email"
+                      value={customerEmail}
+                      onChange={e => setCustomerEmail(e.target.value)}
+                      placeholder="Masukkan email penerima struk (misal: pembeli@gmail.com)"
+                      className={`${INPUT} bg-white border border-[#F2E3D0]`}
+                    />
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={e => setCustomerName(e.target.value)}
+                      placeholder="Nama pelanggan (opsional, default: Pelanggan Umum)"
+                      className={`${INPUT} bg-white border border-[#F2E3D0]`}
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed px-1">
+                    Jika diisi, e-receipt otomatis dikirimkan ke email pelanggan. Salinan transaksi juga otomatis dikirimkan ke email pemilik dapur.
+                  </p>
+                </div>
 
                 {/* Catatan Transaksi */}
                 <div>

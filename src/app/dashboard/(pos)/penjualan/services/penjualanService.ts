@@ -167,6 +167,7 @@ export const penjualanService = {
 
     const customerName = form.customerName?.trim() || 'Pelanggan Umum'
     const customerPhone = form.customerPhone?.trim() || null
+    const customerEmail = form.customerEmail?.trim() || null
     const channel = normalizeOrderChannel(form.channel)
     const paymentMethod = form.paymentMethod || 'Tunai / Cash'
     const cashierName = form.cashierName || 'Kasir Dapur'
@@ -268,6 +269,60 @@ export const penjualanService = {
       }
     }
 
-    return mapOrderFromDB({ ...orderData, order_items: itemsData || [] })
+    // 4. Kirim notifikasi transaksi & struk via Email Resend (non-blocking)
+    try {
+      const ownerEmail = sessionData.session.user.email
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, store_name')
+        .eq('id', userId)
+        .single()
+
+      const storeName = profile?.store_name || 'DapurTwin'
+      const ownerName = profile?.full_name || ownerEmail?.split('@')[0] || 'Chef / Owner'
+
+      const emailPayload = {
+        ownerEmail: ownerEmail || null,
+        customerEmail: customerEmail || null,
+        storeName,
+        ownerName,
+        invoiceNumber,
+        customerName,
+        customerPhone,
+        paymentMethod,
+        paymentStatus: 'Lunas',
+        subtotal,
+        discount,
+        totalPrice,
+        cashReceived: form.cashReceived ?? null,
+        changeAmount: form.changeAmount ?? null,
+        cashierName,
+        notes,
+        items: cart.map(c => ({
+          namaMenu: c.namaMenu,
+          qty: c.cartQty,
+          hargaJual: c.hargaJual,
+          subtotal: c.hargaJual * c.cartQty,
+        })),
+        createdAt: orderData.created_at,
+      }
+
+      // Panggil endpoint internal notify-sale
+      fetch('/api/notify-sale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailPayload),
+      }).catch(err => {
+        console.warn('Background notify-sale request error:', err)
+      })
+    } catch (notifyErr) {
+      console.warn('Gagal memicu pengiriman email transaksi:', notifyErr)
+    }
+
+    const finalOrder = mapOrderFromDB({ ...orderData, order_items: itemsData || [] })
+    if (customerEmail) {
+      finalOrder.customerEmail = customerEmail
+    }
+    return finalOrder
   },
 }
