@@ -12,6 +12,7 @@ import {
   History,
   Lightbulb,
   Wrench,
+  Settings,
 } from 'lucide-react'
 import TwinIcon from '@/components/ui/TwinIcon'
 
@@ -73,6 +74,7 @@ export const navSections: NavSection[] = [
     icon: Wrench,
     items: [
       { href: '/dashboard/ocr-nota', label: 'OCR Nota', desc: 'Scan foto nota belanja jadi data', icon: ScanLine },
+      { href: '/dashboard/pengaturan', label: 'Pengaturan', desc: 'Identitas dapur, kanal & profil usaha', icon: Settings },
     ],
   },
 ]
