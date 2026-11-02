@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar'
 import { SidebarProvider } from '@/context/SidebarContext'
 import { createClient } from '@/lib/supabase/client'
 import DapiHead from '@/components/ui/DapiHead'
+import ProfileSetupModal from '@/components/ProfileSetupModal'
 
 export default function DashboardLayout({
   children,
@@ -14,6 +15,15 @@ export default function DashboardLayout({
 }) {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [needsProfileSetup, setNeedsProfileSetup] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [existingProfileData, setExistingProfileData] = useState<{
+    fullName?: string
+    storeName?: string
+    businessType?: string
+    salesChannels?: string[]
+    stockoutFrequency?: number | null
+  }>({})
 
   useEffect(() => {
     const supabase = createClient()
@@ -23,8 +33,96 @@ export default function DashboardLayout({
       if (!session) {
         setIsAuthenticated(false)
         router.replace('/login')
-      } else {
-        setIsAuthenticated(true)
+        return
+      }
+
+      setIsAuthenticated(true)
+      const user = session.user
+      setCurrentUserId(user.id)
+
+      // 1. Coba periksa status menggunakan RPC Supabase jika sudah ada
+      const { data: rpcStatus, error: rpcErr } = await supabase.rpc('check_user_profile_status')
+
+      if (!rpcErr && rpcStatus && typeof rpcStatus === 'object') {
+        const status = rpcStatus as {
+          needs_setup?: boolean
+          full_name?: string
+          store_name?: string
+          business_type?: string
+          sales_channels?: string[]
+          stockout_frequency?: number
+        }
+
+        setExistingProfileData({
+          fullName: status.full_name || '',
+          storeName: status.store_name || '',
+          businessType: status.business_type || '',
+          salesChannels: status.sales_channels || [],
+          stockoutFrequency: status.stockout_frequency ?? 2,
+        })
+
+        if (status.needs_setup) {
+          setNeedsProfileSetup(true)
+          return
+        }
+      }
+
+      // 2. Fallback baca langsung tabel public.profiles di Supabase
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      // Jika kolom is_completed di Supabase bernilai true, profil sudah tuntas
+      if (profile && (profile as any).is_completed === true) {
+        setNeedsProfileSetup(false)
+        return
+      }
+
+      // Cek apakah data di profiles masih kosong atau bernilai default / placeholder
+      const rawFullName = (profile?.full_name || '').trim()
+      const rawStoreName = (profile?.store_name || '').trim()
+      const userEmailPrefix = user.email ? user.email.split('@')[0].toLowerCase() : ''
+
+      const isPlaceholderName =
+        !rawFullName ||
+        rawFullName === 'Pemilik Dapur' ||
+        rawFullName === 'User' ||
+        rawFullName.toLowerCase() === userEmailPrefix
+
+      const isPlaceholderStore =
+        !rawStoreName ||
+        rawStoreName === 'Dapur Saya' ||
+        rawStoreName === 'Dapur Pemilik Dapur' ||
+        rawStoreName.toLowerCase() === `dapur ${userEmailPrefix}`
+
+      const fullName = isPlaceholderName ? '' : rawFullName
+      const storeName = isPlaceholderStore ? '' : rawStoreName
+      const businessType = profile?.business_type?.trim() || ''
+      const salesChannels: string[] = Array.isArray(profile?.sales_channels) ? profile.sales_channels : []
+      const stockoutFrequency = (profile as any)?.stockout_frequency !== undefined && (profile as any)?.stockout_frequency !== null
+        ? Number((profile as any).stockout_frequency)
+        : null
+
+      setExistingProfileData({
+        fullName,
+        storeName,
+        businessType,
+        salesChannels,
+        stockoutFrequency,
+      })
+
+      // Jika salah satu dari data profil di Supabase belum ada / belum diisi
+      const isMissingAnyData =
+        !fullName ||
+        !storeName ||
+        !businessType ||
+        salesChannels.length === 0 ||
+        stockoutFrequency === null
+
+      if (isMissingAnyData) {
+        setNeedsProfileSetup(true)
       }
     }
 
@@ -36,6 +134,7 @@ export default function DashboardLayout({
         router.replace('/login')
       } else if (session) {
         setIsAuthenticated(true)
+        setCurrentUserId(session.user.id)
       }
     })
 
@@ -67,6 +166,20 @@ export default function DashboardLayout({
         <Sidebar />
         <div className="relative flex min-w-0 flex-1 flex-col overflow-y-auto">{children}</div>
       </div>
+      {needsProfileSetup && currentUserId && (
+        <ProfileSetupModal
+          userId={currentUserId}
+          initialName={existingProfileData.fullName}
+          initialStore={existingProfileData.storeName}
+          initialBusinessType={existingProfileData.businessType}
+          initialSalesChannels={existingProfileData.salesChannels}
+          initialStockoutFrequency={existingProfileData.stockoutFrequency}
+          onCompleted={() => {
+            setNeedsProfileSetup(false)
+            router.refresh()
+          }}
+        />
+      )}
     </SidebarProvider>
   )
 }

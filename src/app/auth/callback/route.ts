@@ -1,0 +1,133 @@
+import { NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+  const next = searchParams.get('next') ?? '/dashboard'
+
+  // Ambil data survey dari searchParams jika tersedia
+  let surveyUsaha = searchParams.get('usaha') || ''
+  let surveyKanal = searchParams.get('kanal') || ''
+  let surveyHabis = searchParams.get('habis') ? Number(searchParams.get('habis')) : null
+
+  if (code) {
+    const cookieStore = await cookies()
+
+    // Fallback ambil data survey dari cookie dapur_survey jika tidak ada di searchParams
+    if (!surveyUsaha && !surveyKanal) {
+      const cookieSurvey = cookieStore.get('dapur_survey')?.value
+      if (cookieSurvey) {
+        try {
+          const parsed = JSON.parse(cookieSurvey)
+          if (parsed.usaha) surveyUsaha = parsed.usaha
+          if (parsed.kanal) surveyKanal = parsed.kanal
+          if (parsed.habis !== undefined && parsed.habis !== null) surveyHabis = Number(parsed.habis)
+        } catch {
+          // ignore error parsing cookie
+        }
+      }
+    }
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              )
+            } catch {
+              // Abaikan jika dipanggil dalam konteks di mana cookie sudah ditutup
+            }
+          },
+        },
+      }
+    )
+
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
+      // Pastikan profile terisi saat login lewat OAuth Google
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (user) {
+          // Ambil profil yang sudah ada untuk memeriksa apakah user sudah pernah mengisi profil
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('full_name, store_name, business_type, sales_channels')
+            .eq('id', user.id)
+            .maybeSingle()
+
+          const salesChannelsArray = surveyKanal ? surveyKanal.split(',').filter(Boolean) : null
+
+          // Update user_metadata jika ada data personalisasi survey
+          if (surveyUsaha || surveyKanal || surveyHabis !== null) {
+            await supabase.auth.updateUser({
+              data: {
+                business_type: surveyUsaha || user.user_metadata?.business_type || null,
+                sales_channels: salesChannelsArray || user.user_metadata?.sales_channels || null,
+                stockout_frequency: surveyHabis !== null ? surveyHabis : (user.user_metadata?.stockout_frequency ?? null),
+              },
+            })
+          }
+
+          // Jika profil belum ada atau belum lengkap (misal user baru dari Google),
+          // biarkan full_name atau store_name kosong/null agar terdeteksi perlu melengkapi profil di dashboard.
+          // Jangan langsung menimpa dengan nama default Google jika profil sudah memiliki nama custom.
+          const fullName =
+            existingProfile?.full_name ||
+            ''
+          const storeName =
+            existingProfile?.store_name ||
+            ''
+
+          await supabase.from('profiles').upsert(
+            {
+              id: user.id,
+              full_name: fullName,
+              store_name: storeName,
+              ...(surveyUsaha ? { business_type: surveyUsaha } : {}),
+              ...(salesChannelsArray && salesChannelsArray.length > 0 ? { sales_channels: salesChannelsArray } : {}),
+            },
+            { onConflict: 'id' }
+          )
+        }
+      } catch (profileErr) {
+        console.warn('Gagal sync profile Google OAuth:', profileErr)
+      }
+
+      // Hapus cookie survey setelah berhasil diproses
+      try {
+        cookieStore.delete('dapur_survey')
+      } catch {
+        // ignore
+      }
+
+      const forwardedHost = request.headers.get('x-forwarded-host')
+      const isLocalEnv = process.env.NODE_ENV === 'development'
+
+      // Beri query param setup=1 agar dashboard secara eksplisit mengecek dan memicu modal pelengkapan data
+      const targetPath = next.includes('?') ? `${next}&setup=1` : `${next}?setup=1`
+
+      if (isLocalEnv) {
+        return NextResponse.redirect(`${origin}${targetPath}`)
+      } else if (forwardedHost) {
+        return NextResponse.redirect(`https://${forwardedHost}${targetPath}`)
+      } else {
+        return NextResponse.redirect(`${origin}${targetPath}`)
+      }
+    }
+  }
+
+  // Jika gagal, kembalikan ke halaman login dengan notifikasi error
+  return NextResponse.redirect(`${origin}/login?error=oauth_error`)
+}
