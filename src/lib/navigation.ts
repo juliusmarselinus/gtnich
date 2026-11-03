@@ -33,6 +33,7 @@ export interface NavSection {
 /**
  * Satu sumber untuk Sidebar (dropdown per modul) dan katalog "Semua fitur" di beranda.
  * Pengelompokan & label mengikuti sidebar tim (Operasional / Inventaris / Analitik & Laporan / Tools).
+ * Pengaturan dipisahkan menjadi navigasi utilitas sistem khusus di sidebar bawah.
  */
 export const navSections: NavSection[] = [
   {
@@ -74,9 +75,15 @@ export const navSections: NavSection[] = [
     icon: Wrench,
     items: [
       { href: '/dashboard/ocr-nota', label: 'OCR Nota', desc: 'Scan foto nota belanja jadi data', icon: ScanLine },
-      { href: '/dashboard/pengaturan', label: 'Pengaturan', desc: 'Identitas dapur, kanal & profil usaha', icon: Settings },
     ],
   },
 ]
+
+export const settingsItem: NavItem = {
+  href: '/dashboard/pengaturan',
+  label: 'Pengaturan',
+  desc: 'Identitas dapur, kanal & profil usaha',
+  icon: Settings,
+}
 
 export const totalFitur = navSections.reduce((n, s) => n + s.items.length, 0)

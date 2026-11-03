@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { ChevronDown, LayoutDashboard, LogOut, X } from 'lucide-react'
+import { ChevronDown, LayoutDashboard, LogOut, Settings, X } from 'lucide-react'
 import clsx from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useSidebar } from '@/context/SidebarContext'
@@ -59,6 +59,7 @@ export default function Sidebar() {
   }
 
   const isOverviewActive = pathname === '/dashboard'
+  const isSettingsActive = pathname.startsWith('/dashboard/pengaturan')
   const isItemActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const onNavigate = () => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) closeSidebar()
@@ -244,32 +245,49 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Bagian Bawah: Profil Pengguna */}
-        <div
-          className={clsx(
-            'flex flex-shrink-0 items-center gap-2.5 rounded-[20px] bg-[#FFF7E3] p-1.5 sm:p-2 border border-[#FFE49A]/60 shadow-2xs',
-            collapsed && 'lg:justify-center'
-          )}
-        >
-          <span className="flex h-[35px] w-[35px] flex-shrink-0 items-center justify-center rounded-full bg-kuning text-xs font-extrabold uppercase text-kopi shadow-2xs">
-            {(user?.email || 'A').charAt(0)}
-          </span>
-          <span className={clsx('flex min-w-0 flex-1 flex-col', hideWhenCollapsed)}>
-            <span className="truncate text-xs font-bold text-slate-800">{user?.email || 'Admin'}</span>
-            <span className="text-[10px] text-kopi-muted font-medium">Sesi aktif</span>
-          </span>
-          <button
-            type="button"
-            onClick={handleLogout}
-            aria-label="Keluar"
-            title="Keluar"
+        {/* Bagian Bawah: Pengaturan & Profil Pengguna */}
+        <div className="flex flex-col gap-2 flex-shrink-0 pt-1.5 border-t border-krim-garis/80">
+          {/* Tombol Pengaturan Khusus (Terpisah dari modul Tools) */}
+          <Link
+            href="/dashboard/pengaturan"
+            onClick={onNavigate}
+            aria-current={isSettingsActive ? 'page' : undefined}
+            title={collapsed ? 'Pengaturan' : undefined}
+            className={clsx(rowClass(isSettingsActive), 'flex-shrink-0')}
+          >
+            <span className={iconClass(isSettingsActive)}>
+              <Settings className="h-4 w-4" />
+            </span>
+            <span className={clsx('truncate', hideWhenCollapsed)}>Pengaturan</span>
+          </Link>
+
+          {/* Profil Pengguna */}
+          <div
             className={clsx(
-              'flex h-[34px] w-[34px] items-center justify-center rounded-full text-kopi-muted hover:bg-white hover:text-koral transition-colors cursor-pointer',
-              hideWhenCollapsed
+              'flex flex-shrink-0 items-center gap-2.5 rounded-[20px] bg-[#FFF7E3] p-1.5 sm:p-2 border border-[#FFE49A]/60 shadow-2xs',
+              collapsed && 'lg:justify-center'
             )}
           >
-            <LogOut className="h-4 w-4" />
-          </button>
+            <span className="flex h-[35px] w-[35px] flex-shrink-0 items-center justify-center rounded-full bg-kuning text-xs font-extrabold uppercase text-kopi shadow-2xs">
+              {(user?.email || 'A').charAt(0)}
+            </span>
+            <span className={clsx('flex min-w-0 flex-1 flex-col', hideWhenCollapsed)}>
+              <span className="truncate text-xs font-bold text-slate-800">{user?.email || 'Admin'}</span>
+              <span className="text-[10px] text-kopi-muted font-medium">Sesi aktif</span>
+            </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              aria-label="Keluar"
+              title="Keluar"
+              className={clsx(
+                'flex h-[34px] w-[34px] items-center justify-center rounded-full text-kopi-muted hover:bg-white hover:text-koral transition-colors cursor-pointer',
+                hideWhenCollapsed
+              )}
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </aside>
     </>
