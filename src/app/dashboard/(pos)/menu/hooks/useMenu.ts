@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { menuService } from '../services/menuService'
-import { MenuItem, BahanOption, MenuFormData } from '../types'
+import { MenuItem, BahanOption, MenuFormData, MenuFilterStatus } from '../types'
 
 export function useMenu() {
   const [list, setList] = useState<MenuItem[]>([])
@@ -13,6 +13,7 @@ export function useMenu() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<MenuFilterStatus>('all')
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -66,17 +67,48 @@ export function useMenu() {
     }
   }, [fetchAll])
 
-  // Filter List
+  // Hitung metrik ringkasan dari seluruh menu yang ada
+  const stats = useMemo(() => {
+    const total = list.length
+    const healthy = list.filter(m => m.resep && m.resep.length > 0 && m.profitPercent >= 40).length
+    const hasRecipe = list.filter(m => m.resep && m.resep.length > 0).length
+    const needRecipe = list.filter(m => !m.resep || m.resep.length === 0 || m.estimasiHPP <= 0).length
+
+    const totalMargin = list.reduce((acc, m) => acc + (m.profitPercent || 0), 0)
+    const avgMargin = total > 0 ? totalMargin / total : 0
+
+    return {
+      total,
+      healthy,
+      hasRecipe,
+      needRecipe,
+      avgMargin,
+    }
+  }, [list])
+
+  // Filter List berdasarkan pencarian, kategori, dan status tab
   const filteredList = useMemo(() => {
     return list.filter(m => {
+      const query = search.toLowerCase()
       const matchSearch =
-        m.nama.toLowerCase().includes(search.toLowerCase()) ||
-        m.kategori.toLowerCase().includes(search.toLowerCase()) ||
-        (m.sku && m.sku.toLowerCase().includes(search.toLowerCase()))
+        m.nama.toLowerCase().includes(query) ||
+        m.kategori.toLowerCase().includes(query) ||
+        (m.sku && m.sku.toLowerCase().includes(query))
+
       const matchCategory = categoryFilter === 'all' || m.kategori === categoryFilter
-      return matchSearch && matchCategory
+
+      let matchStatus = true
+      if (statusFilter === 'healthy') {
+        matchStatus = m.resep && m.resep.length > 0 && m.profitPercent >= 40
+      } else if (statusFilter === 'has_recipe') {
+        matchStatus = Boolean(m.resep && m.resep.length > 0)
+      } else if (statusFilter === 'need_recipe') {
+        matchStatus = !m.resep || m.resep.length === 0 || m.estimasiHPP <= 0
+      }
+
+      return matchSearch && matchCategory && matchStatus
     })
-  }, [list, search, categoryFilter])
+  }, [list, search, categoryFilter, statusFilter])
 
   // Unique categories
   const categories = useMemo(() => {
@@ -120,6 +152,7 @@ export function useMenu() {
 
   return {
     list: filteredList,
+    rawList: list,
     rawCount: list.length,
     bahanList,
     categories,
@@ -130,6 +163,9 @@ export function useMenu() {
     setSearch,
     categoryFilter,
     setCategoryFilter,
+    statusFilter,
+    setStatusFilter,
+    stats,
     saveMenu,
     deleteMenu,
     refresh: fetchAll,

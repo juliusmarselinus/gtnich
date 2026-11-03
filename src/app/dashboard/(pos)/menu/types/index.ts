@@ -1,3 +1,5 @@
+export type MenuFilterStatus = 'all' | 'healthy' | 'has_recipe' | 'need_recipe'
+
 export interface ResepItemInput {
   bahanId: string
   namaBahan?: string

@@ -5,11 +5,20 @@ import { MenuItem, MenuFormData, BahanOption } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import { getUnitConversionFactor, getCompatibleRecipeUnits, DEFAULT_SATUAN_LIST } from '@/lib/satuan'
 import { menuService, searchResepAI, resolveAIIngredients } from '../services/menuService'
-import { Plus, X, Loader2, CornerDownLeft, Bot, CheckCircle2 } from 'lucide-react'
+import { Plus, X, Loader2, Bot, CheckCircle2, Trash2, Sparkles, ChefHat } from 'lucide-react'
 import clsx from 'clsx'
 import CustomSelect from '@/components/ui/CustomSelect'
+import DapiHead from '@/components/ui/DapiHead'
 
-const KATEGORI_OPTIONS = ['Camilan', 'Kue & Manisan', 'Lauk Kering', 'Minuman', 'Makanan Berat', 'Bumbu & Saus']
+const KATEGORI_OPTIONS = [
+  'Makanan Berat',
+  'Camilan',
+  'Kue & Manisan',
+  'Minuman',
+  'Lauk Kering',
+  'Bumbu & Saus',
+  'Paket Hemat',
+]
 
 interface MenuModalProps {
   isOpen: boolean
@@ -22,12 +31,15 @@ interface MenuModalProps {
 
 const emptyForm: MenuFormData = {
   nama: '',
-  kategori: 'Camilan',
+  kategori: 'Makanan Berat',
   sku: '',
   emoji: '🍲',
   hargaJual: 0,
   resep: [],
 }
+
+const INPUT_STYLE =
+  'w-full px-4 py-2.5 rounded-2xl bg-[#FFF9EC] border border-[#FFE49A]/60 text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FFB800]/70 transition shadow-2xs'
 
 export default function MenuModal({
   isOpen,
@@ -121,7 +133,7 @@ export default function MenuModal({
       return false
     }
     if (targetIngredient.qty <= 0) {
-      setErrorMsg('Kuantitas takaran harus lebih dari 0')
+      setErrorMsg('Kuantitas takaran resep harus lebih dari 0')
       return false
     }
 
@@ -129,7 +141,6 @@ export default function MenuModal({
     if (!bahan) return false
 
     setForm(prev => {
-      // Cek apakah bahan dengan satuan yang sama sudah ada di list resep, jika ya jumlahkan kuantitasnya
       const existingIdx = prev.resep.findIndex(
         r => r.bahanId === bahan.id && r.satuan === (targetIngredient.satuan || bahan.satuan)
       )
@@ -175,16 +186,14 @@ export default function MenuModal({
     setAiSuccessMsg(null)
 
     try {
-      // 1. Panggil Asisten AI endpoint
       const fetchSearch = searchResepAI || menuService.searchResepAI
       const aiData = await fetchSearch(form.nama.trim(), currentBahanList)
 
       if (!aiData.items || aiData.items.length === 0) {
-        setErrorMsg('Asisten AI belum menemukan takaran bahan yang pas untuk menu ini.')
+        setErrorMsg('Asisten AI belum menemukan takaran bahan yang pas untuk hidangan ini.')
         return
       }
 
-      // 2. Cocokkan dengan master bahan dapur (dan daftarkan otomatis bahan baru jika diperlukan)
       const fetchResolve = resolveAIIngredients || menuService.resolveAIIngredients
       const { resolvedResep, newlyCreatedBahan } = await fetchResolve(
         aiData.items,
@@ -203,18 +212,17 @@ export default function MenuModal({
         return
       }
 
-      // 3. Masukkan ke dalam list bahan yang dibutuhkan (resep)
       setForm(prev => ({
         ...prev,
-        kategori: prev.kategori === 'Camilan' && aiData.kategori ? aiData.kategori : prev.kategori,
+        kategori: prev.kategori === 'Makanan Berat' && aiData.kategori ? aiData.kategori : prev.kategori,
         emoji: (prev.emoji === '🍲' || !prev.emoji) && aiData.emoji ? aiData.emoji : prev.emoji,
         resep: resolvedResep,
       }))
 
       const createdNote = newlyCreatedBahan.length > 0
-        ? ` (${newlyCreatedBahan.length} bahan otomatis ditambahkan ke daftar bahan dapur)`
+        ? ` (${newlyCreatedBahan.length} bahan otomatis ditambahkan ke inventaris dapur)`
         : ''
-      setAiSuccessMsg(`Berhasil menyiapkan ${resolvedResep.length} bahan komposisi resep untuk "${form.nama.trim()}"${createdNote}.`)
+      setAiSuccessMsg(`Berhasil menyiapkan ${resolvedResep.length} bahan komposisi untuk "${form.nama.trim()}"${createdNote}.`)
     } catch (err: unknown) {
       const e = err as Error
       console.error('Error searching AI recipe:', e)
@@ -271,13 +279,12 @@ export default function MenuModal({
             qty: newIngredient.qty,
           })
         }
-        // Bersihkan input draft setelah dimasukkan
         setNewIngredient({ bahanId: '', qty: 0, satuan: 'gram' })
       }
     }
 
     if (!form.nama.trim()) {
-      setErrorMsg('Nama menu wajib diisi')
+      setErrorMsg('Nama menu hidangan wajib diisi')
       return
     }
     if (form.hargaJual <= 0) {
@@ -302,28 +309,50 @@ export default function MenuModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="clay-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4">
-        <h3 className="text-base font-extrabold text-slate-800">
-          {editingMenu ? 'Edit Resep & Menu Masakan' : 'Tambah Menu Baru'}
-        </h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1D00]/45 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white rounded-[32px] shadow-2xl p-6 sm:p-7 w-full max-w-xl mx-auto space-y-4 max-h-[92vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 my-auto border border-[#FFE49A]/30">
+        {/* Header Modal */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#FFF6D6] border border-[#FFE49A] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-xs">
+              <DapiHead size={34} mood="senang" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-[#2B1D00] leading-tight">
+                {editingMenu ? 'Edit Resep & Menu Masakan' : 'Tambah Menu Baru'}
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {editingMenu
+                  ? 'Perbarui takaran resep, harga jual, atau bahan baku'
+                  : 'Daftarkan hidangan dan hitung estimasi HPP otomatis'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
         {errorMsg && (
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+          <div className="p-3.5 rounded-2xl bg-[#FDE8E4] border border-[#FAD3CB] text-[#B3361B] text-xs font-medium">
             {errorMsg}
           </div>
         )}
 
         {aiSuccessMsg && (
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between gap-2">
+          <div className="p-3.5 rounded-2xl bg-[#E8F5E4] border border-[#C3E6BD] text-[#2D7A1F] text-xs flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span>{aiSuccessMsg}</span>
+              <CheckCircle2 className="w-4 h-4 text-[#228B5B] flex-shrink-0" />
+              <span className="font-medium">{aiSuccessMsg}</span>
             </div>
             <button
               type="button"
               onClick={() => setAiSuccessMsg(null)}
-              className="text-emerald-600 hover:text-emerald-800 p-0.5 cursor-pointer"
+              className="text-[#2D7A1F] hover:text-[#1A5C14] p-1 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -331,9 +360,12 @@ export default function MenuModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">Nama Menu</label>
+          {/* Baris 1: Nama Menu & Emoji */}
+          <div className="grid grid-cols-4 gap-3">
+            <div className="col-span-3">
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
+                Nama Hidangan / Menu
+              </label>
               <input
                 type="text"
                 required
@@ -342,35 +374,37 @@ export default function MenuModal({
                   setForm(p => ({ ...p, nama: e.target.value }))
                   if (aiSuccessMsg) setAiSuccessMsg(null)
                 }}
-                placeholder="Contoh: Brownies Kukus Cokelat"
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800"
+                placeholder="Contoh: Nasi Goreng Spesial Dapur"
+                className={INPUT_STYLE}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">Icon / Emoji</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
+                Emoji Icon
+              </label>
               <input
                 type="text"
                 value={form.emoji}
                 onChange={e => setForm(p => ({ ...p, emoji: e.target.value }))}
-                placeholder="Contoh: 🎂"
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-center text-slate-800"
+                placeholder="🍲"
+                className={clsx(INPUT_STYLE, 'text-center text-lg')}
               />
             </div>
           </div>
 
-          {/* Bantuan AI Komposisi Resep */}
-          {form.nama.trim().length > 0 && (
-            <div className="p-3.5 rounded-2xl clay-card border border-[#F2E3D0] bg-[#FFFBF5] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in-50">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-[#FFF6EC] border border-[#FFE2C2] text-[#FF8F28] flex items-center justify-center flex-shrink-0 shadow-xs">
-                  <Bot className="w-4 h-4" />
+          {/* Banner Bantuan AI Asisten Dapur */}
+          {form.nama.trim().length > 1 && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#FFFBF2] to-[#FFF4E0] border border-[#FFE49A] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-[#FFB800] text-[#2B1D00] flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <Sparkles className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-800 truncate">
-                    Bantuan AI Komposisi Resep
+                  <p className="text-xs font-black text-[#2B1D00] truncate">
+                    Asisten AI Resep Dapur
                   </p>
-                  <p className="text-[11px] text-slate-500 truncate">
-                    Otomatis buat takaran & bahan yang dibutuhkan untuk &ldquo;{form.nama.trim()}&rdquo;
+                  <p className="text-[10px] text-slate-600 truncate">
+                    Otomatis racik takaran bahan untuk &ldquo;{form.nama.trim()}&rdquo;
                   </p>
                 </div>
               </div>
@@ -378,16 +412,16 @@ export default function MenuModal({
                 type="button"
                 onClick={handleSearchKomposisiAI}
                 disabled={isSearchingAI || isSubmitting}
-                className="px-4 py-2 clay-btn-primary active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-xs flex-shrink-0"
+                className="px-4 py-2 rounded-xl bg-[#2B1D00] hover:bg-[#422D00] text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-sm flex-shrink-0 active:scale-95"
               >
                 {isSearchingAI ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB800]" />
                     <span>Mencari takaran resep...</span>
                   </>
                 ) : (
                   <>
-                    <Bot className="w-3.5 h-3.5" />
+                    <Bot className="w-3.5 h-3.5 text-[#FFB800]" />
                     <span>Cari Komposisi AI</span>
                   </>
                 )}
@@ -395,9 +429,12 @@ export default function MenuModal({
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-3">
+          {/* Baris 2: Kategori, SKU, Harga Jual */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">Kategori</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
+                Kategori
+              </label>
               <CustomSelect
                 value={form.kategori}
                 onChange={val => setForm(p => ({ ...p, kategori: val }))}
@@ -405,39 +442,48 @@ export default function MenuModal({
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">SKU (Opsional)</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
+                SKU (Opsional)
+              </label>
               <input
                 type="text"
                 value={form.sku}
                 onChange={e => setForm(p => ({ ...p, sku: e.target.value }))}
-                placeholder="KUE-BRWN-01"
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono"
+                placeholder="MNU-001"
+                className={clsx(INPUT_STYLE, 'font-mono uppercase')}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">Harga Jual (Rp)</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
+                Harga Jual (Rp)
+              </label>
               <input
                 type="number"
                 min="0"
                 required
                 value={form.hargaJual || ''}
                 onChange={e => setForm(p => ({ ...p, hargaJual: Number(e.target.value) }))}
-                className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono font-bold"
+                placeholder="25000"
+                className={clsx(INPUT_STYLE, 'font-mono font-bold')}
               />
             </div>
           </div>
 
-          {/* Resep Builder */}
+          {/* Bagian Resep Builder */}
           <div className="pt-2 border-t border-slate-100 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Komposisi Takaran Resep ({form.resep.length} Bahan)
-              </p>
-              <span className="text-[10px] text-slate-400">
-                *Satuan otomatis mengonversi ke HPP bahan master
-              </span>
+            <div className="flex items-center justify-between px-1">
+              <div>
+                <p className="text-xs font-black text-[#2B1D00] uppercase tracking-wider flex items-center gap-1.5">
+                  <ChefHat className="w-3.5 h-3.5 text-[#FFB800]" />
+                  <span>Komposisi Resep ({form.resep.length} Bahan)</span>
+                </p>
+                <p className="text-[10px] text-slate-400">
+                  Subtotal HPP dihitung otomatis sesuai satuan master bahan dapur
+                </p>
+              </div>
             </div>
 
+            {/* List Bahan Resep yang sudah ditambahkan */}
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {form.resep.map((r, i) => {
                 const masterBahan = currentBahanList.find(b => b.id === r.bahanId)
@@ -447,9 +493,12 @@ export default function MenuModal({
                 const cost = (masterBahan?.hargaPerSatuan || 0) * (r.qty * factor)
 
                 return (
-                  <div key={i} className="flex items-center justify-between clay-inset px-3.5 py-2 rounded-xl gap-2">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-[#FFFBF2] border border-[#FFE49A]/50 gap-2 shadow-2xs"
+                  >
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-slate-800 truncate">{r.namaBahan}</p>
+                      <p className="text-xs font-bold text-[#2B1D00] truncate">{r.namaBahan}</p>
                       <p className="text-[10px] text-slate-400 font-mono">
                         Master: {formatRupiah(masterBahan?.hargaPerSatuan || 0)}/{baseUnit}
                       </p>
@@ -462,7 +511,7 @@ export default function MenuModal({
                         step="any"
                         value={r.qty}
                         onChange={e => updateResepQty(i, Number(e.target.value))}
-                        className="w-20 px-2 py-1 clay-card text-xs text-slate-800 font-mono font-bold text-right"
+                        className="w-20 px-2.5 py-1.5 rounded-xl bg-white border border-[#FFE49A] text-xs text-slate-800 font-mono font-bold text-right outline-none focus:ring-1 focus:ring-[#FFB800]"
                       />
                       <div className="w-24">
                         <CustomSelect
@@ -470,32 +519,33 @@ export default function MenuModal({
                           onChange={val => updateResepUnit(i, val)}
                           options={[...compUnits]}
                           size="sm"
-                          variant="card"
                         />
                       </div>
-                      <span className="text-xs font-mono font-bold text-slate-700 min-w-[70px] text-right">
+                      <span className="text-xs font-mono font-bold text-[#2B1D00] min-w-[75px] text-right">
                         {formatRupiah(Math.round(cost))}
                       </span>
                       <button
                         type="button"
                         onClick={() => removeIngredient(i)}
-                        className="text-rose-400 hover:text-rose-600 p-1 cursor-pointer"
+                        title="Hapus Bahan"
+                        className="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 flex items-center justify-center cursor-pointer transition-colors"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                 )
               })}
+
               {form.resep.length === 0 && (
-                <p className="text-xs text-slate-400 italic text-center py-2">
-                  Belum ada bahan di resep. Masukkan bahan di bawah ini.
-                </p>
+                <div className="p-4 rounded-2xl bg-[#FFFBF2] border border-dashed border-[#FFE49A] text-center text-xs text-slate-500">
+                  Belum ada bahan di resep menu ini. Pilih bahan di bawah untuk meracik.
+                </div>
               )}
             </div>
 
-            {/* Input Tambah Bahan ke Resep dengan Satuan yang dapat dipilih */}
-            <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-100 space-y-2">
+            {/* Input Tambah Bahan Baru ke Resep */}
+            <div className="p-3 rounded-2xl bg-[#F7F5F0] border border-[#EBE6DC] space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex-1 min-w-[160px]">
                   <CustomSelect
@@ -532,15 +582,16 @@ export default function MenuModal({
                         }
                       }
                     }}
-                    className="w-24 px-3 py-2 clay-inset text-xs text-slate-800 font-mono font-bold"
+                    className="w-24 px-3 py-2 rounded-xl bg-white border border-[#EBE6DC] text-xs text-slate-800 font-mono font-bold outline-none focus:ring-1 focus:ring-[#FFB800]"
                   />
                 </div>
 
-                <div className="w-28">
+                <div className="w-24">
                   <CustomSelect
                     value={newIngredient.satuan}
                     onChange={val => setNewIngredient(p => ({ ...p, satuan: val }))}
                     options={[...availableUnitsForNew]}
+                    size="sm"
                   />
                 </div>
 
@@ -548,23 +599,22 @@ export default function MenuModal({
                   type="button"
                   onClick={() => addIngredient()}
                   className={clsx(
-                    'px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 rounded-xl transition-all cursor-pointer',
+                    'px-4 py-2 text-xs font-black flex items-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-xs',
                     newIngredient.bahanId && newIngredient.qty > 0
-                      ? 'clay-btn-primary shadow-sm text-white animate-pulse'
-                      : 'clay-btn text-slate-600 hover:text-slate-900'
+                      ? 'bg-[#D8431F] hover:bg-[#c03917] text-white active:scale-95'
+                      : 'bg-white hover:bg-slate-100 text-slate-600 border border-[#EBE6DC]'
                   )}
                 >
                   <Plus className="w-4 h-4" />
                   <span>Tambah</span>
-                  <CornerDownLeft className="w-3 h-3 opacity-60 hidden sm:inline" />
                 </button>
               </div>
 
-              {/* UX Hint: Notifikasi interaktif jika bahan sudah terisi */}
+              {/* Status Bahan Terpilih */}
               {newIngredient.bahanId && newIngredient.qty > 0 && (
-                <div className="flex items-center justify-between text-[11px] text-[#FF8F2B] bg-[#FFF6EC] px-3 py-1.5 rounded-xl border border-[#FFE2C2] animate-in fade-in-50">
+                <div className="flex items-center justify-between text-[11px] text-[#2D7A1F] bg-[#E8F5E4] px-3 py-1.5 rounded-xl border border-[#C3E6BD]">
                   <span className="flex items-center gap-1.5 font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8F2B]" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#228B5B]" />
                     <span>
                       Siap dimasukkan: <strong>{selectedBahanForNew?.nama}</strong> ({newIngredient.qty} {newIngredient.satuan})
                     </span>
@@ -572,7 +622,7 @@ export default function MenuModal({
                   <button
                     type="button"
                     onClick={() => addIngredient()}
-                    className="underline font-bold hover:text-[#E07A1E] cursor-pointer"
+                    className="font-bold underline cursor-pointer"
                   >
                     + Masukkan sekarang
                   </button>
@@ -581,42 +631,59 @@ export default function MenuModal({
             </div>
           </div>
 
-          {/* Live Calculation Pod */}
-          <div className="grid grid-cols-3 gap-2 p-3 clay-inset rounded-2xl text-center">
+          {/* Live Financial Pods */}
+          <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-[#FFFBF2] border border-[#FFE49A]/60 text-center">
             <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Est. HPP Resep</p>
-              <p className="text-xs font-black text-slate-800 font-mono mt-0.5">{formatRupiah(Math.round(liveHPP))}</p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Est. HPP Resep</p>
+              <p className="text-xs font-black text-[#2B1D00] font-mono mt-0.5">
+                {formatRupiah(Math.round(liveHPP))}
+              </p>
             </div>
             <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Estimasi Profit</p>
-              <p className={clsx('text-xs font-black font-mono mt-0.5', liveProfit >= 0 ? 'text-[#FF8F2B]' : 'text-rose-600')}>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Estimasi Laba</p>
+              <p
+                className={clsx(
+                  'text-xs font-black font-mono mt-0.5',
+                  liveProfit >= 0 ? 'text-[#228B5B]' : 'text-rose-600'
+                )}
+              >
                 {formatRupiah(Math.round(liveProfit))}
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Margin Laba</p>
-              <p className={clsx('text-xs font-black mt-0.5', liveProfitPct >= 0 ? 'text-[#FF8F2B]' : 'text-rose-600')}>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Margin Laba</p>
+              <p
+                className={clsx(
+                  'text-xs font-black mt-0.5',
+                  liveProfitPct >= 40
+                    ? 'text-[#228B5B]'
+                    : liveProfitPct >= 20
+                    ? 'text-[#8A5A00]'
+                    : 'text-rose-600'
+                )}
+              >
                 {liveProfitPct.toFixed(1)}%
               </p>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-2">
             <button
               type="button"
               disabled={isSubmitting}
               onClick={onClose}
-              className="flex-1 py-2.5 clay-btn text-xs font-bold text-slate-600 disabled:opacity-50 cursor-pointer"
+              className="flex-1 py-3 rounded-2xl bg-[#F7F5F0] hover:bg-[#EFECE6] text-slate-700 text-xs font-black transition cursor-pointer disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-2.5 clay-btn-primary text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              className="flex-1 py-3 rounded-2xl bg-[#D8431F] hover:bg-[#c03917] text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-sm transition-all hover:scale-[1.01] active:scale-95 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Simpan Menu</span>
+              <span>Simpan Menu & Resep</span>
             </button>
           </div>
         </form>
