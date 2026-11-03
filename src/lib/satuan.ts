@@ -18,47 +18,51 @@ export const DEFAULT_SATUAN_LIST = [
 
 export type CommonSatuan = typeof DEFAULT_SATUAN_LIST[number] | string
 
-// Konversi unit takaran resep ke satuan master bahan baku
+// Konversi unit takaran resep / order ke satuan master bahan baku
 // Mengembalikan faktor pengali kuantitas terhadap harga dan stok master
+const BASE_TO_GRAM: Record<string, number> = { kg: 1000, gram: 1, gr: 1, g: 1 }
+const BASE_TO_ML: Record<string, number> = { liter: 1000, l: 1000, ml: 1 }
+
+function toGram(u: string): number | null {
+  if (u in BASE_TO_GRAM) return BASE_TO_GRAM[u]
+  if (u === 'sdm') return 15
+  if (u === 'sdt') return 5
+  return null
+}
+
+function toMl(u: string): number | null {
+  if (u in BASE_TO_ML) return BASE_TO_ML[u]
+  if (u === 'sdm') return 15
+  if (u === 'sdt') return 5
+  return null
+}
+
+const COUNT_UNITS = ['pcs', 'butir', 'lembar']
+
 export function getUnitConversionFactor(recipeUnit: string, baseUnit: string): number {
   const r = recipeUnit.toLowerCase().trim()
   const b = baseUnit.toLowerCase().trim()
 
   if (r === b) return 1
 
-  // Berat: kg <-> gram
-  if (r === 'gram' && b === 'kg') return 0.001       // 1 gram = 0.001 kg
-  if (r === 'gr' && b === 'kg') return 0.001
-  if (r === 'g' && b === 'kg') return 0.001
-  if (r === 'kg' && (b === 'gram' || b === 'gr' || b === 'g')) return 1000 // 1 kg = 1000 gram
+  // Kemasan dengan isi di dalam kurung, mis. "karung (50kg)", "jerigen (5L)", "tray (30 butir)", "lusin (12)"
+  const pack = r.match(/\((\d+(?:[.,]\d+)?)\s*([a-z]*)/)
+  if (pack) {
+    const isi = Number(pack[1].replace(',', '.'))
+    const isiUnit = pack[2] || (COUNT_UNITS.includes(b) ? b : '')
+    if (isiUnit) return isi * getUnitConversionFactor(isiUnit, b)
+  }
 
-  // Volume: liter <-> ml
-  if (r === 'ml' && (b === 'liter' || b === 'l')) return 0.001     // 1 ml = 0.001 liter
-  if ((r === 'liter' || r === 'l') && b === 'ml') return 1000     // 1 liter = 1000 ml
+  // Berat (kg, gram, sdm, sdt)
+  const rg = toGram(r), bg = toGram(b)
+  if (rg !== null && bg !== null && (r in BASE_TO_GRAM || b in BASE_TO_GRAM)) return rg / bg
 
-  // Sendok makan (sdm) estimasi ~ 15 gram / 15 ml
-  if (r === 'sdm' && b === 'kg') return 0.015
-  if (r === 'sdm' && (b === 'gram' || b === 'gr' || b === 'g')) return 15
-  if (r === 'sdm' && (b === 'liter' || b === 'l')) return 0.015
-  if (r === 'sdm' && b === 'ml') return 15
+  // Volume (liter, ml, sdm, sdt)
+  const rm = toMl(r), bm = toMl(b)
+  if (rm !== null && bm !== null) return rm / bm
 
-  // Sendok teh (sdt) estimasi ~ 5 gram / 5 ml
-  if (r === 'sdt' && b === 'kg') return 0.005
-  if (r === 'sdt' && (b === 'gram' || b === 'gr' || b === 'g')) return 5
-  if (r === 'sdt' && (b === 'liter' || b === 'l')) return 0.005
-  if (r === 'sdt' && b === 'ml') return 5
-
-  // Pembelian Kemasan / Grosir umum di PO
-  if (r.startsWith('karung (25kg)') && b === 'kg') return 25
-  if (r.startsWith('karung (50kg)') && b === 'kg') return 50
-  if (r.startsWith('jerigen (5l)') && (b === 'liter' || b === 'l')) return 5
-  if (r.startsWith('jerigen (18l)') && (b === 'liter' || b === 'l')) return 18
-  if (r.startsWith('tray (30') && (b === 'butir' || b === 'pcs')) return 30
-  if (r.startsWith('pack (50') && (b === 'lembar' || b === 'pcs')) return 50
-  if (r.startsWith('pack (100') && (b === 'lembar' || b === 'pcs')) return 100
-  if (r.startsWith('lusin') && (b === 'pcs' || b === 'butir' || b === 'lembar')) return 12
-  if (r.startsWith('kodi') && (b === 'pcs' || b === 'lembar')) return 20
-  if (r.startsWith('gross') && (b === 'pcs' || b === 'lembar')) return 144
+  // Hitungan: pcs / butir / lembar dianggap setara
+  if (COUNT_UNITS.includes(r) && COUNT_UNITS.includes(b)) return 1
 
   // Jika satuan tidak saling ekuivalen matematis, anggap 1:1
   return 1
