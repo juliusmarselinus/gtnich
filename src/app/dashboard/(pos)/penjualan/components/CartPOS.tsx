@@ -722,20 +722,10 @@ export default function CartPOS({
                     <button
                       type="button"
                       onClick={() => {
-                        const html = generateReceiptPrintHTML(previewData)
-                        const w = window.open('', '_blank', 'width=460,height=700')
-                        if (w) {
-                          w.document.open()
-                          w.document.write(html)
-                          w.document.close()
-                          setTimeout(() => {
-                            w.focus()
-                            w.print()
-                          }, 350)
-                        }
+                        printReceiptElement(previewReceiptRef.current, previewData)
                       }}
                       className="px-2.5 py-1 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[10px] font-bold text-[#8A5A00] flex items-center gap-1 transition-colors border border-[#FFE49A]"
-                      title="Uji Cetak / PDF Struk Pratinjau Ini"
+                      title="Cetak / Simpan PDF Struk Pratinjau Ini (Persis Tampilan)"
                     >
                       <ReceiptText className="w-3 h-3" />
                       <span>Cetak Struk</span>
@@ -743,7 +733,7 @@ export default function CartPOS({
                   </div>
                 </div>
                 <div className="rounded-[24px] bg-[#FFF9EC] p-3.5 border border-[#FFE49A]/50 flex justify-center items-start overflow-y-auto max-h-[580px]">
-                  <div className="rounded-[18px] overflow-hidden shadow-xs border border-slate-200/60 bg-white w-full max-w-[320px]">
+                  <div ref={previewReceiptRef} className="rounded-[18px] overflow-hidden shadow-xs border border-slate-200/60 bg-white w-full max-w-[320px]">
                     <Receipt data={previewData} />
                   </div>
                 </div>
