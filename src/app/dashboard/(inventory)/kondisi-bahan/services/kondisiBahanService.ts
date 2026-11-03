@@ -273,8 +273,10 @@ export const kondisiBahanService = {
       ? `Pengurangan stok kadaluarsa/rusak: ${params.alasan.trim()}${params.nomorBatch ? ` (Batch #${params.nomorBatch})` : ''}`
       : `Pemusnahan bahan kadaluarsa/rusak${params.nomorBatch ? ` (Batch #${params.nomorBatch})` : ''}`
 
-    // Siapkan payload yang kompatibel dengan skema tabel stok_logs
-    const logPayload: Record<string, any> = {
+    // PENTING: Kolom reference_id di tabel stok_logs bertipe UUID (fk ke order/po).
+    // JANGAN kirim string non-UUID seperti "EXPIRED-BULK" atau "BATCH-#1" ke reference_id agar tidak invalid input syntax for type uuid.
+    // Informasi batch disimpan dengan aman di kolom `catatan`.
+    const logPayload = {
       user_id: userId,
       bahan_id: params.bahanId,
       perubahan: delta,
@@ -284,17 +286,14 @@ export const kondisiBahanService = {
       catatan,
     }
 
-    if (params.nomorBatch) {
-      logPayload.reference_id = `BATCH-#${params.nomorBatch}`
-    }
-
     let { error: logErr } = await supabase.from('stok_logs').insert(logPayload)
 
-    // Fallback: Jika tabel stok_logs memiliki constraint enum sumber tertentu atau kolom reference_id belum ada,
-    // coba simpan dengan payload dasar (sumber: 'Manual' atau 'Opname') agar mutasi audit tetap terekam 100% tanpa gagal
+    // Fallback: Jika tabel stok_logs di Supabase memiliki enum constraint check lama untuk kolom `sumber`
+    // (misal hanya menerima 'PO', 'Penjualan', 'Manual', 'Opname', 'Penyesuaian'),
+    // gunakan sumber 'Manual' dengan penanda [Kadaluarsa] di catatan agar insert selalu berhasil 100%.
     if (logErr) {
-      console.warn('Gagal insert log dengan sumber Kadaluarsa, mencoba fallback catatan audit:', logErr.message || logErr)
-      const fallbackPayload: Record<string, any> = {
+      console.warn('Gagal insert log dengan sumber Kadaluarsa, mencoba fallback dengan sumber Manual:', logErr.message || logErr)
+      const fallbackPayload = {
         user_id: userId,
         bahan_id: params.bahanId,
         perubahan: delta,
@@ -306,9 +305,7 @@ export const kondisiBahanService = {
 
       const { error: retryErr } = await supabase.from('stok_logs').insert(fallbackPayload)
       if (retryErr) {
-        console.warn('Retry log mutasi stok_logs juga gagal (bisa jadi tabel stok_logs belum dibuat di Supabase):', retryErr.message || retryErr)
-      } else {
-        logErr = null
+        console.warn('Retry log mutasi stok_logs juga menemui kendala:', retryErr.message || retryErr)
       }
     }
 

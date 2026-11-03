@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { BahanKondisi, BatchMasukItem } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
-import { Trash2, AlertOctagon, Loader2, X, AlertTriangle, ArrowRight } from 'lucide-react'
+import { Trash2, AlertOctagon, Loader2, X, AlertTriangle } from 'lucide-react'
+import { useToast } from '@/context/ToastContext'
 
 interface KurangiStokModalProps {
   isOpen: boolean
@@ -27,6 +28,8 @@ export default function KurangiStokModal({
   onSuccess,
   onProcess,
 }: KurangiStokModalProps) {
+  const toast = useToast()
+
   // Hitung jumlah yang kadaluarsa untuk langsung dimusnahkan/dibuang seluruhnya
   const jumlahBuang = batch
     ? Math.min(batch.batchQty, bahan.totalStok)
@@ -65,11 +68,16 @@ export default function KurangiStokModal({
         alasan,
         nomorBatch: batch?.batchNo,
       })
+      toast.success(
+        'Bahan Kadaluarsa Berhasil Dimusnahkan',
+        `Sebanyak ${jumlahBuang} ${bahan.satuan} ${bahan.nama} telah dipotong dari stok dapur dan dicatat di buku mutasi stok.`
+      )
       onSuccess()
       onClose()
     } catch (err: unknown) {
       const e = err as Error
       setError(e.message || 'Terjadi kesalahan saat memproses pengurangan stok.')
+      toast.error('Gagal Memusnahkan Stok', e.message || 'Terjadi kesalahan sistem saat memproses pemusnahan stok.')
     } finally {
       setSubmitting(false)
     }
