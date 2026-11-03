@@ -4,8 +4,6 @@ import { formatRupiah } from '@/lib/mock-data'
 import { DailyTrendItem } from '../types'
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -21,68 +19,73 @@ interface TrendChartProps {
   rangeLabel: string
 }
 
+const tooltipStyle = {
+  fontSize: 12,
+  borderRadius: 16,
+  border: '1px solid #F0E0B0',
+  backgroundColor: '#FFF8E8',
+  boxShadow: '0 8px 24px rgba(140,100,30,0.14)',
+  color: '#2B1D00',
+}
+
 export default function TrendChart({ trend, rangeLabel }: TrendChartProps) {
   const hasData = trend.some(t => t.penjualan > 0 || t.profit > 0)
 
   return (
-    <div className="clay-card p-6 space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-[#FFF6EC] text-[#FF8F2B]">
-            <Activity className="w-4 h-4" />
+    <div className="rounded-[30px] bg-[#FFFBF2] border border-[#EDE0C4] shadow-[0_4px_18px_rgba(140,100,30,0.07)] p-6 sm:p-7 space-y-5">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#FFE49A]/60 border border-[#FFD166] text-[#8A5A00] flex items-center justify-center">
+            <Activity className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Tren Omzet Penjualan & Profit Bersih ({rangeLabel})
+            <h3 className="text-sm font-black text-[#2B1D00] uppercase tracking-wider">
+              Tren Omzet Penjualan &amp; Profit Bersih ({rangeLabel})
             </h3>
-            <p className="text-[11px] text-slate-400">
-              Evaluasi fluktuasi laba kotor & omzet harian berdasarkan pesanan selesai
+            <p className="text-xs text-[#8A6A40] font-medium">
+              Evaluasi fluktuasi laba kotor &amp; omzet harian berdasarkan pesanan selesai
             </p>
           </div>
         </div>
       </div>
 
       {!hasData ? (
-        <div className="h-60 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-          <p className="text-xs font-bold text-slate-600">Belum ada data transaksi pada rentang ini</p>
-          <p className="text-[11px] text-slate-400 mt-1">
-            Data grafik akan muncul otomatis setiap kali ada transaksi penjualan kasir yang selesai dicatat.
+        <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-[#FFF6E0] rounded-2xl border border-dashed border-[#FFD166]">
+          <p className="text-xs font-bold text-[#8A5A00]">Belum ada data transaksi pada rentang ini</p>
+          <p className="text-[11px] text-[#B8935A] mt-1 max-w-sm">
+            Data grafik akan muncul otomatis setiap kali ada transaksi kasir yang selesai dicatat.
           </p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={trend} margin={{ top: 10, right: 15, bottom: 0, left: 10 }}>
             <defs>
               <linearGradient id="colorPenjualan" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FF8F2B" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#FF8F2B" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#FF8F28" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#FF8F28" stopOpacity={0.02} />
               </linearGradient>
               <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FFBF35" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#FFBF35" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#228B5B" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#228B5B" stopOpacity={0.02} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748b' }} />
+            <CartesianGrid strokeDasharray="3 4" stroke="#EDD9B0" strokeOpacity={0.6} />
+            <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9A7A55' }} stroke="#D9C8A8" />
             <YAxis
-              tick={{ fontSize: 11, fill: '#64748b' }}
+              tick={{ fontSize: 11, fill: '#9A7A55' }}
+              stroke="#D9C8A8"
               tickFormatter={v => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
             />
             <Tooltip
-              formatter={(v: any) => [formatRupiah(Number(v) || 0)]}
-              contentStyle={{
-                fontSize: 11,
-                borderRadius: 16,
-                border: '1px solid #cbd5e1',
-                boxShadow: '4px 4px 12px #d8e2ed',
-              }}
+              formatter={(v: unknown) => [formatRupiah(Number(v) || 0)]}
+              contentStyle={tooltipStyle}
             />
-            <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
+            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12, fontWeight: 700, color: '#5A3A00' }} />
             <Area
               type="monotone"
               dataKey="penjualan"
-              stroke="#FF8F2B"
-              strokeWidth={3}
+              stroke="#FF8F28"
+              strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#colorPenjualan)"
               name="Penjualan (Omzet)"
@@ -90,8 +93,8 @@ export default function TrendChart({ trend, rangeLabel }: TrendChartProps) {
             <Area
               type="monotone"
               dataKey="profit"
-              stroke="#FFBF35"
-              strokeWidth={3}
+              stroke="#228B5B"
+              strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#colorProfit)"
               name="Profit Bersih"

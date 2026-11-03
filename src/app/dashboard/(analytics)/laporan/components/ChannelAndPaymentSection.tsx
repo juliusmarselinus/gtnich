@@ -18,31 +18,49 @@ interface ChannelAndPaymentSectionProps {
   paymentBreakdown: PaymentBreakdownItem[]
 }
 
+const tooltipStyle = {
+  fontSize: 12,
+  borderRadius: 16,
+  border: '1px solid #F0E0B0',
+  backgroundColor: '#FFF8E8',
+  boxShadow: '0 8px 24px rgba(140,100,30,0.14)',
+  color: '#2B1D00',
+}
+
+const cardClass =
+  'rounded-[30px] bg-[#FFFBF2] border border-[#EDE0C4] shadow-[0_4px_18px_rgba(140,100,30,0.07)] p-6 sm:p-7 space-y-4'
+
+const iconBadge =
+  'w-10 h-10 rounded-2xl bg-[#FFE49A]/60 border border-[#FFD166] text-[#8A5A00] flex items-center justify-center'
+
+const miniCardClass =
+  'p-3 rounded-2xl bg-[#FFF6E0] border border-[#F0D898]/70'
+
 export default function ChannelAndPaymentSection({
   channelBreakdown,
   paymentBreakdown,
 }: ChannelAndPaymentSectionProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Saluran Penjualan */}
-      <div className="clay-card p-6 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-purple-50 text-purple-600">
-            <Share2 className="w-4 h-4" />
+      {/* 1. Saluran Penjualan */}
+      <div className={cardClass}>
+        <div className="flex items-center gap-3">
+          <div className={iconBadge}>
+            <Share2 className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Kinerja Berdasarkan Saluran Penjualan
+            <h3 className="text-sm font-black text-[#2B1D00] uppercase tracking-wider">
+              Kinerja Saluran Penjualan
             </h3>
-            <p className="text-[11px] text-slate-400">
-              Perbandingan pendapatan antar channel (WhatsApp, Toko Langsung, Online)
+            <p className="text-xs text-[#8A6A40] font-medium">
+              Perbandingan omzet antar channel (Toko Langsung, WhatsApp, Online)
             </p>
           </div>
         </div>
 
         {channelBreakdown.length === 0 ? (
-          <div className="h-44 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-            <p className="text-xs font-bold text-slate-600">Belum ada data channel</p>
+          <div className="h-44 flex flex-col items-center justify-center text-center p-6 bg-[#FFF6E0] rounded-2xl border border-dashed border-[#FFD166]">
+            <p className="text-xs font-bold text-[#8A5A00]">Belum ada data channel penjualan</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -52,38 +70,36 @@ export default function ChannelAndPaymentSection({
                 layout="vertical"
                 margin={{ top: 0, right: 15, bottom: 0, left: 75 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 4" stroke="#EDD9B0" strokeOpacity={0.6} horizontal={false} />
                 <XAxis
                   type="number"
-                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tick={{ fontSize: 10, fill: '#9A7A55' }}
+                  stroke="#D9C8A8"
                   tickFormatter={v => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
                 />
                 <YAxis
                   type="category"
                   dataKey="channel"
-                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tick={{ fontSize: 11, fill: '#4A3B32', fontWeight: 600 }}
+                  stroke="#D9C8A8"
                   width={85}
                 />
                 <Tooltip
-                  formatter={(v: any) => [formatRupiah(Number(v) || 0), 'Total Omzet']}
-                  contentStyle={{
-                    fontSize: 11,
-                    borderRadius: 16,
-                    border: '1px solid #cbd5e1',
-                  }}
+                  formatter={(v: unknown) => [formatRupiah(Number(v) || 0), 'Total Omzet']}
+                  contentStyle={tooltipStyle}
                 />
-                <Bar dataKey="totalRevenue" fill="#8b5cf6" radius={[0, 8, 8, 0]} name="Omzet" />
+                <Bar dataKey="totalRevenue" fill="#FF8F28" radius={[0, 8, 8, 0]} name="Omzet" />
               </BarChart>
             </ResponsiveContainer>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {channelBreakdown.map(c => (
-                <div key={c.channel} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase truncate">{c.channel}</p>
-                  <p className="text-xs font-mono font-bold text-slate-800 mt-0.5">
+                <div key={c.channel} className={miniCardClass}>
+                  <p className="text-[10px] font-bold text-[#9A7A55] uppercase truncate">{c.channel}</p>
+                  <p className="text-xs font-mono font-black text-[#2B1D00] mt-0.5">
                     {formatRupiah(c.totalRevenue)}
                   </p>
-                  <p className="text-[10px] text-slate-500">{c.count} pesanan</p>
+                  <p className="text-[11px] text-[#8A6A40] font-medium">{c.count} pesanan</p>
                 </div>
               ))}
             </div>
@@ -91,25 +107,25 @@ export default function ChannelAndPaymentSection({
         )}
       </div>
 
-      {/* Metode Pembayaran */}
-      <div className="clay-card p-6 space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-amber-50 text-amber-600">
-            <CreditCard className="w-4 h-4" />
+      {/* 2. Metode Pembayaran */}
+      <div className={cardClass}>
+        <div className="flex items-center gap-3">
+          <div className={iconBadge}>
+            <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <h3 className="text-sm font-black text-[#2B1D00] uppercase tracking-wider">
               Preferensi Metode Pembayaran
             </h3>
-            <p className="text-[11px] text-slate-400">
-              Distribusi pembayaran tunai, QRIS, maupun transfer bank
+            <p className="text-xs text-[#8A6A40] font-medium">
+              Distribusi transaksi melalui QRIS, tunai, maupun transfer bank
             </p>
           </div>
         </div>
 
         {paymentBreakdown.length === 0 ? (
-          <div className="h-44 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-            <p className="text-xs font-bold text-slate-600">Belum ada data pembayaran</p>
+          <div className="h-44 flex flex-col items-center justify-center text-center p-6 bg-[#FFF6E0] rounded-2xl border border-dashed border-[#FFD166]">
+            <p className="text-xs font-bold text-[#8A5A00]">Belum ada data pembayaran</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -119,40 +135,38 @@ export default function ChannelAndPaymentSection({
                 layout="vertical"
                 margin={{ top: 0, right: 15, bottom: 0, left: 75 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 4" stroke="#EDD9B0" strokeOpacity={0.6} horizontal={false} />
                 <XAxis
                   type="number"
-                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tick={{ fontSize: 10, fill: '#9A7A55' }}
+                  stroke="#D9C8A8"
                   tickFormatter={v => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
                 />
                 <YAxis
                   type="category"
                   dataKey="paymentMethod"
-                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tick={{ fontSize: 11, fill: '#4A3B32', fontWeight: 600 }}
+                  stroke="#D9C8A8"
                   width={85}
                 />
                 <Tooltip
-                  formatter={(v: any) => [formatRupiah(Number(v) || 0), 'Total Diterima']}
-                  contentStyle={{
-                    fontSize: 11,
-                    borderRadius: 16,
-                    border: '1px solid #cbd5e1',
-                  }}
+                  formatter={(v: unknown) => [formatRupiah(Number(v) || 0), 'Total Diterima']}
+                  contentStyle={tooltipStyle}
                 />
-                <Bar dataKey="totalRevenue" fill="#f59e0b" radius={[0, 8, 8, 0]} name="Nominal" />
+                <Bar dataKey="totalRevenue" fill="#D8431F" radius={[0, 8, 8, 0]} name="Nominal" />
               </BarChart>
             </ResponsiveContainer>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {paymentBreakdown.map(p => (
-                <div key={p.paymentMethod} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase truncate">
+                <div key={p.paymentMethod} className={miniCardClass}>
+                  <p className="text-[10px] font-bold text-[#9A7A55] uppercase truncate">
                     {p.paymentMethod}
                   </p>
-                  <p className="text-xs font-mono font-bold text-slate-800 mt-0.5">
+                  <p className="text-xs font-mono font-black text-[#2B1D00] mt-0.5">
                     {formatRupiah(p.totalRevenue)}
                   </p>
-                  <p className="text-[10px] text-slate-500">{p.count} transaksi</p>
+                  <p className="text-[11px] text-[#8A6A40] font-medium">{p.count} transaksi</p>
                 </div>
               ))}
             </div>

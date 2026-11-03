@@ -2,7 +2,15 @@
 
 import { formatRupiah } from '@/lib/mock-data'
 import { LaporanSummary } from '../types'
-import { TrendingUp, ShoppingBag, DollarSign, PackageMinus, ShoppingCart, Percent } from 'lucide-react'
+import {
+  TrendingUp,
+  ShoppingBag,
+  DollarSign,
+  PackageMinus,
+  ShoppingCart,
+  Percent,
+} from 'lucide-react'
+import clsx from 'clsx'
 
 interface SummaryCardsProps {
   summary: LaporanSummary
@@ -11,73 +19,108 @@ interface SummaryCardsProps {
 export default function SummaryCards({ summary }: SummaryCardsProps) {
   const cards = [
     {
-      label: 'Total Omzet Terkumpul',
+      label: 'Total Omzet',
       value: formatRupiah(summary.totalRevenue),
-      sub: `${summary.totalTransaksi} transaksi penjualan selesai`,
+      sub: `${summary.totalTransaksi} transaksi selesai`,
       icon: DollarSign,
-      color: 'text-[#FF8F2B]',
-      bg: 'bg-[#FFF6EC]',
+      tint: 'bg-[#FFF3CC]',
+      iconBg: 'bg-[#FFB800]/30',
+      textColor: 'text-[#2B1D00]',
+      mutedColor: 'text-[#8A5A00]/70',
     },
     {
-      label: 'Total Estimasi Profit Bersih',
+      label: 'Est. Profit Bersih',
       value: formatRupiah(summary.totalProfit),
-      sub: `${summary.profitMargin}% margin keuntungan rata-rata`,
+      sub: `${summary.profitMargin}% margin rata-rata`,
       icon: TrendingUp,
-      color: 'text-cyan-600',
-      bg: 'bg-cyan-50',
+      tint: 'bg-[#E6F5E4]',
+      iconBg: 'bg-[#2D7A1F]/20',
+      textColor: summary.totalProfit >= 0 ? 'text-[#1A6B40]' : 'text-[#D8431F]',
+      mutedColor: 'text-[#2D7A1F]/60',
     },
     {
-      label: 'Rata-rata Keranjang (AOV)',
+      label: 'Rata-rata per Trx (AOV)',
       value: formatRupiah(summary.averageBasketSize),
       sub: 'Nominal per transaksi pelanggan',
       icon: ShoppingBag,
-      color: 'text-indigo-600',
-      bg: 'bg-indigo-50',
+      tint: 'bg-[#E0F2FE]',
+      iconBg: 'bg-[#0369A1]/20',
+      textColor: 'text-[#2B1D00]',
+      mutedColor: 'text-[#0369A1]/60',
     },
     {
-      label: 'Total HPP / Beban Pokok',
+      label: 'Total HPP / Beban Modal',
       value: formatRupiah(summary.totalHPP),
-      sub: `Biaya modal resep terjual`,
+      sub: 'Akumulasi biaya bahan baku resep',
       icon: Percent,
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      tint: 'bg-[#FFF3CC]',
+      iconBg: 'bg-[#FFB800]/30',
+      textColor: 'text-[#2B1D00]',
+      mutedColor: 'text-[#8A5A00]/70',
     },
     {
       label: 'Bahan Baku Terpakai',
-      value: `${summary.totalBahanTerpakaiJenis} Jenis`,
-      sub: 'Termutasi otomatis dari resep kasir',
+      value: `${summary.totalBahanTerpakaiJenis}`,
+      sub: 'Jenis bahan termutasi dari resep',
       icon: PackageMinus,
-      color: 'text-rose-600',
-      bg: 'bg-rose-50',
+      tint: 'bg-[#FDE8E4]',
+      iconBg: 'bg-[#D8431F]/20',
+      textColor: 'text-[#2B1D00]',
+      mutedColor: 'text-[#D8431F]/60',
     },
     {
       label: 'Pengadaan PO Selesai',
       value: formatRupiah(summary.totalBiayaPengadaan),
-      sub: `${summary.totalPOApproved} PO berhasil diterima & ditagihkan`,
+      sub: `${summary.totalPOApproved} pesanan disetujui`,
       icon: ShoppingCart,
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      tint: 'bg-[#EDE9FF]',
+      iconBg: 'bg-[#7E22CE]/15',
+      textColor: 'text-[#2B1D00]',
+      mutedColor: 'text-[#7E22CE]/60',
     },
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {cards.map(c => {
         const Icon = c.icon
         return (
-          <div key={c.label} className="clay-card p-5 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <div
+            key={c.label}
+            className={clsx(
+              'relative overflow-hidden rounded-[28px] p-5 flex flex-col gap-4 min-h-[140px]',
+              c.tint,
+              'shadow-[0_6px_14px_rgba(120,80,30,0.08)] hover:shadow-[0_14px_28px_rgba(120,80,30,0.14)] hover:-translate-y-0.5 transition-all duration-200'
+            )}
+          >
+            {/* Dekorasi lingkaran sudut kanan bawah */}
+            <span
+              aria-hidden
+              className="absolute -right-10 -bottom-12 h-36 w-36 rounded-full bg-white/45"
+            />
+
+            {/* Baris atas: label + icon */}
+            <div className="relative flex items-center justify-between">
+              <span className={clsx('text-sm font-extrabold', c.textColor)}>
                 {c.label}
               </span>
-              <div className={`p-2 rounded-xl ${c.bg} ${c.color}`}>
-                <Icon className="w-4 h-4" />
-              </div>
+              <span
+                className={clsx(
+                  'h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0',
+                  c.iconBg
+                )}
+              >
+                <Icon className={clsx('w-4 h-4', c.textColor)} />
+              </span>
             </div>
-            <p className="text-2xl font-black text-slate-800 font-mono tracking-tight">
-              {c.value}
-            </p>
-            <p className="text-[11px] text-slate-500 font-semibold">{c.sub}</p>
+
+            {/* Baris bawah: angka + sub-label */}
+            <div className="relative">
+              <p className={clsx('text-2xl sm:text-3xl font-black tracking-tight leading-none', c.textColor)}>
+                {c.value}
+              </p>
+              <p className={clsx('text-xs mt-1.5', c.mutedColor)}>{c.sub}</p>
+            </div>
           </div>
         )
       })}
