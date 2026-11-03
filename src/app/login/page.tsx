@@ -421,7 +421,14 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-bold mb-1.5">Kata sandi</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-sm font-bold">Kata sandi</label>
+                {!isSignUp && (
+                  <Link href="/lupa-password" className="text-xs font-bold text-[#C9620C] hover:underline">
+                    Lupa kata sandi?
+                  </Link>
+                )}
+              </div>
               <div className="relative">
                 <input
                   id="password"
