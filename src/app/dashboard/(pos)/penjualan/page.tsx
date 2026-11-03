@@ -52,6 +52,7 @@ export default function PenjualanPage() {
     userEmail,
     refresh,
     processCheckout,
+    updateOrderStatus,
   } = usePenjualan()
 
   const [activeTab, setActiveTab] = useState<'katalog' | 'riwayat'>('katalog')
@@ -320,7 +321,7 @@ export default function PenjualanPage() {
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">
               Daftar Transaksi Kasir yang Tersimpan
             </h3>
-            <RecentOrdersTable orders={recentOrders} />
+            <RecentOrdersTable orders={recentOrders} onUpdateStatus={updateOrderStatus} />
           </div>
         )}
       </main>

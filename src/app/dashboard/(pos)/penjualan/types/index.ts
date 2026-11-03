@@ -26,6 +26,7 @@ export interface CheckoutFormInput {
   cashReceived?: number
   changeAmount?: number
   midtransOrderId?: string
+  isPreOrder?: boolean
 }
 
 export interface OrderItemRecord {
@@ -66,3 +67,5 @@ export interface OrderRecord {
   updatedAt: string
   items?: OrderItemRecord[]
 }
+
+export type OrderStatus = 'menunggu' | 'preorder' | 'diproses' | 'selesai' | 'batal'
