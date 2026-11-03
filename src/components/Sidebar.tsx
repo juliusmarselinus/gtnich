@@ -10,6 +10,7 @@ import { useSidebar } from '@/context/SidebarContext'
 import { navSections } from '@/lib/navigation'
 import DapiHead from './ui/DapiHead'
 import DapurTwinLogo from './ui/DapurTwinLogo'
+import PengaturanModal from './PengaturanModal'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -21,6 +22,7 @@ export default function Sidebar() {
   const [user, setUser] = useState<{ email?: string } | null>(null)
   const [storeName, setStoreName] = useState<string | null>(null)
   const [activeSectionId, setActiveSectionId] = useState<string | null>('operasional')
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -59,7 +61,6 @@ export default function Sidebar() {
   }
 
   const isOverviewActive = pathname === '/dashboard'
-  const isSettingsActive = pathname.startsWith('/dashboard/pengaturan')
   const isItemActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const onNavigate = () => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) closeSidebar()
@@ -247,19 +248,23 @@ export default function Sidebar() {
 
         {/* Bagian Bawah: Pengaturan & Profil Pengguna */}
         <div className="flex flex-col gap-2 flex-shrink-0 pt-1.5 border-t border-krim-garis/80">
-          {/* Tombol Pengaturan Khusus (Terpisah dari modul Tools) */}
-          <Link
-            href="/dashboard/pengaturan"
-            onClick={onNavigate}
-            aria-current={isSettingsActive ? 'page' : undefined}
+          {/* Tombol Pengaturan Khusus (Membuka Modal Pengaturan) */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsSettingsOpen(true)
+              onNavigate()
+            }}
+            aria-haspopup="dialog"
+            aria-expanded={isSettingsOpen}
             title={collapsed ? 'Pengaturan' : undefined}
-            className={clsx(rowClass(isSettingsActive), 'flex-shrink-0')}
+            className={clsx(rowClass(isSettingsOpen), 'flex-shrink-0')}
           >
-            <span className={iconClass(isSettingsActive)}>
+            <span className={iconClass(isSettingsOpen)}>
               <Settings className="h-4 w-4" />
             </span>
             <span className={clsx('truncate', hideWhenCollapsed)}>Pengaturan</span>
-          </Link>
+          </button>
 
           {/* Profil Pengguna */}
           <div
@@ -290,6 +295,12 @@ export default function Sidebar() {
           </div>
         </div>
       </aside>
+
+      {/* Modal Pengaturan Sistem */}
+      <PengaturanModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </>
   )
 }
