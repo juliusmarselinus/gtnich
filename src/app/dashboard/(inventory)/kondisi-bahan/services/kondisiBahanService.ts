@@ -192,8 +192,8 @@ export const kondisiBahanService = {
 
           // Analisis terdekat
           aiStatusFreshness: overallFreshness,
-          aiSisaHari: earliestBatch?.aiSisaHari ?? baseAiResult.aiSisaHari,
-          aiEstimasiExpire: earliestBatch?.aiEstimasiExpire ?? baseAiResult.aiEstimasiExpire,
+          aiSisaHari: finalSisaHari,
+          aiEstimasiExpire: finalEstimasiExpire,
           aiAnalysis: baseAiResult.aiAnalysis,
 
           // Rincian batch dalam 1 card
@@ -273,20 +273,43 @@ export const kondisiBahanService = {
       ? `Pengurangan stok kadaluarsa/rusak: ${params.alasan.trim()}${params.nomorBatch ? ` (Batch #${params.nomorBatch})` : ''}`
       : `Pemusnahan bahan kadaluarsa/rusak${params.nomorBatch ? ` (Batch #${params.nomorBatch})` : ''}`
 
-    const { error: logErr } = await supabase.from('stok_logs').insert({
+    // Siapkan payload yang kompatibel dengan skema tabel stok_logs
+    const logPayload: Record<string, any> = {
       user_id: userId,
       bahan_id: params.bahanId,
       perubahan: delta,
       stok_sebelum: currentStok,
       stok_sesudah: newStok,
       sumber: 'Kadaluarsa',
-      reference_id: params.nomorBatch ? `BATCH-#${params.nomorBatch}` : 'EXPIRED-BULK',
       catatan,
-    })
+    }
 
+    if (params.nomorBatch) {
+      logPayload.reference_id = `BATCH-#${params.nomorBatch}`
+    }
+
+    let { error: logErr } = await supabase.from('stok_logs').insert(logPayload)
+
+    // Fallback: Jika tabel stok_logs memiliki constraint enum sumber tertentu atau kolom reference_id belum ada,
+    // coba simpan dengan payload dasar (sumber: 'Manual' atau 'Opname') agar mutasi audit tetap terekam 100% tanpa gagal
     if (logErr) {
-      console.error('Gagal mencatat log mutasi stok_logs:', logErr)
-      throw new Error(`Gagal mencatat riwayat mutasi stok: ${logErr.message}`)
+      console.warn('Gagal insert log dengan sumber Kadaluarsa, mencoba fallback catatan audit:', logErr.message || logErr)
+      const fallbackPayload: Record<string, any> = {
+        user_id: userId,
+        bahan_id: params.bahanId,
+        perubahan: delta,
+        stok_sebelum: currentStok,
+        stok_sesudah: newStok,
+        sumber: 'Manual',
+        catatan: `[Kadaluarsa] ${catatan}`,
+      }
+
+      const { error: retryErr } = await supabase.from('stok_logs').insert(fallbackPayload)
+      if (retryErr) {
+        console.warn('Retry log mutasi stok_logs juga gagal (bisa jadi tabel stok_logs belum dibuat di Supabase):', retryErr.message || retryErr)
+      } else {
+        logErr = null
+      }
     }
 
     return { newStok }

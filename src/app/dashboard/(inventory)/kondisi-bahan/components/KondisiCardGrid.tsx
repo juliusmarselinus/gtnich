@@ -62,6 +62,9 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
   const [selectedBahanForAction, setSelectedBahanForAction] = useState<BahanKondisi | null>(null)
   const [selectedBatchForAction, setSelectedBatchForAction] = useState<BatchMasukItem | null>(null)
 
+  // Catat ID bahan/batch yang telah dimusnahkan secara lokal (optimistic update seketika)
+  const [dimusnahkanMap, setDimusnahkanMap] = useState<Record<string, boolean>>({})
+
   const toggleExpand = (id: string) => {
     setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }))
   }
@@ -76,17 +79,44 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
     setSelectedBatchForAction(null)
   }
 
+  const handleSuccessAction = (bahanId: string, batchNo?: number) => {
+    setDimusnahkanMap(prev => ({
+      ...prev,
+      [`bahan-${bahanId}`]: true,
+      ...(batchNo ? { [`batch-${bahanId}-${batchNo}`]: true } : {}),
+    }))
+    if (onRefresh) {
+      onRefresh()
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       {list.map(b => {
+        const isLocallyDimusnahkan = !!dimusnahkanMap[`bahan-${b.id}`]
+        const effectiveExpiredCount = isLocallyDimusnahkan ? 0 : b.expiredBatchesCount
+        const isBahanEmpty = b.totalStok <= 0
+
         const isLowStock = b.totalStok <= b.stokMinimum
         const pct = b.stokMinimum > 0 ? Math.min(100, (b.totalStok / (b.stokMinimum * 3)) * 100) : 100
         const isExpanded = !!expandedCards[b.id]
 
-        const freshness = b.aiStatusFreshness ? FRESHNESS_BADGE[b.aiStatusFreshness] : FRESHNESS_BADGE.tidak_diketahui
+        const rawFreshnessKey = isLocallyDimusnahkan || isBahanEmpty || effectiveExpiredCount === 0
+          ? (b.aiStatusFreshness === 'kadaluarsa' ? 'segar' : b.aiStatusFreshness)
+          : b.aiStatusFreshness
+
+        const freshness = rawFreshnessKey ? FRESHNESS_BADGE[rawFreshnessKey] : FRESHNESS_BADGE.tidak_diketahui
         const FreshIcon = freshness.icon
 
-        const tglExpireStr = b.aiEstimasiExpire
+        const effectiveSisaHari = isLocallyDimusnahkan || isBahanEmpty
+          ? null
+          : b.aiSisaHari !== null && b.aiSisaHari !== undefined && b.aiSisaHari <= 0 && effectiveExpiredCount === 0
+          ? null
+          : b.aiSisaHari
+
+        const tglExpireStr = (isLocallyDimusnahkan || isBahanEmpty)
+          ? '-'
+          : b.aiEstimasiExpire
           ? new Date(b.aiEstimasiExpire).toLocaleDateString('id-ID', {
               day: '2-digit',
               month: 'short',
@@ -123,7 +153,7 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
               </div>
 
               {/* Status Peringatan Batch Kadaluarsa & Action Pengurangan di Card ini */}
-              {b.expiredBatchesCount > 0 && (
+              {effectiveExpiredCount > 0 && !isBahanEmpty && (
                 <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-2.5">
                   <div className="flex items-start gap-2">
                     <ShieldAlert className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
@@ -132,7 +162,7 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                         Peringatan Kadaluarsa Dapur
                       </p>
                       <p className="text-[11px] text-rose-700 mt-0.5 font-medium leading-normal">
-                        Terdapat <strong>{b.expiredBatchesCount} batch belanja</strong> bahan ini yang telah melewati batas aman simpan dan berisiko menurunkan mutu masakan.
+                        Terdapat <strong>{effectiveExpiredCount} batch belanja</strong> bahan ini yang telah melewati batas aman simpan dan berisiko menurunkan mutu masakan.
                       </p>
                     </div>
                   </div>
@@ -144,7 +174,7 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                       className="w-full py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Proses Pengurangan Stok ({b.expiredBatchesCount} Batch Expire)</span>
+                      <span>Proses Pengurangan Stok ({effectiveExpiredCount} Batch Expire)</span>
                     </button>
                   )}
                 </div>
@@ -166,19 +196,19 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                   <span
                     className={clsx(
                       'font-mono font-black text-xs px-2.5 py-0.5 rounded-lg',
-                      b.aiSisaHari !== null && b.aiSisaHari !== undefined
-                        ? b.aiSisaHari <= 0
+                      effectiveSisaHari !== null && effectiveSisaHari !== undefined
+                        ? effectiveSisaHari <= 0
                           ? 'bg-rose-100 text-rose-700'
-                          : b.aiSisaHari <= 3
+                          : effectiveSisaHari <= 3
                           ? 'bg-amber-100 text-amber-800'
                           : 'bg-[#FFF6EC] text-[#FF8F2B]'
                         : 'text-slate-400'
                     )}
                   >
-                    {b.aiSisaHari !== null && b.aiSisaHari !== undefined
-                      ? b.aiSisaHari <= 0
+                    {effectiveSisaHari !== null && effectiveSisaHari !== undefined
+                      ? effectiveSisaHari <= 0
                         ? 'Sudah Kadaluarsa'
-                        : `${b.aiSisaHari} Hari Lagi`
+                        : `${effectiveSisaHari} Hari Lagi`
                       : '-'}
                   </span>
                 </div>
@@ -227,6 +257,14 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                 {isExpanded && (
                   <div className="mt-2.5 space-y-2 max-h-56 overflow-y-auto pr-1 animate-in fade-in-50 duration-150">
                     {b.batches.map(batch => {
+                      const isBatchDibuang =
+                        batch.isDibuang ||
+                        isLocallyDimusnahkan ||
+                        isBahanEmpty ||
+                        !!dimusnahkanMap[`batch-${b.id}-${batch.batchNo}`]
+
+                      const isBatchExpired = batch.isExpired && !isBatchDibuang
+
                       const tglBatchMasuk = new Date(batch.tanggalMasuk).toLocaleDateString('id-ID', {
                         day: '2-digit',
                         month: 'short',
@@ -244,9 +282,9 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                           key={batch.batchId}
                           className={clsx(
                             'p-2.5 rounded-xl border text-xs space-y-1 transition-colors',
-                            batch.isDibuang
+                            isBatchDibuang
                               ? 'bg-slate-50 border-slate-200/80 text-slate-500 opacity-80'
-                              : batch.isExpired
+                              : isBatchExpired
                               ? 'bg-rose-50/70 border-rose-200 text-rose-900'
                               : 'bg-white border-slate-200/80 text-slate-700'
                           )}
@@ -255,13 +293,13 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                             <span className="flex items-center gap-1">
                               <span className={clsx(
                                 'w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono',
-                                batch.isDibuang ? 'bg-slate-200 text-slate-500' : 'bg-slate-200 text-slate-700'
+                                isBatchDibuang ? 'bg-slate-200 text-slate-500' : 'bg-slate-200 text-slate-700'
                               )}>
                                 #{batch.batchNo}
                               </span>
-                              <span className={clsx(batch.isDibuang && 'line-through text-slate-400')}>{batch.sumberMasuk}</span>
+                              <span className={clsx(isBatchDibuang && 'line-through text-slate-400')}>{batch.sumberMasuk}</span>
                             </span>
-                            <span className={clsx('font-mono text-[11px]', batch.isDibuang && 'text-slate-400 line-through')}>
+                            <span className={clsx('font-mono text-[11px]', isBatchDibuang && 'text-slate-400 line-through')}>
                               +{batch.batchQty} {b.satuan}
                             </span>
                           </div>
@@ -274,23 +312,23 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                               <span
                                 className={clsx(
                                   'font-bold font-mono px-1.5 py-0.2 rounded text-[10px]',
-                                  batch.isDibuang
+                                  isBatchDibuang
                                     ? 'bg-slate-200 text-slate-600'
-                                    : batch.isExpired
+                                    : isBatchExpired
                                     ? 'bg-rose-200 text-rose-800'
                                     : batch.aiSisaHari !== null && batch.aiSisaHari !== undefined && batch.aiSisaHari <= 3
                                     ? 'bg-amber-100 text-amber-800'
                                     : 'bg-emerald-50 text-emerald-700'
                                 )}
                               >
-                                {batch.isDibuang
+                                {isBatchDibuang
                                   ? 'Sudah Dimusnahkan'
-                                  : batch.isExpired
+                                  : isBatchExpired
                                   ? 'Kadaluarsa'
                                   : `Exp: ${tglBatchExpire} (${batch.aiSisaHari ?? '-'} hari)`}
                               </span>
 
-                              {batch.isExpired && !batch.isDibuang && onKurangiStok && (
+                              {isBatchExpired && !isBatchDibuang && onKurangiStok && (
                                 <button
                                   type="button"
                                   onClick={e => {
@@ -345,7 +383,7 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
           batch={selectedBatchForAction}
           onClose={handleCloseKurangiModal}
           onSuccess={() => {
-            if (onRefresh) onRefresh()
+            handleSuccessAction(selectedBahanForAction.id, selectedBatchForAction?.batchNo)
           }}
           onProcess={onKurangiStok}
         />

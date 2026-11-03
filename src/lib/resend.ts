@@ -490,10 +490,6 @@ export async function sendSaleTransactionEmail({
 
   const dashBorder = `border-top: 1px dashed #cbd5e1; margin: 10px 0;`
 
-  // Logo DapurTwin: Menggunakan URL publik hosting (jika ada NEXT_PUBLIC_SITE_URL) atau cid:dapurtwin-logo atau fallback data URI
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '')
-  const logoUrl = siteUrl ? `${siteUrl}/logo-sm.png` : 'cid:dapurtwin-logo'
-
   const html = `
     <!DOCTYPE html>
     <html lang="id">
@@ -506,21 +502,12 @@ export async function sendSaleTransactionEmail({
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td align="center">
-              <div style="max-width: 340px; width: 100%; margin: 0 auto; background: #ffffff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 20px 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 12px; line-height: 1.45; color: #1e293b; text-align: left;">
+              <div style="max-width: 340px; width: 100%; margin: 0 auto; background: #ffffff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 22px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 12px; line-height: 1.45; color: #1e293b; text-align: left;">
                 
-                <!-- Header Struk dengan Maskot Dapi Head & Latar Kuning -->
-                <div style="text-align: center; margin-bottom: 8px;">
-                  <div style="display: inline-block; width: 44px; height: 44px; border-radius: 14px; background-color: #FFF6D6; border: 1px solid #FFE49A; overflow: hidden; margin: 0 auto 6px auto; vertical-align: middle;">
-                    <img 
-                      src="${logoUrl}" 
-                      alt="DapurTwin Logo" 
-                      width="44" 
-                      height="44" 
-                      style="display: block; width: 44px; height: 44px; object-fit: contain; border-radius: 13px; border: 0;"
-                    />
-                  </div>
-                  <div style="font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">${storeName}</div>
-                  <div style="font-size: 11px; color: #64748b; margin-top: 1px;">Struk Pembayaran</div>
+                <!-- Header Struk Bersih Tanpa File Lampiran Logo -->
+                <div style="text-align: center; margin-bottom: 10px;">
+                  <div style="font-size: 17px; font-weight: 900; color: #0f172a; letter-spacing: -0.3px; text-transform: uppercase;">${storeName}</div>
+                  <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-top: 2px;">STRUK PEMBAYARAN</div>
                 </div>
 
                 <div style="${dashBorder}"></div>
@@ -620,14 +607,6 @@ export async function sendSaleTransactionEmail({
     subject,
     html,
     text: `Struk Pembayaran ${storeName} - ${invoiceNumber}. Total: ${formattedTotal}. Metode: ${paymentMethod}. Email ini dikirim secara otomatis, mohon untuk tidak membalas.`,
-    attachments: [
-      {
-        filename: 'logo.png',
-        content: Buffer.from(DAPURTWIN_LOGO_BASE64, 'base64'),
-        contentId: 'dapurtwin-logo',
-        contentType: 'image/png',
-      },
-    ],
   })
 }
 
