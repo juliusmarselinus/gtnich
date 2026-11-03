@@ -1,4 +1,4 @@
-export type StokLogSource = 'PO' | 'Penjualan' | 'Manual' | 'Opname' | 'Penyesuaian'
+export type StokLogSource = 'PO' | 'Penjualan' | 'Manual' | 'Opname' | 'Penyesuaian' | 'Kadaluarsa' | 'Pembatalan Penjualan'
 
 export interface BahanSimple {
   id: string

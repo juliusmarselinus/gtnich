@@ -9,6 +9,8 @@ const sourceBadge: Record<string, string> = {
   Penjualan: 'bg-amber-50 text-amber-700 border-amber-200/50',
   Manual: 'bg-purple-50 text-purple-700 border-purple-200/50',
   Opname: 'bg-[#FFF6EC] text-[#FF8F2B] border-[#FFE2C2]',
+  Kadaluarsa: 'bg-rose-50 text-rose-700 border-rose-200/50',
+  'Pembatalan Penjualan': 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
   Penyesuaian: 'bg-slate-100 text-slate-700 border-slate-200',
 }
 
@@ -42,7 +44,7 @@ export default function StokLogTable({
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          {['all', 'PO', 'Penjualan', 'Manual', 'Opname'].map(src => (
+          {['all', 'PO', 'Penjualan', 'Manual', 'Opname', 'Kadaluarsa'].map(src => (
             <button
               key={src}
               onClick={() => onFilterSourceChange(src)}

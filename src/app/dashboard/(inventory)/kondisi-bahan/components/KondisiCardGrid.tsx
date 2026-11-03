@@ -244,19 +244,24 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                           key={batch.batchId}
                           className={clsx(
                             'p-2.5 rounded-xl border text-xs space-y-1 transition-colors',
-                            batch.isExpired
+                            batch.isDibuang
+                              ? 'bg-slate-50 border-slate-200/80 text-slate-500 opacity-80'
+                              : batch.isExpired
                               ? 'bg-rose-50/70 border-rose-200 text-rose-900'
                               : 'bg-white border-slate-200/80 text-slate-700'
                           )}
                         >
                           <div className="flex items-center justify-between font-bold">
                             <span className="flex items-center gap-1">
-                              <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 text-[10px] flex items-center justify-center font-mono">
+                              <span className={clsx(
+                                'w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono',
+                                batch.isDibuang ? 'bg-slate-200 text-slate-500' : 'bg-slate-200 text-slate-700'
+                              )}>
                                 #{batch.batchNo}
                               </span>
-                              <span>{batch.sumberMasuk}</span>
+                              <span className={clsx(batch.isDibuang && 'line-through text-slate-400')}>{batch.sumberMasuk}</span>
                             </span>
-                            <span className="font-mono text-[11px]">
+                            <span className={clsx('font-mono text-[11px]', batch.isDibuang && 'text-slate-400 line-through')}>
                               +{batch.batchQty} {b.satuan}
                             </span>
                           </div>
@@ -269,28 +274,34 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                               <span
                                 className={clsx(
                                   'font-bold font-mono px-1.5 py-0.2 rounded text-[10px]',
-                                  batch.isExpired
+                                  batch.isDibuang
+                                    ? 'bg-slate-200 text-slate-600'
+                                    : batch.isExpired
                                     ? 'bg-rose-200 text-rose-800'
                                     : batch.aiSisaHari !== null && batch.aiSisaHari !== undefined && batch.aiSisaHari <= 3
                                     ? 'bg-amber-100 text-amber-800'
                                     : 'bg-emerald-50 text-emerald-700'
                                 )}
                               >
-                                {batch.isExpired ? 'Sudah Expire' : `Exp: ${tglBatchExpire} (${batch.aiSisaHari ?? '-'} hari)`}
+                                {batch.isDibuang
+                                  ? 'Sudah Dimusnahkan'
+                                  : batch.isExpired
+                                  ? 'Kadaluarsa'
+                                  : `Exp: ${tglBatchExpire} (${batch.aiSisaHari ?? '-'} hari)`}
                               </span>
 
-                              {batch.isExpired && onKurangiStok && (
+                              {batch.isExpired && !batch.isDibuang && onKurangiStok && (
                                 <button
                                   type="button"
                                   onClick={e => {
                                     e.stopPropagation()
                                     handleOpenKurangiModal(b, batch)
                                   }}
-                                  title="Kurangi stok batch kadaluarsa ini"
+                                  title="Musnahkan stok batch kadaluarsa ini"
                                   className="px-2 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
                                 >
                                   <Trash2 className="w-2.5 h-2.5" />
-                                  <span>Kurangi</span>
+                                  <span>Musnahkan</span>
                                 </button>
                               )}
                             </div>

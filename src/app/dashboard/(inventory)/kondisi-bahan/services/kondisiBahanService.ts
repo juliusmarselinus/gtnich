@@ -156,13 +156,15 @@ export const kondisiBahanService = {
         }
 
         // Hitung batch yang kadaluarsa AKTIF (yang belum dimusnahkan/dibuang)
-        const expiredBatchesCount = batches.filter(bt => bt.isExpired).length
+        // Jika total stok di database sudah 0, bahan tersebut sudah tidak bersisa sehingga tidak ada batch kadaluarsa aktif
+        const isBahanHabis = Number(b.stok) <= 0
+        const expiredBatchesCount = isBahanHabis ? 0 : batches.filter(bt => bt.isExpired).length
 
         // Tentukan status freshness agregat
         let overallFreshness: BahanKondisi['aiStatusFreshness'] = 'segar'
         if (expiredBatchesCount > 0) {
           overallFreshness = 'kadaluarsa'
-        } else if (batches.some(bt => !bt.isDibuang && bt.aiStatusFreshness === 'mendekati_expire')) {
+        } else if (!isBahanHabis && batches.some(bt => !bt.isDibuang && bt.aiStatusFreshness === 'mendekati_expire')) {
           overallFreshness = 'mendekati_expire'
         }
 
@@ -170,6 +172,10 @@ export const kondisiBahanService = {
         const activeBatches = batches.filter(bt => !bt.isDibuang)
         const sortedBatches = [...activeBatches].sort((x, y) => (x.aiSisaHari ?? 999) - (y.aiSisaHari ?? 999))
         const earliestBatch = sortedBatches[0]
+
+        // Jika semua batch sudah dibuang atau stok 0, estimasi expire terdekat tidak boleh menunjukkan tanggal kadaluarsa lampau
+        const finalEstimasiExpire = earliestBatch?.aiEstimasiExpire ?? (isBahanHabis ? null : baseAiResult.aiEstimasiExpire)
+        const finalSisaHari = earliestBatch?.aiSisaHari ?? (isBahanHabis ? null : (baseAiResult.aiSisaHari && baseAiResult.aiSisaHari > 0 ? baseAiResult.aiSisaHari : null))
 
         return {
           id: b.id,
@@ -274,11 +280,13 @@ export const kondisiBahanService = {
       stok_sebelum: currentStok,
       stok_sesudah: newStok,
       sumber: 'Kadaluarsa',
+      reference_id: params.nomorBatch ? `BATCH-#${params.nomorBatch}` : 'EXPIRED-BULK',
       catatan,
     })
 
     if (logErr) {
-      console.warn('Gagal mencatat log mutasi stok_logs:', logErr)
+      console.error('Gagal mencatat log mutasi stok_logs:', logErr)
+      throw new Error(`Gagal mencatat riwayat mutasi stok: ${logErr.message}`)
     }
 
     return { newStok }

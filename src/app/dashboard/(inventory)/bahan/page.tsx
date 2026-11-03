@@ -9,6 +9,7 @@ import BahanCard from './components/BahanCard'
 import BahanModal from './components/BahanModal'
 import DeleteBahanModal from './components/DeleteBahanModal'
 import { useBahan } from './hooks/useBahan'
+import { useToast } from '@/context/ToastContext'
 import { Bahan, FilterStatus } from './types'
 import { formatRupiah } from '@/lib/mock-data'
 import {
@@ -42,6 +43,8 @@ export default function BahanPage() {
     deleteBahan,
     refresh,
   } = useBahan()
+
+  const toast = useToast()
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Bahan | null>(null)
@@ -81,13 +84,29 @@ export default function BahanPage() {
   async function handleConfirmDelete() {
     if (!deleteTarget) return
     setIsDeleting(true)
+    const targetName = deleteTarget.nama
     try {
       await deleteBahan(deleteTarget.id)
       setDeleteTarget(null)
-    } catch {
-      // Error sudah ditangani di hook/state error
+      toast.success('Bahan Berhasil Dihapus', `Data bahan "${targetName}" telah dihapus dari inventaris dapur.`)
+    } catch (err: any) {
+      toast.error('Gagal Menghapus Bahan', err?.message || 'Terjadi kesalahan saat menghapus bahan.')
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  async function handleSaveBahan(id: string | null, form: any) {
+    try {
+      await saveBahan(id, form)
+      setShowModal(false)
+      if (id) {
+        toast.success('Bahan Berhasil Diperbarui', `Informasi stok dan harga "${form.nama}" tersimpan.`)
+      } else {
+        toast.success('Bahan Baru Ditambahkan', `"${form.nama}" berhasil didaftarkan ke gudang dapur.`)
+      }
+    } catch (err: any) {
+      toast.error('Gagal Menyimpan Bahan', err?.message || 'Terjadi kesalahan saat menyimpan data bahan.')
     }
   }
 
@@ -327,7 +346,7 @@ export default function BahanPage() {
       <BahanModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onSave={saveBahan}
+        onSave={handleSaveBahan}
         editingBahan={editing}
         suppliers={suppliers}
       />
