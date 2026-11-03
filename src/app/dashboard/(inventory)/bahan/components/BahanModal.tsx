@@ -74,6 +74,18 @@ export default function BahanModal({
     setErrorMsg(null)
   }, [editingBahan, isOpen])
 
+  // Tutup dengan tombol Escape
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isSubmitting) onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, isSubmitting, onClose])
+
+  if (!isOpen) return null
+
   // Hitung angka stok yang otomatis terkonversi jika ada perubahan satuan dasar pada mode edit
   const effectiveStokDisplay = (() => {
     if (!editingBahan) return form.stok
@@ -154,7 +166,14 @@ export default function BahanModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1D00]/45 backdrop-blur-sm p-4 overflow-y-auto">
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={e => {
+        if (e.target === e.currentTarget && !isSubmitting) onClose()
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1D00]/45 backdrop-blur-sm p-4 overflow-y-auto"
+    >
       <div className="bg-white rounded-[32px] shadow-2xl p-6 sm:p-7 w-full max-w-lg mx-auto space-y-4 max-h-[92vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 my-auto">
         {/* Header Modal */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
@@ -167,14 +186,16 @@ export default function BahanModal({
                 {editingBahan ? 'Edit Bahan Baku' : 'Tambah Bahan Baku Baru'}
               </h3>
               <p className="text-[11px] text-slate-500 font-medium">
-                {editingBahan ? 'Perbarui satuan, harga beli, atau stok bahan' : 'Daftarkan bahan baku ke sistem inventaris dapur'}
+                {editingBahan ? 'Perbarui satuan, harga beli, atau batas minimum bahan' : 'Daftarkan bahan baku ke sistem inventaris dapur'}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+            disabled={isSubmitting}
+            aria-label="Tutup modal"
+            className="w-9 h-9 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-slate-600 flex items-center justify-center cursor-pointer transition-colors disabled:opacity-50"
           >
             <X className="w-4 h-4" />
           </button>
