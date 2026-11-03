@@ -103,8 +103,8 @@ export default function LoginPage() {
     setMessage(null)
 
     try {
-      const origin = window.location.origin
-      const callbackUrl = new URL(`${origin}/auth/callback`)
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+      const callbackUrl = new URL('/auth/callback', siteUrl)
       if (surveyData.usaha) callbackUrl.searchParams.set('usaha', surveyData.usaha)
       if (surveyData.kanal) callbackUrl.searchParams.set('kanal', surveyData.kanal)
       if (surveyData.habis !== undefined) callbackUrl.searchParams.set('habis', String(surveyData.habis))
@@ -118,7 +118,7 @@ export default function LoginPage() {
         // ignore
       }
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: callbackUrl.toString(),
@@ -126,11 +126,17 @@ export default function LoginPage() {
       })
 
       if (error) {
-        setErrorMessage('Gagal login pakai akun Google. Silakan coba lagi.')
+        setErrorMessage(friendlyError(error.message))
         setIsGoogleLoading(false)
+        return
       }
-    } catch {
-      setErrorMessage('Gagal login pakai akun Google. Silakan coba lagi.')
+
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : ''
+      setErrorMessage(friendlyError(errMessage) || 'Gagal login pakai akun Google. Silakan coba lagi.')
       setIsGoogleLoading(false)
     }
   }

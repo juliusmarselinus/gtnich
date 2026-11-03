@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { CartItem, CheckoutFormInput } from '../types'
 import type { StockInfoMap } from '../hooks/usePenjualan'
-import { Receipt, type ReceiptData } from './Receipt'
+import { Receipt, type ReceiptData, printReceiptElement } from './Receipt'
 import { formatRupiah } from '@/lib/mock-data'
 import DapiHead from '@/components/ui/DapiHead'
 import { QRCodeSVG } from 'qrcode.react'
@@ -83,6 +83,7 @@ export default function CartPOS({
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [qr, setQr] = useState<QrState>({ status: 'idle' })
   const [now, setNow] = useState(Date.now())
+  const previewReceiptRef = useRef<HTMLDivElement>(null)
 
   const total = totals.subtotal
   const cashReceived = Number(cashInput) || 0
@@ -716,7 +717,30 @@ export default function CartPOS({
                     <ReceiptText className="w-4 h-4 text-[#D98B00]" />
                     Struk Pembayaran
                   </span>
-                  <span className="text-[10px] text-slate-400 font-medium">Pratinjau Otomatis</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400 font-medium">Pratinjau Otomatis</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const html = generateReceiptPrintHTML(previewData)
+                        const w = window.open('', '_blank', 'width=460,height=700')
+                        if (w) {
+                          w.document.open()
+                          w.document.write(html)
+                          w.document.close()
+                          setTimeout(() => {
+                            w.focus()
+                            w.print()
+                          }, 350)
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[10px] font-bold text-[#8A5A00] flex items-center gap-1 transition-colors border border-[#FFE49A]"
+                      title="Uji Cetak / PDF Struk Pratinjau Ini"
+                    >
+                      <ReceiptText className="w-3 h-3" />
+                      <span>Cetak Struk</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="rounded-[24px] bg-[#FFF9EC] p-3.5 border border-[#FFE49A]/50 flex justify-center items-start overflow-y-auto max-h-[580px]">
                   <div className="rounded-[18px] overflow-hidden shadow-xs border border-slate-200/60 bg-white w-full max-w-[320px]">

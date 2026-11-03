@@ -27,7 +27,11 @@ export default function ReceiptDrawer({
   if (!order) return null
 
   const handlePrint = () => {
+    document.body.classList.add('printing-receipt')
     window.print()
+    setTimeout(() => {
+      document.body.classList.remove('printing-receipt')
+    }, 1000)
   }
 
   const handleCopyNote = () => {
@@ -124,7 +128,7 @@ export default function ReceiptDrawer({
 
           {/* KERTAS NOVEL / BOOKPAPER STRUK (Dengan Tekstur Serat Nyata & Gradasi Cahaya Halaman) */}
           <div
-            id="printable-receipt"
+            id="printable-pos-receipt"
             className="bookpaper-texture bookpaper-shadow bookpaper-edge rounded-2xl p-7 font-mono text-xs text-[#262019] relative overflow-hidden border border-[#ded4be]"
           >
             {/* Header Toko */}

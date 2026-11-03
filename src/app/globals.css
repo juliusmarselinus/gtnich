@@ -166,21 +166,47 @@ body {
 }
 
 @media print {
-  body * {
+  /* Sembunyikan elemen navigasi dashboard saat cetak */
+  aside,
+  nav,
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Jika mencetak struk thermal POS / Receipt Modal */
+  body.printing-receipt * {
     visibility: hidden;
   }
-  #printable-receipt, #printable-receipt * {
+
+  body.printing-receipt #printable-pos-receipt,
+  body.printing-receipt #printable-pos-receipt * {
     visibility: visible;
   }
-  #printable-receipt {
+
+  body.printing-receipt #printable-pos-receipt {
     position: absolute;
-    left: 0;
+    left: 50%;
     top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 24px;
+    transform: translateX(-50%);
+    width: 80mm !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 4mm 6mm !important;
     border: none !important;
     box-shadow: none !important;
+  }
+
+  /* Mengatur margin kertas saat print biasa */
+  @page {
+    margin: 10mm;
   }
 }
 

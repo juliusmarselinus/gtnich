@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { Order, formatRupiah } from '@/lib/mock-data'
 import DapiHead from './ui/DapiHead'
@@ -18,7 +18,11 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
   if (!order) return null
 
   const handlePrint = () => {
+    document.body.classList.add('printing-receipt')
     window.print()
+    setTimeout(() => {
+      document.body.classList.remove('printing-receipt')
+    }, 1000)
   }
 
   const handleCopySummary = () => {
@@ -47,7 +51,7 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
 
         {/* Receipt Paper Area */}
         <div className="p-6 overflow-y-auto flex-1 bg-gradient-to-b from-stone-50/40 to-white">
-          <div className="bg-white border border-stone-200/70 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+          <div id="printable-pos-receipt" className="bg-white border border-stone-200/70 rounded-2xl p-5 shadow-sm relative overflow-hidden">
             {/* Watermark Maskot Dapi */}
             <div
               aria-hidden="true"

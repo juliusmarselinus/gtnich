@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { X, Printer } from 'lucide-react'
 import { formatRupiah } from '@/lib/mock-data'
 import type { OrderRecord } from '../types'
+import { generateReceiptPrintHTML } from '../services/receiptPrintGenerator'
 import DapiHead from '@/components/ui/DapiHead'
 import DapiMascot from '@/components/ui/DapiMascot'
 
@@ -56,7 +57,7 @@ export function Receipt({ data }: { data: ReceiptData }) {
   const showCash = data.cashReceived != null && data.cashReceived > 0
 
   return (
-    <div className="bg-white text-slate-800 font-mono text-[12px] leading-snug p-5 w-full max-w-[340px] mx-auto relative overflow-hidden shadow-xs">
+    <div className="receipt-paper bg-white text-slate-800 font-mono text-[12px] leading-snug p-5 w-full max-w-[340px] mx-auto relative overflow-hidden shadow-xs">
       {/* Watermark Maskot Dapi di background kertas struk */}
       <div
         aria-hidden="true"
@@ -84,82 +85,82 @@ export function Receipt({ data }: { data: ReceiptData }) {
         </div>
 
         <Dash />
-      <div className="space-y-0.5 text-[11px]">
-        <div className="flex justify-between gap-3">
-          <span className="text-slate-500">No. Nota</span>
-          <span className="font-bold text-right">{data.invoiceNumber || 'dibuat saat bayar'}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span className="text-slate-500">Waktu</span>
-          <span className="text-right">{tgl}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span className="text-slate-500">Kasir</span>
-          <span className="text-right">{data.cashierName}</span>
-        </div>
-        {data.customerName && (
+        <div className="space-y-0.5 text-[11px]">
           <div className="flex justify-between gap-3">
-            <span className="text-slate-500">Pelanggan</span>
-            <span className="text-right font-medium">{data.customerName}</span>
+            <span className="text-slate-500">No. Nota</span>
+            <span className="font-bold text-right">{data.invoiceNumber || 'dibuat saat bayar'}</span>
           </div>
-        )}
-        {data.customerEmail && (
           <div className="flex justify-between gap-3">
-            <span className="text-slate-500">E-Receipt</span>
-            <span className="text-right font-mono text-[10px] text-amber-800">{data.customerEmail}</span>
+            <span className="text-slate-500">Waktu</span>
+            <span className="text-right">{tgl}</span>
           </div>
-        )}
-      </div>
-
-      <Dash />
-      <div className="space-y-2">
-        {data.items.map((it, i) => (
-          <div key={i}>
-            <p className="font-bold">{it.namaMenu}</p>
-            <div className="flex justify-between text-[11px]">
-              <span className="text-slate-500">
-                {it.qty} x {formatRupiah(it.hargaJual)}
-              </span>
-              <span className="font-bold">{formatRupiah(it.subtotal)}</span>
+          <div className="flex justify-between gap-3">
+            <span className="text-slate-500">Kasir</span>
+            <span className="text-right">{data.cashierName}</span>
+          </div>
+          {data.customerName && (
+            <div className="flex justify-between gap-3">
+              <span className="text-slate-500">Pelanggan</span>
+              <span className="text-right font-medium">{data.customerName}</span>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <Dash />
-      <div className="flex justify-between text-sm font-extrabold">
-        <span>TOTAL</span>
-        <span>{formatRupiah(data.total)}</span>
-      </div>
-
-      <div className="mt-2 space-y-0.5 text-[11px]">
-        <div className="flex justify-between">
-          <span className="text-slate-500">Metode</span>
-          <span>{data.paymentMethod}</span>
+          )}
+          {data.customerEmail && (
+            <div className="flex justify-between gap-3">
+              <span className="text-slate-500">E-Receipt</span>
+              <span className="text-right font-mono text-[10px] text-amber-800">{data.customerEmail}</span>
+            </div>
+          )}
         </div>
-        {showCash && (
-          <div className="flex justify-between">
-            <span className="text-slate-500">Uang diterima</span>
-            <span>{formatRupiah(data.cashReceived as number)}</span>
-          </div>
-        )}
-        {showCash && data.changeAmount != null && (
-          <div className="flex justify-between font-bold">
-            <span className="text-slate-500 font-normal">Kembalian</span>
-            <span>{formatRupiah(data.changeAmount)}</span>
-          </div>
-        )}
-      </div>
 
-      {data.notes && (
-        <>
-          <Dash />
-          <p className="text-[11px]">
-            <span className="text-slate-500">Catatan: </span>
-            {data.notes}
-          </p>
-        </>
-      )}
+        <Dash />
+        <div className="space-y-2">
+          {data.items.map((it, i) => (
+            <div key={i}>
+              <p className="font-bold">{it.namaMenu}</p>
+              <div className="flex justify-between text-[11px]">
+                <span className="text-slate-500">
+                  {it.qty} x {formatRupiah(it.hargaJual)}
+                </span>
+                <span className="font-bold">{formatRupiah(it.subtotal)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Dash />
+        <div className="flex justify-between text-sm font-extrabold">
+          <span>TOTAL</span>
+          <span>{formatRupiah(data.total)}</span>
+        </div>
+
+        <div className="mt-2 space-y-0.5 text-[11px]">
+          <div className="flex justify-between">
+            <span className="text-slate-500">Metode</span>
+            <span>{data.paymentMethod}</span>
+          </div>
+          {showCash && (
+            <div className="flex justify-between">
+              <span className="text-slate-500">Uang diterima</span>
+              <span>{formatRupiah(data.cashReceived as number)}</span>
+            </div>
+          )}
+          {showCash && data.changeAmount != null && (
+            <div className="flex justify-between font-bold">
+              <span className="text-slate-500 font-normal">Kembalian</span>
+              <span>{formatRupiah(data.changeAmount)}</span>
+            </div>
+          )}
+        </div>
+
+        {data.notes && (
+          <>
+            <Dash />
+            <p className="text-[11px]">
+              <span className="text-slate-500">Catatan: </span>
+              {data.notes}
+            </p>
+          </>
+        )}
 
         <Dash />
         <p className="text-center text-[11px] text-slate-500">Terima kasih, selamat menikmati!</p>
@@ -168,34 +169,96 @@ export function Receipt({ data }: { data: ReceiptData }) {
   )
 }
 
+/** Fungsi utilitas print elemen DOM struk langsung agar 100% persis preview */
+export function printReceiptElement(element: HTMLElement | null, fallbackData?: ReceiptData) {
+  if (!element && fallbackData) {
+    const html = generateReceiptPrintHTML(fallbackData)
+    const w = window.open('', '_blank', 'width=460,height=700')
+    if (w) {
+      w.document.open()
+      w.document.write(html)
+      w.document.close()
+      setTimeout(() => {
+        w.focus()
+        w.print()
+      }, 350)
+    }
+    return
+  }
+
+  if (!element) return
+
+  const cloned = element.cloneNode(true) as HTMLElement
+  const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+    .map(n => n.outerHTML)
+    .join('')
+
+  const printWindow = window.open('', '_blank', 'width=460,height=700')
+  if (!printWindow) return
+
+  printWindow.document.open()
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="utf-8">
+      <title>Struk Pembayaran</title>
+      ${styles}
+      <style>
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #ffffff !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: flex-start !important;
+        }
+        @page {
+          size: 80mm auto;
+          margin: 0;
+        }
+        @media print {
+          html, body {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .receipt-paper {
+            width: 80mm !important;
+            max-width: 80mm !important;
+            margin: 0 auto !important;
+            padding: 16px 14px !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+        }
+      </style>
+    </head>
+    <body style="padding: 12px; background: #fff;">
+      ${cloned.outerHTML}
+    </body>
+    </html>
+  `)
+  printWindow.document.close()
+
+  setTimeout(() => {
+    printWindow.focus()
+    printWindow.print()
+  }, 400)
+}
+
 export function ReceiptModal({ data, onClose }: { data: ReceiptData; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
 
-  // Cetak / simpan PDF lewat dialog cetak browser
   const handlePrint = () => {
-    const node = ref.current
-    if (!node) return
-    const w = window.open('', '_blank', 'width=420,height=720')
-    if (!w) return
-    const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
-      .map(n => n.outerHTML)
-      .join('')
-    w.document.write(
-      `<html><head><title>${data.invoiceNumber || 'Struk'}</title>${styles}` +
-        `<style>body{margin:0;padding:12px;background:#fff}@page{margin:8mm}</style></head>` +
-        `<body>${node.outerHTML}</body></html>`
-    )
-    w.document.close()
-    setTimeout(() => {
-      w.focus()
-      w.print()
-    }, 500)
+    printReceiptElement(ref.current, data)
   }
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#2B1D00]/40 backdrop-blur-sm p-4">
       <div className="bg-[#FFF9EC] rounded-[32px] shadow-2xl p-5 w-full max-w-sm max-h-[92vh] flex flex-col gap-4 animate-in fade-in-0 zoom-in-95">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between no-print">
           <h3 className="text-base font-extrabold text-slate-900">Struk Transaksi</h3>
           <button
             type="button"
@@ -207,12 +270,12 @@ export function ReceiptModal({ data, onClose }: { data: ReceiptData; onClose: ()
         </div>
 
         <div className="overflow-y-auto rounded-[24px] bg-white">
-          <div ref={ref}>
+          <div ref={ref} id="printable-pos-receipt">
             <Receipt data={data} />
           </div>
         </div>
 
-        <div className="flex gap-2.5">
+        <div className="flex gap-2.5 no-print">
           <button
             type="button"
             onClick={onClose}
@@ -223,7 +286,7 @@ export function ReceiptModal({ data, onClose }: { data: ReceiptData; onClose: ()
           <button
             type="button"
             onClick={handlePrint}
-            className="flex-[2] py-3 rounded-full bg-[#D8431F] hover:bg-[#BF3818] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+            className="flex-[2] py-3 rounded-full bg-[#D8431F] hover:bg-[#BF3818] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-sm active:scale-98"
           >
             <Printer className="w-4 h-4" />
             <span>Cetak / Simpan PDF</span>
@@ -233,4 +296,3 @@ export function ReceiptModal({ data, onClose }: { data: ReceiptData; onClose: ()
     </div>
   )
 }
-

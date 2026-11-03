@@ -10,6 +10,7 @@ import TrendChart from './components/TrendChart'
 import UsageAndMenuBreakdown from './components/UsageAndMenuBreakdown'
 import ChannelAndPaymentSection from './components/ChannelAndPaymentSection'
 import RecentSalesTable from './components/RecentSalesTable'
+import { generateLaporanPrintHTML } from './services/laporanPrintGenerator'
 import { formatRupiah } from '@/lib/mock-data'
 import { RefreshCw, AlertCircle, Printer, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
@@ -27,7 +28,20 @@ export default function LaporanPage() {
   const currentOption = RANGE_OPTIONS.find(o => o.value === range) || RANGE_OPTIONS[0]
 
   const handlePrint = () => {
-    window.print()
+    if (!data) return
+    const html = generateLaporanPrintHTML(data, currentOption.label)
+    const printWindow = window.open('', '_blank', 'width=900,height=800')
+    if (!printWindow) {
+      window.print()
+      return
+    }
+    printWindow.document.open()
+    printWindow.document.write(html)
+    printWindow.document.close()
+    setTimeout(() => {
+      printWindow.focus()
+      printWindow.print()
+    }, 400)
   }
 
   // Headline hero dinamis berdasarkan omzet dan profit

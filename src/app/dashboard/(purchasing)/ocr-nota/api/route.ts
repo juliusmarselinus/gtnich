@@ -53,32 +53,41 @@ PENTING:
           endpoint = endpoint.replace(/\/+$/, '') + '/chat/completions'
         }
 
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${routerKey.trim()}`,
-          },
-          body: JSON.stringify({
-            model: routerModel,
-            stream: false,
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: prompt },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: `data:${mimeType};base64,${base64Data}`,
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 25000)
+
+        let response: Response
+        try {
+          response = await fetch(endpoint, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${routerKey.trim()}`,
+            },
+            body: JSON.stringify({
+              model: routerModel,
+              stream: false,
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: prompt },
+                    {
+                      type: 'image_url',
+                      image_url: {
+                        url: `data:${mimeType};base64,${base64Data}`,
+                      },
                     },
-                  },
-                ],
-              },
-            ],
-            temperature: 0.1,
-          }),
-        })
+                  ],
+                },
+              ],
+              temperature: 0.1,
+            }),
+          })
+        } finally {
+          clearTimeout(timeoutId)
+        }
 
         if (response.ok) {
           const json = await response.json()
@@ -96,17 +105,17 @@ PENTING:
           }
         } else {
           const errResText = await response.text()
-          console.warn('9Router call failed:', response.status, errResText)
+          console.warn('9Router call failed:', response.status, errResText.slice(0, 300))
           return NextResponse.json(
-            { success: false, error: `9Router error (${response.status}): ${errResText}` },
+            { success: false, error: `9Router error (${response.status})` },
             { status: response.status }
           )
         }
       } catch (routerErr: any) {
-        console.warn('9Router exception:', routerErr)
+        console.warn('9Router exception:', routerErr.name === 'AbortError' ? 'Timeout 25s' : routerErr.message)
         return NextResponse.json(
-          { success: false, error: routerErr.message || 'Gagal memproses gambar ke 9Router' },
-          { status: 500 }
+          { success: false, error: routerErr.name === 'AbortError' ? '9Router timeout (25s)' : (routerErr.message || 'Gagal memproses gambar ke 9Router') },
+          { status: 504 }
         )
       }
     }
