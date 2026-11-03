@@ -63,6 +63,15 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
     subtotal: Number(i.subtotal) || 0,
   }))
 
+  // Jika di database status adalah 'menunggu' tapi ada tag [PREORDER] di notes,
+  // maka di UI tetap dikenali sebagai 'preorder'
+  let mappedStatus = row.status
+  if (row.status === 'menunggu' && row.notes && row.notes.includes('[PREORDER]')) {
+    mappedStatus = 'preorder'
+  } else if (row.status === 'dibatalkan') {
+    mappedStatus = 'batal'
+  }
+
   return {
     id: row.id,
     userId: row.user_id,
@@ -71,7 +80,7 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
     customerName: row.customer_name,
     customerPhone: row.customer_phone,
     channel: row.channel,
-    status: row.status,
+    status: mappedStatus,
     paymentMethod: row.payment_method,
     paymentStatus: row.payment_status,
     subtotal: Number(row.subtotal) || 0,
@@ -214,10 +223,12 @@ export const penjualanService = {
       await penjualanService.kembalikanStokPesanan(order)
     }
 
+    const dbStatus = statusBaru === 'batal' ? 'dibatalkan' : statusBaru
+
     const supabase = createClient()
     const { error } = await supabase
       .from('orders')
-      .update({ status: statusBaru, updated_at: new Date().toISOString() })
+      .update({ status: dbStatus, updated_at: new Date().toISOString() })
       .eq('id', order.id)
     if (error) throw new Error(`Gagal mengubah status: ${error.message}`)
   },
@@ -271,6 +282,13 @@ export const penjualanService = {
     const cashierName = form.cashierName || 'Kasir Dapur'
     const notes = form.notes?.trim() || null
 
+    const dbStatus = 'menunggu'
+    // Simpan penanda [PREORDER] di notes agar sistem mengetahui ini pesanan pre-order
+    let finalNotes = notes
+    if (form.isPreOrder) {
+      finalNotes = finalNotes ? `[PREORDER] ${finalNotes}` : '[PREORDER]'
+    }
+
     // 1. orders
     const { data: orderData, error: orderErr } = await supabase
       .from('orders')
@@ -280,7 +298,7 @@ export const penjualanService = {
         customer_name: customerName,
         customer_phone: customerPhone,
         channel,
-        status: form.isPreOrder ? 'preorder' : 'menunggu',
+        status: dbStatus,
         payment_method: paymentMethod,
         payment_status: 'Lunas',
         subtotal,
@@ -290,7 +308,7 @@ export const penjualanService = {
         total_hpp: totalHPP,
         profit,
         cashier_name: cashierName,
-        notes,
+        notes: finalNotes,
         cash_received: form.cashReceived ?? null,
         change_amount: form.changeAmount ?? null,
         midtrans_order_id: form.midtransOrderId ?? null,

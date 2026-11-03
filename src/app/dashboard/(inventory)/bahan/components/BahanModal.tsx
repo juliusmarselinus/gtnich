@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Bahan, BahanFormData, Supplier } from '../types'
-import { DEFAULT_SATUAN_LIST } from '@/lib/satuan'
-import { Loader2, PlusCircle, Camera, X, Upload, PackagePlus, Edit3 } from 'lucide-react'
+import { DEFAULT_SATUAN_LIST, getUnitConversionFactor } from '@/lib/satuan'
+import { Loader2, PlusCircle, Camera, X, Upload, PackagePlus, Edit3, Lock } from 'lucide-react'
 import CustomSelect from '@/components/ui/CustomSelect'
 import DapiHead from '@/components/ui/DapiHead'
 
@@ -74,7 +74,20 @@ export default function BahanModal({
     setErrorMsg(null)
   }, [editingBahan, isOpen])
 
-  if (!isOpen) return null
+  // Hitung angka stok yang otomatis terkonversi jika ada perubahan satuan dasar pada mode edit
+  const effectiveStokDisplay = (() => {
+    if (!editingBahan) return form.stok
+    const currentSelectedSatuan = isCustomSatuan ? customSatuanText.trim() : form.satuan.trim()
+    const origSatuan = editingBahan.satuan || 'kg'
+    if (!currentSelectedSatuan || currentSelectedSatuan === origSatuan) {
+      return Number(editingBahan.stok) || 0
+    }
+    // Faktor konversi dari satuan asli ke satuan baru:
+    // Contoh: Asli 5 kg -> Ubah ke gram -> factor (kg to gram) = 1000 -> stok baru = 5 * 1000 = 5000 gram
+    const factor = getUnitConversionFactor(origSatuan, currentSelectedSatuan)
+    const converted = (Number(editingBahan.stok) || 0) * factor
+    return Number(converted.toFixed(3))
+  })()
 
   const handleSatuanSelect = (val: string) => {
     if (val === '__custom__') {
@@ -128,6 +141,7 @@ export default function BahanModal({
     try {
       await onSave(editingBahan ? editingBahan.id : null, {
         ...form,
+        stok: editingBahan ? effectiveStokDisplay : form.stok,
         satuan: finalSatuan,
       })
       onClose()
@@ -325,18 +339,39 @@ export default function BahanModal({
               <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
                 Stok Saat Ini ({isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
               </label>
-              <input
-                type="number"
-                step="any"
-                min="0"
-                value={form.stok ?? ''}
-                onChange={e =>
-                  setForm(p => ({ ...p, stok: Number(e.target.value) }))
-                }
-                placeholder="0"
-                className={`${INPUT_STYLE} font-mono font-extrabold text-slate-900`}
-              />
+
+              {editingBahan ? (
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="any"
+                    value={effectiveStokDisplay ?? ''}
+                    disabled
+                    readOnly
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-100/90 border border-slate-200 text-xs font-mono font-bold text-slate-600 cursor-not-allowed select-none shadow-2xs"
+                  />
+                  <div className="absolute right-3 top-2.5 flex items-center gap-1.5 pointer-events-none">
+                    <span className="text-xs font-bold text-slate-400 font-mono">
+                      {isCustomSatuan ? customSatuanText || 'satuan' : form.satuan}
+                    </span>
+                    <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
+                </div>
+              ) : (
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={form.stok ?? ''}
+                  onChange={e =>
+                    setForm(p => ({ ...p, stok: Number(e.target.value) }))
+                  }
+                  placeholder="0"
+                  className={`${INPUT_STYLE} font-mono font-extrabold text-slate-900`}
+                />
+              )}
             </div>
+
             <div>
               <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
                 Batas Aman / Min ({isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})

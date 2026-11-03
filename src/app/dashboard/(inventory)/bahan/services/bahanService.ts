@@ -146,14 +146,40 @@ export const bahanService = {
   async update(id: string, form: BahanFormData): Promise<Bahan> {
     const supabase = createClient()
 
-    const payload = {
+    // 1. Ambil data bahan sebelum diupdate untuk mengecek apakah ada perubahan satuan dasar
+    const { data: currentBahan } = await supabase
+      .from('bahan')
+      .select('stok, satuan')
+      .eq('id', id)
+      .single()
+
+    const oldSatuan = (currentBahan?.satuan || '').toLowerCase().trim()
+    const newSatuan = form.satuan.toLowerCase().trim()
+    const currentStok = Number(currentBahan?.stok) || 0
+
+    // Jika satuan dasar berubah (misal dari kg ke gram atau sebaliknya),
+    // sesuaikan angka stok agar proporsional dan tidak salah takaran
+    let updatedStok = currentStok
+    if (oldSatuan && newSatuan && oldSatuan !== newSatuan) {
+      // getUnitConversionFactor(oldSatuan, newSatuan):
+      // misal kg ke gram => factor = 1000 => newStok = 5 * 1000 = 5000
+      const { getUnitConversionFactor } = await import('@/lib/satuan')
+      const factor = getUnitConversionFactor(oldSatuan, newSatuan)
+      updatedStok = Number((currentStok * factor).toFixed(3))
+    }
+
+    const payload: Record<string, any> = {
       nama: form.nama.trim(),
       satuan: form.satuan.trim(),
       harga_per_satuan: Number(form.hargaPerSatuan) || 0,
-      stok: Number(form.stok) || 0,
       stok_minimum: Number(form.stokMinimum) || 0,
       supplier_id: form.supplierId && form.supplierId.trim() !== '' ? form.supplierId : null,
       updated_at: new Date().toISOString(),
+    }
+
+    // Hanya update stok jika satuan dasar mengalami perubahan konversi
+    if (oldSatuan !== newSatuan) {
+      payload.stok = updatedStok
     }
 
     const { data, error } = await supabase
@@ -171,6 +197,27 @@ export const bahanService = {
         code: error.code,
       })
       throw new Error(error.message || 'Gagal memperbarui bahan.')
+    }
+
+    // Jika terjadi konversi satuan stok, catat jejak audit penyesuaian ke stok_logs
+    if (oldSatuan !== newSatuan && currentStok !== updatedStok) {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const userId = sessionData?.session?.user?.id
+      if (userId) {
+        try {
+          await supabase.from('stok_logs').insert({
+            user_id: userId,
+            bahan_id: id,
+            perubahan: Number((updatedStok - currentStok).toFixed(3)),
+            stok_sebelum: currentStok,
+            stok_sesudah: updatedStok,
+            sumber: 'Penyesuaian',
+            catatan: `Konversi format satuan master: ${currentStok} ${oldSatuan} ➔ ${updatedStok} ${newSatuan}`,
+          })
+        } catch (err: unknown) {
+          console.warn('Gagal catat audit konversi satuan:', err)
+        }
+      }
     }
 
     return mapBahanFromDB(data as RawBahanDB)
