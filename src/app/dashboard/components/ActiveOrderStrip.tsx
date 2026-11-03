@@ -3,8 +3,8 @@ import { ChefHat } from 'lucide-react'
 import clsx from 'clsx'
 import type { DashboardRecentOrder } from '../services/dashboardService'
 
-const STEPS = ['Menunggu', 'Diproses', 'Dikirim', 'Selesai']
-const PROGRESS: Record<string, string> = { menunggu: '18%', diproses: '45%' }
+const STEPS = ['Menunggu', 'Diproses', 'Selesai']
+const PROGRESS: Record<string, string> = { menunggu: '25%', diproses: '60%' }
 
 interface ActiveOrderStripProps {
   activeOrders: DashboardRecentOrder[]

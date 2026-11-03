@@ -80,6 +80,7 @@ export default function CartPOS({
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [notes, setNotes] = useState('')
+  const [isPreOrder, setIsPreOrder] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [qr, setQr] = useState<QrState>({ status: 'idle' })
   const [now, setNow] = useState(Date.now())
@@ -97,6 +98,7 @@ export default function CartPOS({
     setCustomerEmail('')
     setCustomerName('')
     setNotes('')
+    setIsPreOrder(false)
     setQr({ status: 'idle' })
     setMethod('tunai')
     setShowCheckoutModal(true)
@@ -177,6 +179,7 @@ export default function CartPOS({
         changeAmount: method === 'tunai' ? change : undefined,
         midtransOrderId: method === 'qris' ? qr.orderId : undefined,
         notes: notes.trim() || undefined,
+        isPreOrder,
       })
       setShowCheckoutModal(false)
     } catch (err) {
@@ -665,6 +668,25 @@ export default function CartPOS({
                   <p className="text-[10px] text-slate-500 leading-relaxed px-1">
                     Jika diisi, e-receipt otomatis dikirimkan ke email pelanggan. Salinan transaksi juga otomatis dikirimkan ke email pemilik dapur.
                   </p>
+                </div>
+
+                {/* Jenis Pesanan */}
+                <div className="flex gap-2">
+                  {[
+                    { v: false, label: 'Pesanan biasa' },
+                    { v: true, label: 'Pre-order' },
+                  ].map(opt => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => setIsPreOrder(opt.v)}
+                      className={`flex-1 h-10 rounded-full text-xs font-bold transition-colors cursor-pointer ${
+                        isPreOrder === opt.v ? 'bg-[#2B221C] text-white' : 'bg-[#FFF9EC] text-slate-600'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
 
                 {/* Catatan Transaksi */}

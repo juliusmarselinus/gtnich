@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { penjualanService } from '../services/penjualanService'
 import { MenuItem } from '@/app/dashboard/(pos)/menu/types'
-import { CartItem, CheckoutFormInput, OrderRecord } from '../types'
+import { CartItem, CheckoutFormInput, OrderRecord, OrderStatus } from '../types'
 
 export type MenuSortOption =
   | 'default'
@@ -256,6 +256,12 @@ export function usePenjualan() {
     }
   }
 
+  const updateOrderStatus = async (order: OrderRecord, statusBaru: OrderStatus) => {
+    await penjualanService.updateStatusPesanan(order, statusBaru)
+    setRecentOrders(prev => prev.map(o => (o.id === order.id ? { ...o, status: statusBaru } : o)))
+    await refreshStok()
+  }
+
   return {
     menus: filteredMenus,
     rawMenuCount: menus.length,
@@ -280,5 +286,6 @@ export function usePenjualan() {
     userEmail,
     refresh: fetchData,
     processCheckout,
+    updateOrderStatus,
   }
 }

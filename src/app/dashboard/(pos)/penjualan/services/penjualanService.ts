@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { menuService } from '@/app/dashboard/(pos)/menu/services/menuService'
 import { MenuItem } from '@/app/dashboard/(pos)/menu/types'
-import { CartItem, CheckoutFormInput, OrderRecord, OrderItemRecord } from '../types'
+import { CartItem, CheckoutFormInput, OrderRecord, OrderItemRecord, OrderStatus } from '../types'
 
 interface RawOrderDB {
   id: string
@@ -124,6 +124,104 @@ export const penjualanService = {
     return ((data as RawOrderDB[]) || []).map(mapOrderFromDB)
   },
 
+  // Potong stok untuk pesanan pre-order saat mulai diproses (berdasarkan resep menu saat ini)
+  async potongStokPesanan(order: OrderRecord): Promise<void> {
+    const supabase = createClient()
+    const menus = await menuService.getAll()
+    const need = new Map<string, { namaBahan: string; qty: number }>()
+    for (const item of order.items || []) {
+      const menu = menus.find(m => m.id === item.menuId)
+      for (const r of menu?.resep || []) {
+        const add = r.qty * item.qty
+        const cur = need.get(r.bahanId)
+        if (cur) cur.qty += add
+        else need.set(r.bahanId, { namaBahan: r.namaBahan, qty: add })
+      }
+    }
+
+    const stokNow = await penjualanService.getStokBahan()
+    for (const [id, { namaBahan, qty }] of Array.from(need.entries())) {
+      if ((stokNow[id] ?? 0) + 1e-9 < qty) {
+        throw new Error(`Stok ${namaBahan} tidak cukup untuk memproses pre-order ini.`)
+      }
+    }
+
+    for (const [bahanId, { qty }] of Array.from(need.entries())) {
+      const { data: bhn } = await supabase.from('bahan').select('stok, satuan').eq('id', bahanId).single()
+      if (!bhn) continue
+      const currentStock = Number(bhn.stok) || 0
+      const deduct = Number(qty.toFixed(3))
+      const newStock = Number((currentStock - deduct).toFixed(3))
+      await supabase.from('bahan').update({ stok: newStock, updated_at: new Date().toISOString() }).eq('id', bahanId)
+      await supabase.from('stok_logs').insert({
+        user_id: order.userId,
+        bahan_id: bahanId,
+        perubahan: -deduct,
+        stok_sebelum: currentStock,
+        stok_sesudah: newStock,
+        sumber: 'Penjualan',
+        reference_id: order.id,
+        catatan: `Pre-order ${order.invoiceNumber} diproses: Terpakai ${deduct} ${bhn.satuan}`,
+      })
+    }
+  },
+
+  // Kembalikan stok yang pernah dipotong untuk pesanan ini (dibaca dari stok_logs)
+  async kembalikanStokPesanan(order: OrderRecord): Promise<void> {
+    const supabase = createClient()
+    const { data: logs } = await supabase
+      .from('stok_logs')
+      .select('bahan_id, perubahan')
+      .eq('reference_id', order.id)
+      .eq('sumber', 'Penjualan')
+
+    for (const log of logs || []) {
+      const qtyBack = -Number(log.perubahan) || 0
+      if (qtyBack <= 0) continue
+      const { data: bhn } = await supabase.from('bahan').select('stok, satuan').eq('id', log.bahan_id).single()
+      if (!bhn) continue
+      const currentStock = Number(bhn.stok) || 0
+      const newStock = Number((currentStock + qtyBack).toFixed(3))
+      await supabase.from('bahan').update({ stok: newStock, updated_at: new Date().toISOString() }).eq('id', log.bahan_id)
+      await supabase.from('stok_logs').insert({
+        user_id: order.userId,
+        bahan_id: log.bahan_id,
+        perubahan: qtyBack,
+        stok_sebelum: currentStock,
+        stok_sesudah: newStock,
+        sumber: 'Pembatalan Penjualan',
+        reference_id: order.id,
+        catatan: `Pesanan ${order.invoiceNumber} dibatalkan: stok dikembalikan ${qtyBack} ${bhn.satuan}`,
+      })
+    }
+  },
+
+  async updateStatusPesanan(order: OrderRecord, statusBaru: OrderStatus): Promise<void> {
+    const dari = order.status
+    const boleh: Record<string, OrderStatus[]> = {
+      preorder: ['diproses', 'batal'],
+      menunggu: ['diproses', 'batal'],
+      diproses: ['selesai', 'batal'],
+    }
+    if (!boleh[dari]?.includes(statusBaru)) {
+      throw new Error(`Status "${dari}" tidak bisa diubah ke "${statusBaru}".`)
+    }
+
+    if (dari === 'preorder' && statusBaru === 'diproses') {
+      await penjualanService.potongStokPesanan(order)
+    }
+    if (statusBaru === 'batal' && dari !== 'preorder') {
+      await penjualanService.kembalikanStokPesanan(order)
+    }
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: statusBaru, updated_at: new Date().toISOString() })
+      .eq('id', order.id)
+    if (error) throw new Error(`Gagal mengubah status: ${error.message}`)
+  },
+
   // 1. Validasi stok  2. Simpan order  3. Simpan item  4. Potong stok  5. Catat stok_logs
   async createPenjualan(cart: CartItem[], form: CheckoutFormInput): Promise<OrderRecord> {
     if (cart.length === 0) {
@@ -140,8 +238,8 @@ export const penjualanService = {
         else need.set(r.bahanId, { namaBahan: r.namaBahan, qty: add })
       }
     }
-    const stokNow = await penjualanService.getStokBahan()
-    for (const [id, { namaBahan, qty }] of Array.from(need.entries())) {
+    const stokNow: Record<string, number> = form.isPreOrder ? {} : await penjualanService.getStokBahan()
+    for (const [id, { namaBahan, qty }] of form.isPreOrder ? [] : Array.from(need.entries())) {
       if ((stokNow[id] ?? 0) + 1e-9 < qty) {
         throw new Error(`Stok ${namaBahan} tidak cukup untuk pesanan ini. Muat ulang halaman lalu kurangi porsinya.`)
       }
@@ -182,7 +280,7 @@ export const penjualanService = {
         customer_name: customerName,
         customer_phone: customerPhone,
         channel,
-        status: 'selesai',
+        status: form.isPreOrder ? 'preorder' : 'menunggu',
         payment_method: paymentMethod,
         payment_status: 'Lunas',
         subtotal,
@@ -239,7 +337,7 @@ export const penjualanService = {
       }
     }
 
-    for (const [bahanId, { qtyToDeduct }] of Array.from(bahanDeductionMap.entries())) {
+    for (const [bahanId, { qtyToDeduct }] of form.isPreOrder ? [] : Array.from(bahanDeductionMap.entries())) {
       const { data: bhn } = await supabase
         .from('bahan')
         .select('stok, satuan')

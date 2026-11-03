@@ -1,6 +1,6 @@
 'use client'
 
-import { OrderRecord } from '../types'
+import { OrderRecord, OrderStatus } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import { ShoppingBag, ChevronDown, ChevronUp, ReceiptText } from 'lucide-react'
 import { useState, Fragment } from 'react'
@@ -8,13 +8,44 @@ import { ReceiptModal, orderToReceipt } from './Receipt'
 
 interface RecentOrdersTableProps {
   orders: OrderRecord[]
+  onUpdateStatus?: (order: OrderRecord, statusBaru: OrderStatus) => Promise<void>
+}
+
+const STATUS_UI: Record<string, { label: string; cls: string }> = {
+  menunggu: { label: 'Menunggu', cls: 'bg-[#FFEDB3] text-[#8A5A00]' },
+  preorder: { label: 'Pre-order', cls: 'bg-[#E3DCF3] text-[#6B5BB5]' },
+  diproses: { label: 'Diproses', cls: 'bg-[#F2D9CC] text-[#C2502F]' },
+  selesai: { label: 'Selesai', cls: 'bg-[#E2EBC0] text-[#5E7420]' },
+  batal: { label: 'Batal', cls: 'bg-slate-100 text-slate-500' },
+}
+
+const NEXT_STEP: Record<string, { to: OrderStatus; label: string } | undefined> = {
+  menunggu: { to: 'diproses', label: 'Proses' },
+  preorder: { to: 'diproses', label: 'Proses' },
+  diproses: { to: 'selesai', label: 'Selesai' },
 }
 
 const CARD = 'bg-white rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)]'
 const TH = 'px-5 py-4 font-bold text-[#9A7B3A] uppercase tracking-wider text-[11px]'
 
-export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
+export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrdersTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [statusError, setStatusError] = useState<string | null>(null)
+
+  const changeStatus = async (o: OrderRecord, to: OrderStatus) => {
+    if (!onUpdateStatus) return
+    if (to === 'batal' && !window.confirm(`Batalkan pesanan ${o.invoiceNumber}? Stok bahan akan dikembalikan.`)) return
+    setBusyId(o.id)
+    setStatusError(null)
+    try {
+      await onUpdateStatus(o, to)
+    } catch (e) {
+      setStatusError((e as Error).message)
+    } finally {
+      setBusyId(null)
+    }
+  }
   const [receiptOrder, setReceiptOrder] = useState<OrderRecord | null>(null)
 
   if (orders.length === 0) {
@@ -27,6 +58,11 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
 
   return (
     <>
+      {statusError && (
+        <div className="mb-3 px-4 py-3 rounded-2xl bg-[#FDE7E1] text-[#B8391E] text-xs font-semibold">
+          {statusError}
+        </div>
+      )}
       <div className={`${CARD} overflow-hidden`}>
         <div className="overflow-x-auto">
           <table className="w-full text-xs min-w-[760px]">
@@ -35,6 +71,7 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                 <th className={`text-left ${TH}`}>No. Nota</th>
                 <th className={`text-left ${TH}`}>Pelanggan / Saluran</th>
                 <th className={`text-left ${TH}`}>Waktu</th>
+                <th className={`text-left ${TH}`}>Status</th>
                 <th className={`text-right ${TH}`}>Total Penjualan</th>
                 <th className={`text-right ${TH}`}>Laba Bersih</th>
                 <th className={`text-right ${TH}`}>Aksi</th>
@@ -66,6 +103,11 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                       </td>
 
                       <td className="px-5 py-4 text-slate-500 text-[11px]">{tglStr}</td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold ${(STATUS_UI[o.status] || STATUS_UI.selesai).cls}`}>
+                          {(STATUS_UI[o.status] || STATUS_UI.selesai).label}
+                        </span>
+                      </td>
 
                       <td className="px-5 py-4 text-right font-extrabold text-slate-900 text-sm">
                         {formatRupiah(o.totalPrice)}
@@ -79,6 +121,26 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
 
                       <td className="px-5 py-4 text-right">
                         <div className="inline-flex items-center gap-2">
+                          {onUpdateStatus && NEXT_STEP[o.status] && (
+                            <button
+                              type="button"
+                              disabled={busyId === o.id}
+                              onClick={() => changeStatus(o, NEXT_STEP[o.status]!.to)}
+                              className="px-3 h-8 rounded-full bg-[#2B221C] text-white text-[11px] font-bold disabled:opacity-50 cursor-pointer"
+                            >
+                              {busyId === o.id ? '...' : NEXT_STEP[o.status]!.label}
+                            </button>
+                          )}
+                          {onUpdateStatus && NEXT_STEP[o.status] && (
+                            <button
+                              type="button"
+                              disabled={busyId === o.id}
+                              onClick={() => changeStatus(o, 'batal')}
+                              className="px-3 h-8 rounded-full bg-[#FDE7E1] text-[#B8391E] text-[11px] font-bold disabled:opacity-50 cursor-pointer"
+                            >
+                              Batal
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => setReceiptOrder(o)}
@@ -100,7 +162,7 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
 
                     {exp && (
                       <tr className="bg-[#FFFBEF]">
-                        <td colSpan={6} className="px-6 py-5">
+                        <td colSpan={7} className="px-6 py-5">
                           <div className="flex items-center justify-between mb-3">
                             <p className="text-[11px] font-bold text-[#9A7B3A] uppercase tracking-wider flex items-center gap-1.5">
                               <ShoppingBag className="w-3.5 h-3.5 text-[#D98B00]" />
