@@ -1,6 +1,12 @@
 import { formatRupiah } from '@/lib/mock-data'
 import type { LaporanData } from '../types'
 
+/**
+ * Menghasilkan HTML laporan dengan identitas visual DapurTwin:
+ * - Nuansa warna hangat (#F7F5F0 base, aksen kuning dapur #FFB800, terracotta #D8431F, amber #8A5A00)
+ * - Kartu ringkasan finansial (6 metrik) persis seperti kartu modul dashboard
+ * - Efisiensi data yang padat, rapi, dan modular (multi-halaman siap cetak/PDF)
+ */
 export function generateLaporanPrintHTML(data: LaporanData, rangeLabel: string): string {
   const currentDate = new Date().toLocaleDateString('id-ID', {
     day: 'numeric',
@@ -10,45 +16,45 @@ export function generateLaporanPrintHTML(data: LaporanData, rangeLabel: string):
     minute: '2-digit',
   })
 
-  const menuRows = data.menuBreakdown.slice(0, 20).map((m, idx) => `
-    <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-      <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${m.name}</td>
-      <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">${m.qty} porsi</td>
-      <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600;">${formatRupiah(m.revenue)}</td>
-      <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #166534; font-weight: 600;">${formatRupiah(m.profit)}</td>
+  const menuRows = data.menuBreakdown.slice(0, 25).map((m, idx) => `
+    <tr style="background: ${idx % 2 === 0 ? '#FFFFFF' : '#FFFDF9'};">
+      <td style="padding: 7px 10px; border-bottom: 1px solid #EBE4D5; font-weight: 700; color: #2B1D00;">${m.name}</td>
+      <td style="padding: 7px 10px; border-bottom: 1px solid #EBE4D5; text-align: center; color: #5C4A2A;">${m.qty} porsi</td>
+      <td style="padding: 7px 10px; border-bottom: 1px solid #EBE4D5; text-align: right; font-weight: 800; color: #2B1D00;">${formatRupiah(m.revenue)}</td>
+      <td style="padding: 7px 10px; border-bottom: 1px solid #EBE4D5; text-align: right; color: #1E6B3E; font-weight: 800;">${formatRupiah(m.profit)}</td>
     </tr>
   `).join('')
 
-  const bahanRows = data.bahanUsage.slice(0, 15).map((b, idx) => `
-    <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-      <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${b.nama}</td>
-      <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">${b.qty} ${b.satuan}</td>
-      <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600;">${formatRupiah(b.totalEstimasiBiaya)}</td>
+  const bahanRows = data.bahanUsage.slice(0, 25).map((b, idx) => `
+    <tr style="background: ${idx % 2 === 0 ? '#FFFFFF' : '#FFFDF9'};">
+      <td style="padding: 7px 10px; border-bottom: 1px solid #EBE4D5; font-weight: 700; color: #2B1D00;">${b.nama}</td>
+      <td style="padding: 7px 10px; border-bottom: 1px solid #EBE4D5; text-align: center; color: #5C4A2A;">${b.qty} ${b.satuan}</td>
+      <td style="padding: 7px 10px; border-bottom: 1px solid #EBE4D5; text-align: right; font-weight: 800; color: #2B1D00;">${formatRupiah(b.totalEstimasiBiaya)}</td>
     </tr>
   `).join('')
 
   const channelRows = data.channelBreakdown.map(c => `
-    <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #cbd5e1; font-size: 11.5px;">
-      <span style="color: #475569;">${c.channel} (${c.count} pesanan)</span>
-      <strong style="color: #0f172a;">${formatRupiah(c.totalRevenue)}</strong>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed #E0D5BE; font-size: 11px;">
+      <span style="color: #6E583B; font-weight: 600;">${c.channel} <span style="font-size: 10px; color: #8A7252;">(${c.count} pesanan)</span></span>
+      <strong style="color: #2B1D00; font-weight: 800;">${formatRupiah(c.totalRevenue)}</strong>
     </div>
   `).join('')
 
   const paymentRows = data.paymentBreakdown.map(p => `
-    <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #cbd5e1; font-size: 11.5px;">
-      <span style="color: #475569;">${p.paymentMethod} (${p.count} trx)</span>
-      <strong style="color: #0f172a;">${formatRupiah(p.totalRevenue)}</strong>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed #E0D5BE; font-size: 11px;">
+      <span style="color: #6E583B; font-weight: 600;">${p.paymentMethod} <span style="font-size: 10px; color: #8A7252;">(${p.count} trx)</span></span>
+      <strong style="color: #2B1D00; font-weight: 800;">${formatRupiah(p.totalRevenue)}</strong>
     </div>
   `).join('')
 
-  const salesRows = data.recentSales.slice(0, 15).map((s, idx) => `
-    <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; font-size: 11px;">
-      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-family: monospace; font-weight: 700;">${s.invoiceNumber}</td>
-      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0;">${s.customerName}</td>
-      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">${s.channel}</td>
-      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">${s.paymentMethod}</td>
-      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 700;">${formatRupiah(s.totalPrice)}</td>
-      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #166534; font-weight: 700;">${formatRupiah(s.profit)}</td>
+  const salesRows = data.recentSales.slice(0, 20).map((s, idx) => `
+    <tr style="background: ${idx % 2 === 0 ? '#FFFFFF' : '#FFFDF9'}; font-size: 10.5px;">
+      <td style="padding: 6px 8px; border-bottom: 1px solid #EBE4D5; font-family: monospace; font-weight: 800; color: #2B1D00;">${s.invoiceNumber}</td>
+      <td style="padding: 6px 8px; border-bottom: 1px solid #EBE4D5; color: #3A2A14;">${s.customerName}</td>
+      <td style="padding: 6px 8px; border-bottom: 1px solid #EBE4D5; text-align: center; color: #6E583B;">${s.channel}</td>
+      <td style="padding: 6px 8px; border-bottom: 1px solid #EBE4D5; text-align: center; color: #6E583B;">${s.paymentMethod}</td>
+      <td style="padding: 6px 8px; border-bottom: 1px solid #EBE4D5; text-align: right; font-weight: 800; color: #2B1D00;">${formatRupiah(s.totalPrice)}</td>
+      <td style="padding: 6px 8px; border-bottom: 1px solid #EBE4D5; text-align: right; color: #1E6B3E; font-weight: 800;">${formatRupiah(s.profit)}</td>
     </tr>
   `).join('')
 
@@ -59,210 +65,309 @@ export function generateLaporanPrintHTML(data: LaporanData, rangeLabel: string):
       <meta charset="utf-8">
       <title>Laporan Keuangan DapurTwin - ${rangeLabel}</title>
       <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-          color: #1e293b;
-          background: #ffffff;
+          color: #2B1D00;
+          background: #FFFFFF;
           padding: 24px;
-          line-height: 1.45;
-          font-size: 12px;
+          line-height: 1.4;
+          font-size: 11.5px;
         }
         @page {
           size: A4 portrait;
-          margin: 15mm;
+          margin: 12mm 14mm;
         }
         @media print {
-          body { padding: 0; }
-          .page-break { page-break-after: always; }
-          .no-break { break-inside: avoid; }
+          body { padding: 0; background: #FFFFFF; }
+          .no-break { break-inside: avoid; page-break-inside: avoid; }
         }
-        .header {
+
+        /* Banner Kop Header Tema DapurTwin */
+        .kop-banner {
+          background: #FFB800;
+          border-radius: 18px;
+          padding: 16px 20px;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-bottom: 16px;
-          border-bottom: 2px solid #0f172a;
-          margin-bottom: 20px;
+          margin-bottom: 18px;
+          border: 1px solid #E8A700;
         }
-        .logo-box {
+        .kop-brand {
           display: flex;
           align-items: center;
           gap: 12px;
         }
-        .badge {
-          display: inline-block;
-          background: #ffb800;
-          color: #2b1d00;
-          font-weight: 800;
-          font-size: 18px;
-          padding: 6px 14px;
-          border-radius: 8px;
-          letter-spacing: -0.5px;
+        .dapi-box {
+          width: 44px;
+          height: 44px;
+          background: #FFFFFF;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1.5px solid #FFE49A;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
-        .title {
-          font-size: 18px;
+        .kop-text h1 {
+          font-size: 19px;
           font-weight: 900;
-          color: #0f172a;
-          letter-spacing: -0.3px;
+          color: #2B1D00;
+          letter-spacing: -0.4px;
+          line-height: 1.2;
         }
-        .subtitle {
+        .kop-text p {
           font-size: 11px;
-          color: #64748b;
-          font-weight: 500;
+          color: #5C4005;
+          font-weight: 600;
           margin-top: 2px;
         }
-        .meta {
+        .kop-badge {
+          background: rgba(255, 255, 255, 0.9);
+          border: 1px solid #FFE49A;
+          border-radius: 12px;
+          padding: 8px 14px;
           text-align: right;
-          font-size: 11px;
         }
-        .meta strong { color: #0f172a; font-size: 12px; }
-        .section-title {
+        .kop-badge .periode {
+          font-size: 12px;
+          font-weight: 800;
+          color: #2B1D00;
+        }
+        .kop-badge .timestamp {
+          font-size: 10px;
+          color: #7A5700;
+          margin-top: 2px;
+        }
+
+        /* Section Heading */
+        .sec-head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 14px 0 8px 0;
+        }
+        .sec-icon {
+          width: 22px;
+          height: 22px;
+          border-radius: 7px;
+          background: #FFE49A;
+          color: #8A5A00;
           font-size: 11px;
+          font-weight: 900;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .sec-title {
+          font-size: 11.5px;
           font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
-          color: #475569;
-          margin-bottom: 8px;
+          letter-spacing: 0.4px;
+          color: #6E5325;
         }
-        .grid-3 {
+
+        /* 6 Kartu Statistik Persis Dashboard */
+        .stat-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-          margin-bottom: 20px;
+          gap: 9px;
+          margin-bottom: 16px;
         }
         .stat-card {
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 12px;
-          background: #f8fafc;
+          border-radius: 14px;
+          padding: 11px 13px;
+          position: relative;
+          overflow: hidden;
+          border: 1px solid rgba(0,0,0,0.06);
         }
+        .stat-card.kuning { background: #FFF3CC; border-color: #F8E5A0; }
+        .stat-card.hijau { background: #E6F5E4; border-color: #CBEBC7; }
+        .stat-card.biru { background: #E0F2FE; border-color: #BAE6FD; }
+        .stat-card.merah { background: #FDE8E4; border-color: #F8CAC0; }
+        .stat-card.ungu { background: #EDE9FF; border-color: #DDD6FE; }
+
         .stat-label {
-          font-size: 10px;
-          font-weight: 700;
+          font-size: 9.5px;
+          font-weight: 800;
           text-transform: uppercase;
-          color: #64748b;
+          letter-spacing: 0.3px;
           margin-bottom: 4px;
+          color: #6E5325;
         }
         .stat-val {
-          font-size: 17px;
+          font-size: 16px;
           font-weight: 900;
-          color: #0f172a;
+          letter-spacing: -0.3px;
+          color: #2B1D00;
         }
+        .stat-val.hijau { color: #1A6B40; }
         .stat-sub {
-          font-size: 10px;
-          color: #64748b;
+          font-size: 9.5px;
+          color: #7A623C;
           margin-top: 3px;
+          font-weight: 600;
         }
+
+        /* Tabel Data Elegan */
         table {
           width: 100%;
           border-collapse: collapse;
-          margin-bottom: 20px;
-          font-size: 11.5px;
+          border-radius: 12px;
+          overflow: hidden;
+          border: 1px solid #EDE0C4;
+          margin-bottom: 14px;
+          font-size: 11px;
         }
-        th {
-          background: #f1f5f9;
-          color: #334155;
+        thead th {
+          background: #FFF6D6;
+          color: #8A5A00;
           font-weight: 800;
-          font-size: 10.5px;
+          font-size: 10px;
           text-transform: uppercase;
           letter-spacing: 0.3px;
-          padding: 9px 10px;
-          border-top: 1px solid #e2e8f0;
-          border-bottom: 2px solid #cbd5e1;
+          padding: 8px 10px;
+          border-bottom: 1.5px solid #FFD166;
         }
-        .grid-2 {
+
+        /* 2 Kolom Saluran & Pembayaran */
+        .dual-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin-bottom: 20px;
+          gap: 12px;
+          margin-bottom: 14px;
         }
-        .box {
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
+        .dual-box {
+          background: #FFFBF2;
+          border: 1px solid #EDE0C4;
+          border-radius: 14px;
           padding: 12px 14px;
-          background: #ffffff;
         }
-        .footer {
-          margin-top: 30px;
-          padding-top: 16px;
-          border-top: 1px solid #e2e8f0;
+
+        /* Footer Pengesahan */
+        .laporan-footer {
+          margin-top: 24px;
+          padding-top: 14px;
+          border-top: 1.5px solid #EBE4D5;
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
-          font-size: 11px;
-          color: #64748b;
+          font-size: 10.5px;
+          color: #7A623C;
         }
-        .signature-box {
+        .ttd-box {
           text-align: center;
-          width: 160px;
+          width: 150px;
         }
-        .signature-line {
-          border-bottom: 1px solid #94a3b8;
-          margin-top: 45px;
-          margin-bottom: 4px;
+        .ttd-line {
+          border-bottom: 1px solid #A89575;
+          margin-top: 40px;
+          margin-bottom: 3px;
         }
       </style>
     </head>
     <body>
-      <!-- Header Dokumen -->
-      <div class="header">
-        <div class="logo-box">
-          <span class="badge">DapurTwin</span>
-          <div>
-            <div class="title">LAPORAN KEUANGAN & STATISTIK DAPUR</div>
-            <div class="subtitle">Rekapitulasi Omzet, Profit Bersih, Resep Menu & Bahan Baku</div>
+      <!-- Header Kop Utama DapurTwin -->
+      <div class="kop-banner">
+        <div class="kop-brand">
+          <div class="dapi-box">
+            <!-- Ikon Kepala Dapi Grafis Vektor -->
+            <svg viewBox="44 26 152 182" width="28" height="33" xmlns="http://www.w3.org/2000/svg">
+              <path d="M58 132 L56 56 Q90 68 112 104 Z" fill="#FF8F28" stroke="#C9620C" stroke-width="2" />
+              <path d="M68 116 L66 74 Q86 84 100 104 Z" fill="#FFD9C2" />
+              <path d="M182 132 L184 56 Q150 68 128 104 Z" fill="#FF8F28" stroke="#C9620C" stroke-width="2" />
+              <path d="M172 116 L174 74 Q154 84 140 104 Z" fill="#FFD9C2" />
+              <path d="M56 74 L56 56 L72 62 Z" fill="#2B221C" />
+              <path d="M184 74 L184 56 L168 62 Z" fill="#2B221C" />
+              <path d="M120 86 C164 86 192 114 194 148 C195 166 187 180 174 188 L186 198 L160 198 C148 204 134 206 120 206 C106 206 92 204 80 198 L54 198 L66 188 C53 180 45 166 46 148 C48 114 76 86 120 86 Z" fill="#FF8F28" stroke="#C9620C" stroke-width="2" />
+              <path d="M120 144 C138 144 158 158 164 176 C156 196 138 204 120 204 C102 204 84 196 76 176 C82 158 102 144 120 144 Z" fill="#FFF3DC" />
+              <ellipse cx="76" cy="170" rx="10" ry="6" fill="#FF775D" opacity=".45" />
+              <ellipse cx="164" cy="170" rx="10" ry="6" fill="#FF775D" opacity=".45" />
+              <ellipse cx="96" cy="148" rx="10" ry="13" fill="#2B221C" />
+              <ellipse cx="144" cy="148" rx="10" ry="13" fill="#2B221C" />
+              <circle cx="99" cy="143" r="3.5" fill="#FFFFFF" />
+              <circle cx="147" cy="143" r="3.5" fill="#FFFFFF" />
+              <path d="M110 166 Q120 161 130 166 Q126 176 120 177 Q114 176 110 166 Z" fill="#2B221C" />
+              <path d="M108 183 Q114 191 120 183 Q126 191 132 183" stroke="#2B221C" stroke-width="3.5" stroke-linecap="round" fill="none" />
+            </svg>
+          </div>
+          <div class="kop-text">
+            <h1>DapurTwin</h1>
+            <p>Laporan & Rekapitulasi Statistik Keuangan Dapur</p>
           </div>
         </div>
-        <div class="meta">
-          <div>Periode: <strong>${rangeLabel}</strong></div>
-          <div style="color: #64748b; margin-top: 2px;">Dicetak: ${currentDate} WIB</div>
+        <div class="kop-badge">
+          <div class="periode">Periode: ${rangeLabel}</div>
+          <div class="timestamp">Dicetak: ${currentDate} WIB</div>
         </div>
       </div>
 
-      <!-- 1. Ringkasan Kinerja Finansial -->
-      <div class="section-title">1. Ringkasan Eksekutif Finansial</div>
-      <div class="grid-3">
-        <div class="stat-card" style="background: #fffbeb; border-color: #fde68a;">
-          <div class="stat-label" style="color: #b45309;">Total Omzet Kotor</div>
-          <div class="stat-val" style="color: #78350f;">${formatRupiah(data.summary.totalRevenue)}</div>
-          <div class="stat-sub" style="color: #92400e;">${data.summary.totalTransaksi} transaksi penjualan selesai</div>
+      <!-- 1. Enam Metrik Utama Finansial (Desain Kartu Persis Dashboard) -->
+      <div class="sec-head">
+        <div class="sec-icon">1</div>
+        <div class="sec-title">Ringkasan Eksekutif Finansial</div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card kuning">
+          <div class="stat-label">Total Omzet Penjualan</div>
+          <div class="stat-val">${formatRupiah(data.summary.totalRevenue)}</div>
+          <div class="stat-sub">${data.summary.totalTransaksi} transaksi selesai tercatat</div>
         </div>
-
-        <div class="stat-card" style="background: #f0fdf4; border-color: #bbf7d0;">
-          <div class="stat-label" style="color: #15803d;">Estimasi Profit Bersih</div>
-          <div class="stat-val" style="color: #14532d;">${formatRupiah(data.summary.totalProfit)}</div>
-          <div class="stat-sub" style="color: #166534;">Rata-rata margin laba ${data.summary.profitMargin}%</div>
+        <div class="stat-card hijau">
+          <div class="stat-label">Estimasi Profit Bersih</div>
+          <div class="stat-val hijau">${formatRupiah(data.summary.totalProfit)}</div>
+          <div class="stat-sub">Rata-rata margin laba ${data.summary.profitMargin}%</div>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-label">Beban Modal / HPP Resep</div>
+        <div class="stat-card biru">
+          <div class="stat-label">Rata-rata per Trx (AOV)</div>
+          <div class="stat-val">${formatRupiah(data.summary.averageBasketSize)}</div>
+          <div class="stat-sub">Nominal per pesanan pelanggan</div>
+        </div>
+        <div class="stat-card kuning">
+          <div class="stat-label">Total HPP / Beban Modal</div>
           <div class="stat-val">${formatRupiah(data.summary.totalHPP)}</div>
-          <div class="stat-sub">Rata-rata transaksi: ${formatRupiah(data.summary.averageBasketSize)}</div>
+          <div class="stat-sub">Akumulasi biaya bahan baku resep</div>
+        </div>
+        <div class="stat-card merah">
+          <div class="stat-label">Bahan Baku Terpakai</div>
+          <div class="stat-val">${data.summary.totalBahanTerpakaiJenis} Jenis</div>
+          <div class="stat-sub">Termutasi otomatis dari kasir</div>
+        </div>
+        <div class="stat-card ungu">
+          <div class="stat-label">Pengadaan Belanja PO</div>
+          <div class="stat-val">${formatRupiah(data.summary.totalBiayaPengadaan)}</div>
+          <div class="stat-sub">${data.summary.totalPOApproved} nota belanja bahan masuk</div>
         </div>
       </div>
 
-      <!-- 2. Menu Terlaris & Kontribusi Omzet -->
+      <!-- 2. Kinerja Penjualan Menu Kuliner -->
       <div class="no-break">
-        <div class="section-title">2. Kinerja & Kontribusi Penjualan Menu</div>
+        <div class="sec-head">
+          <div class="sec-icon">2</div>
+          <div class="sec-title">Kinerja & Kontribusi Penjualan Menu</div>
+        </div>
         <table>
           <thead>
             <tr>
-              <th style="text-align: left;">Nama Menu Kuliner</th>
+              <th style="text-align: left;">Nama Menu Masakan</th>
               <th style="text-align: center;">Porsi Terjual</th>
               <th style="text-align: right;">Total Omzet</th>
               <th style="text-align: right;">Estimasi Laba Bersih</th>
             </tr>
           </thead>
           <tbody>
-            ${menuRows || '<tr><td colspan="4" style="text-align:center; padding: 14px; color:#94a3b8;">Belum ada penjualan menu pada periode ini.</td></tr>'}
+            ${menuRows || '<tr><td colspan="4" style="text-align:center; padding: 12px; color:#8A7252;">Belum ada penjualan menu pada periode ini.</td></tr>'}
           </tbody>
         </table>
       </div>
 
       <!-- 3. Konsumsi Bahan Baku Resep -->
       <div class="no-break">
-        <div class="section-title">3. Akumulasi Konsumsi Bahan Baku Resep</div>
+        <div class="sec-head">
+          <div class="sec-icon">3</div>
+          <div class="sec-title">Akumulasi Konsumsi Bahan Baku Resep</div>
+        </div>
         <table>
           <thead>
             <tr>
@@ -272,28 +377,31 @@ export function generateLaporanPrintHTML(data: LaporanData, rangeLabel: string):
             </tr>
           </thead>
           <tbody>
-            ${bahanRows || '<tr><td colspan="3" style="text-align:center; padding: 14px; color:#94a3b8;">Belum ada bahan yang terpotong pada periode ini.</td></tr>'}
+            ${bahanRows || '<tr><td colspan="3" style="text-align:center; padding: 12px; color:#8A7252;">Belum ada bahan baku yang terpotong pada periode ini.</td></tr>'}
           </tbody>
         </table>
       </div>
 
-      <!-- 4. Saluran & Metode Pembayaran -->
+      <!-- 4. Saluran & Metode Pembayaran Kasir -->
       <div class="no-break">
-        <div class="grid-2">
-          <div class="box">
-            <div class="section-title" style="margin-bottom: 10px;">Saluran Penjualan</div>
-            ${channelRows || '<div style="color:#94a3b8; font-size:11px;">Tidak ada data saluran</div>'}
+        <div class="dual-grid">
+          <div class="dual-box">
+            <div class="sec-title" style="margin-bottom: 8px;">Kinerja Saluran Penjualan</div>
+            ${channelRows || '<div style="color:#8A7252; font-size:11px;">Tidak ada data saluran</div>'}
           </div>
-          <div class="box">
-            <div class="section-title" style="margin-bottom: 10px;">Metode Pembayaran Kasir</div>
-            ${paymentRows || '<div style="color:#94a3b8; font-size:11px;">Tidak ada data pembayaran</div>'}
+          <div class="dual-box">
+            <div class="sec-title" style="margin-bottom: 8px;">Metode Pembayaran Kasir</div>
+            ${paymentRows || '<div style="color:#8A7252; font-size:11px;">Tidak ada data metode pembayaran</div>'}
           </div>
         </div>
       </div>
 
-      <!-- 5. Rincian Nota Penjualan Terakhir -->
+      <!-- 5. Riwayat Nota Transaksi Terakhir -->
       <div class="no-break">
-        <div class="section-title">5. Riwayat Nota Transaksi Penjualan Terakhir</div>
+        <div class="sec-head">
+          <div class="sec-icon">4</div>
+          <div class="sec-title">Riwayat Transaksi Penjualan Terakhir Masuk Rekapitulasi</div>
+        </div>
         <table>
           <thead>
             <tr>
@@ -302,27 +410,27 @@ export function generateLaporanPrintHTML(data: LaporanData, rangeLabel: string):
               <th style="text-align: center;">Saluran</th>
               <th style="text-align: center;">Metode</th>
               <th style="text-align: right;">Total Omzet</th>
-              <th style="text-align: right;">Profit</th>
+              <th style="text-align: right;">Profit Bersih</th>
             </tr>
           </thead>
           <tbody>
-            ${salesRows || '<tr><td colspan="6" style="text-align:center; padding: 14px; color:#94a3b8;">Tidak ada transaksi tercatat.</td></tr>'}
+            ${salesRows || '<tr><td colspan="6" style="text-align:center; padding: 12px; color:#8A7252;">Tidak ada transaksi tercatat.</td></tr>'}
           </tbody>
         </table>
       </div>
 
       <!-- Footer & Pengesahan Dokumen -->
-      <div class="footer no-break">
+      <div class="laporan-footer no-break">
         <div>
-          <strong style="color: #0f172a;">DapurTwin Management System</strong>
-          <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">
-            Laporan finansial ini digenerate secara otomatis dari database transaksi real-time.
+          <strong style="color: #2B1D00; font-size: 11px;">DapurTwin - Sistem Manajemen Operasional Dapur</strong>
+          <div style="font-size: 10px; color: #7A623C; margin-top: 2px;">
+            Dokumen finansial ini digenerate secara otomatis dari database transaksi real-time.
           </div>
         </div>
-        <div class="signature-box">
-          <div>Chef / Pengelola Usaha,</div>
-          <div class="signature-line"></div>
-          <div style="font-size: 10px; color: #94a3b8;">( Penanggung Jawab )</div>
+        <div class="ttd-box">
+          <div style="font-weight: 600;">Chef / Pemilik Usaha,</div>
+          <div class="ttd-line"></div>
+          <div style="font-size: 9.5px; color: #8A7252;">( Penanggung Jawab Dapur )</div>
         </div>
       </div>
     </body>
