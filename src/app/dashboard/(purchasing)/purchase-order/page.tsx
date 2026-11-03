@@ -8,8 +8,16 @@ import POWizardModal from './components/POWizardModal'
 import VerifyPenerimaanModal from './components/VerifyPenerimaanModal'
 import { usePurchaseOrder } from './hooks/usePurchaseOrder'
 import { PurchaseOrder } from './types'
-import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn, ReceiptText, SlidersHorizontal } from 'lucide-react'
+import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn, ReceiptText, SlidersHorizontal, ScanLine, PencilLine, Truck, PackageCheck, Wallet } from 'lucide-react'
 import clsx from 'clsx'
+import DapiHead from '@/components/ui/DapiHead'
+
+const STATUS_CARDS = [
+  { key: 'draft', label: 'Draft', hint: 'Belum dikirim ke supplier', Icon: PencilLine, tint: 'bg-[#FFEDB3]', on: 'bg-kuning text-kopi' },
+  { key: 'dikirim', label: 'Dikirim', hint: 'Menunggu barang datang', Icon: Truck, tint: 'bg-[#F2D9CC]', on: 'bg-[#C2502F] text-white' },
+  { key: 'diterima', label: 'Diterima', hint: 'Stok sudah masuk', Icon: PackageCheck, tint: 'bg-[#E2EBC0]', on: 'bg-[#7F9A2E] text-white' },
+  { key: 'tagihan', label: 'Tagihan', hint: 'Menunggu pembayaran', Icon: Wallet, tint: 'bg-[#E3DCF3]', on: 'bg-[#6B5BB5] text-white' },
+] as const
 
 export default function PurchaseOrderPage() {
   const {
@@ -75,71 +83,111 @@ export default function PurchaseOrderPage() {
           </div>
         )}
 
-        {/* Status Flow Stats Card */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { key: 'draft', label: 'Draft', count: counts.draft, textCls: 'text-slate-800' },
-            { key: 'dikirim', label: 'Dikirim', count: counts.dikirim, textCls: 'text-blue-600' },
-            { key: 'diterima', label: 'Diterima', count: counts.diterima, textCls: 'text-[#FF8F2B]' },
-            { key: 'tagihan', label: 'Tagihan', count: counts.tagihan, textCls: 'text-amber-600' },
-          ].map(st => (
-            <button
-              key={st.key}
-              type="button"
-              onClick={() => setStatusFilter(statusFilter === st.key ? 'all' : st.key)}
-              className={clsx(
-                'clay-card p-5 text-center transition-all cursor-pointer',
-                statusFilter === st.key ? 'ring-2 ring-[#FF8F2B] bg-[#FFF6EC]/40' : 'hover:scale-[1.02]'
-              )}
-            >
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{st.label}</p>
-              <p className={clsx('text-3xl font-black font-mono', st.textCls)}>{st.count}</p>
-            </button>
-          ))}
-        </div>
+        {/* Banner utama: Dapi keluar dari kotak */}
+        <section className="relative mt-10 sm:mt-12 rounded-[36px] bg-gradient-to-br from-[#FFC93C] via-kuning to-[#FF9A1F] shadow-[0_22px_40px_rgba(220,130,0,0.28),inset_0_-10px_0_rgba(170,90,0,0.12)]">
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
+            <span className="absolute right-[18%] -top-24 h-80 w-80 rounded-full bg-white/20" />
+            <span className="absolute -right-14 -bottom-28 h-72 w-72 rounded-full bg-koral/25" />
+            <span className="absolute left-[46%] bottom-6 h-4 w-4 rounded-full bg-white/70" />
+            <span className="absolute left-[52%] top-8 h-2.5 w-2.5 rounded-full bg-koral/60" />
+          </div>
 
-        {/* Action Header: Search, Filter Tabs & Tambah PO */}
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Cari no. PO, supplier, atau catatan..."
-                className="w-full pl-10 pr-4 py-2.5 clay-inset text-xs text-slate-700 placeholder:text-slate-400"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard/tagihan"
-                className="clay-btn flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 hover:text-[#FF8F2B] cursor-pointer transition-colors"
-              >
-                <ReceiptText className="w-4 h-4 text-amber-500" />
-                <span>Halaman Tagihan ({counts.tagihan})</span>
-              </Link>
-
+          <div className="relative flex flex-col gap-3 p-6 sm:p-10 md:max-w-[58%]">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none text-kopi">Pembelian Stok</h2>
+            <p className="text-sm sm:text-base text-[#5A3A00] leading-snug">
+              Pesan bahan ke supplier, cek barang datang, dan pantau tagihan di satu tempat.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2.5">
               <button
                 onClick={() => setShowWizard(true)}
-                className="clay-btn-primary flex items-center gap-2 px-5 py-2.5 text-xs font-bold cursor-pointer whitespace-nowrap"
+                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
               >
                 <Plus className="w-4 h-4 flex-shrink-0" /> Buat Pembelian Stok Baru
               </button>
+              <Link
+                href="/dashboard/tagihan"
+                className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 hover:bg-white/80 transition-colors whitespace-nowrap"
+              >
+                <ReceiptText className="w-4 h-4" /> Halaman Tagihan ({counts.tagihan})
+              </Link>
+              <Link
+                href="/dashboard/ocr-nota"
+                className="h-11 px-5 rounded-full border-2 border-kopi text-kopi text-sm font-bold flex items-center gap-2 hover:bg-kopi/5 transition-colors whitespace-nowrap"
+              >
+                <ScanLine className="w-4 h-4" /> Foto Nota
+              </Link>
             </div>
           </div>
 
-          {/* Filter Bar Alur PO */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mr-1">
-              <SlidersHorizontal className="w-3.5 h-3.5" /> Filter Status:
+          {/* Kartu nota miring (dekorasi) */}
+          <div aria-hidden className="hidden lg:flex absolute right-[300px] -top-8 w-36 -rotate-[8deg] flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_18px_30px_rgba(120,60,0,0.25)]">
+            <span className="text-[11px] font-black text-koral-gelap tracking-wider">NOTA</span>
+            <span className="h-2 rounded bg-krim-garis" />
+            <span className="h-2 w-[70%] rounded bg-krim-garis" />
+            <span className="h-2 w-[85%] rounded bg-krim-garis" />
+          </div>
+
+          {/* Dapi menyembul keluar dari atas kotak */}
+          <div aria-hidden className="hidden md:block absolute right-8 lg:right-14 bottom-0 leading-[0] drop-shadow-[0_18px_22px_rgba(120,50,0,0.35)]">
+            <DapiHead size={220} />
+          </div>
+        </section>
+
+        {/* Status Flow Stats Card */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {STATUS_CARDS.map(st => {
+            const active = statusFilter === st.key
+            const count = counts[st.key as keyof typeof counts]
+            return (
+              <button
+                key={st.key}
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === st.key ? 'all' : st.key)}
+                className={clsx(
+                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col gap-4 min-h-[140px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  active
+                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
+                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
+                )}
+              >
+                <span aria-hidden className={clsx('absolute -right-10 -bottom-12 h-36 w-36 rounded-full', active ? 'bg-white/20' : 'bg-white/55')} />
+                <div className="relative flex items-center justify-between">
+                  <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
+                  <span className={clsx('h-9 w-9 rounded-full flex items-center justify-center', active ? 'bg-white/30' : 'bg-white/60')}>
+                    <st.Icon className="w-4 h-4" />
+                  </span>
+                </div>
+                <div className="relative">
+                  <p className="text-4xl sm:text-5xl font-black tracking-tighter leading-none">{count}</p>
+                  <p className={clsx('text-xs mt-1.5', active ? 'opacity-80' : 'text-kopi-muted')}>{st.hint}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Search & Filter Status */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="relative w-full sm:w-96">
+            <Search className="w-4 h-4 text-kopi-muted absolute left-4 top-1/2 -translate-y-1/2" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari no. PO, supplier, atau catatan..."
+              className="w-full h-12 pl-11 pr-4 rounded-full bg-white text-sm text-kopi placeholder:text-kopi-muted/70 shadow-[0_4px_14px_rgba(120,80,30,0.08)] outline-none focus:ring-2 focus:ring-kuning"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-bold text-kopi-muted uppercase tracking-wider flex items-center gap-1.5 mr-1">
+              <SlidersHorizontal className="w-3.5 h-3.5" /> Filter Status
             </span>
             {[
-              { key: 'all', label: 'Semua Status', count: counts.all },
-              { key: 'draft', label: 'Draft', count: counts.draft },
-              { key: 'dikirim', label: 'Dikirim', count: counts.dikirim },
-              { key: 'diterima', label: 'Diterima', count: counts.diterima },
-              { key: 'tagihan', label: 'Tagihan', count: counts.tagihan },
+              { key: 'all', label: 'Semua Status', count: counts.all, on: 'bg-kopi text-white' },
+              { key: 'draft', label: 'Draft', count: counts.draft, on: 'bg-kuning text-kopi' },
+              { key: 'dikirim', label: 'Dikirim', count: counts.dikirim, on: 'bg-[#C2502F] text-white' },
+              { key: 'diterima', label: 'Diterima', count: counts.diterima, on: 'bg-[#7F9A2E] text-white' },
+              { key: 'tagihan', label: 'Tagihan', count: counts.tagihan, on: 'bg-[#6B5BB5] text-white' },
             ].map(f => {
               const isActive = statusFilter === f.key
               return (
@@ -148,17 +196,17 @@ export default function PurchaseOrderPage() {
                   type="button"
                   onClick={() => setStatusFilter(f.key)}
                   className={clsx(
-                    'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5',
+                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
                     isActive
-                      ? 'clay-btn-primary text-white shadow-sm'
-                      : 'clay-btn text-slate-600 hover:text-slate-900 bg-white'
+                      ? clsx(f.on, 'shadow-[0_8px_16px_rgba(43,34,28,0.18)]')
+                      : 'bg-white text-kopi shadow-[0_3px_10px_rgba(120,80,30,0.08)] hover:-translate-y-0.5'
                   )}
                 >
                   <span>{f.label}</span>
                   <span
                     className={clsx(
-                      'text-[10px] px-1.5 py-0.2 rounded-full font-mono',
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                      'min-w-[26px] h-[26px] px-1.5 rounded-full flex items-center justify-center text-[11px]',
+                      isActive ? 'bg-white/30' : 'bg-krim'
                     )}
                   >
                     {f.count}
@@ -171,8 +219,8 @@ export default function PurchaseOrderPage() {
 
         {/* Loading / PO List Table */}
         {loading ? (
-          <div className="clay-card py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-[#FF8F2B]" />
+          <div className="rounded-[32px] bg-white shadow-[0_14px_34px_rgba(120,80,30,0.10)] py-20 flex flex-col items-center justify-center gap-3 text-kopi-muted">
+           <Loader2 className="w-6 h-6 animate-spin text-kuning" />
             <p className="text-xs font-semibold">Mengambil data purchase order dari database Supabase...</p>
           </div>
         ) : (
