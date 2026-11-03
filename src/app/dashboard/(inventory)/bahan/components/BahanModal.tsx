@@ -86,19 +86,33 @@ export default function BahanModal({
 
   if (!isOpen) return null
 
-  // Hitung angka stok yang otomatis terkonversi jika ada perubahan satuan dasar pada mode edit
-  const effectiveStokDisplay = (() => {
-    if (!editingBahan) return form.stok
+  // Hitung angka stok dan harga satuan yang otomatis terkonversi jika ada perubahan satuan dasar pada mode edit
+  const { effectiveStokDisplay, effectiveHargaDisplay } = (() => {
+    if (!editingBahan) {
+      return { effectiveStokDisplay: form.stok, effectiveHargaDisplay: form.hargaPerSatuan }
+    }
     const currentSelectedSatuan = isCustomSatuan ? customSatuanText.trim() : form.satuan.trim()
     const origSatuan = editingBahan.satuan || 'kg'
-    if (!currentSelectedSatuan || currentSelectedSatuan === origSatuan) {
-      return Number(editingBahan.stok) || 0
+    if (!currentSelectedSatuan || currentSelectedSatuan.toLowerCase() === origSatuan.toLowerCase()) {
+      return {
+        effectiveStokDisplay: Number(editingBahan.stok) || 0,
+        effectiveHargaDisplay: form.hargaPerSatuan,
+      }
     }
     // Faktor konversi dari satuan asli ke satuan baru:
-    // Contoh: Asli 5 kg -> Ubah ke gram -> factor (kg to gram) = 1000 -> stok baru = 5 * 1000 = 5000 gram
+    // Contoh: Asli 5 kg (@Rp 20.000/kg, total nilai = Rp 100.000)
+    // Ubah ke gram -> factor (kg to gram) = 1000
+    // => Stok baru = 5 * 1000 = 5000 gram
+    // => Harga satuan baru = 20.000 / 1000 = Rp 20 / gram (Total nilai tetap Rp 100.000)
     const factor = getUnitConversionFactor(origSatuan, currentSelectedSatuan)
-    const converted = (Number(editingBahan.stok) || 0) * factor
-    return Number(converted.toFixed(3))
+    const convertedStok = (Number(editingBahan.stok) || 0) * factor
+    const origHarga = Number(editingBahan.hargaPerSatuan) || 0
+    const convertedHarga = factor > 0 ? origHarga / factor : origHarga
+
+    return {
+      effectiveStokDisplay: Number(convertedStok.toFixed(3)),
+      effectiveHargaDisplay: Math.round(convertedHarga * 100) / 100,
+    }
   })()
 
   const handleSatuanSelect = (val: string) => {
@@ -154,6 +168,7 @@ export default function BahanModal({
       await onSave(editingBahan ? editingBahan.id : null, {
         ...form,
         stok: editingBahan ? effectiveStokDisplay : form.stok,
+        hargaPerSatuan: editingBahan ? effectiveHargaDisplay : form.hargaPerSatuan,
         satuan: finalSatuan,
       })
       onClose()
@@ -345,10 +360,11 @@ export default function BahanModal({
             <input
               type="number"
               min="0"
-              value={form.hargaPerSatuan || ''}
-              onChange={e =>
-                setForm(p => ({ ...p, hargaPerSatuan: Number(e.target.value) }))
-              }
+              value={editingBahan ? (effectiveHargaDisplay || '') : (form.hargaPerSatuan || '')}
+              onChange={e => {
+                const val = Number(e.target.value)
+                setForm(p => ({ ...p, hargaPerSatuan: val }))
+              }}
               placeholder="0"
               className={`${INPUT_STYLE} font-mono font-bold text-slate-900`}
             />

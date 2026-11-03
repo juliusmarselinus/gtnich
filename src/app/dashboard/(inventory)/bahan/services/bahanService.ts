@@ -149,7 +149,7 @@ export const bahanService = {
     // 1. Ambil data bahan sebelum diupdate untuk mengecek apakah ada perubahan satuan dasar
     const { data: currentBahan } = await supabase
       .from('bahan')
-      .select('stok, satuan')
+      .select('stok, satuan, harga_per_satuan')
       .eq('id', id)
       .single()
 
@@ -158,20 +158,31 @@ export const bahanService = {
     const currentStok = Number(currentBahan?.stok) || 0
 
     // Jika satuan dasar berubah (misal dari kg ke gram atau sebaliknya),
-    // sesuaikan angka stok agar proporsional dan tidak salah takaran
+    // sesuaikan angka stok dan harga satuan agar proporsional dan total valuasi nilai persediaan dapur tetap sama
     let updatedStok = currentStok
+    let updatedHarga = Number(form.hargaPerSatuan) || 0
+
     if (oldSatuan && newSatuan && oldSatuan !== newSatuan) {
       // getUnitConversionFactor(oldSatuan, newSatuan):
-      // misal kg ke gram => factor = 1000 => newStok = 5 * 1000 = 5000
+      // Contoh: kg ke gram => factor = 1000
+      // => stok baru = 5 * 1000 = 5000 gram
+      // => harga baru = 20.000 / 1000 = Rp 20 / gram
       const { getUnitConversionFactor } = await import('@/lib/satuan')
       const factor = getUnitConversionFactor(oldSatuan, newSatuan)
-      updatedStok = Number((currentStok * factor).toFixed(3))
+      if (factor > 0) {
+        updatedStok = Number((currentStok * factor).toFixed(3))
+        // Jika harga per satuan yang diinput sama dengan harga asli belum terkonversi, konversikan secara proporsional
+        const origHarga = Number(currentBahan?.harga_per_satuan) || 0
+        if (Math.abs(updatedHarga - origHarga) < 0.01) {
+          updatedHarga = Math.round((origHarga / factor) * 100) / 100
+        }
+      }
     }
 
     const payload: Record<string, any> = {
       nama: form.nama.trim(),
       satuan: form.satuan.trim(),
-      harga_per_satuan: Number(form.hargaPerSatuan) || 0,
+      harga_per_satuan: updatedHarga,
       stok_minimum: Number(form.stokMinimum) || 0,
       supplier_id: form.supplierId && form.supplierId.trim() !== '' ? form.supplierId : null,
       updated_at: new Date().toISOString(),
