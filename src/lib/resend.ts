@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { DAPURTWIN_LOGO_BASE64 } from './logoBase64'
 
 const resendApiKey = process.env.RESEND_API_KEY || ''
 const resend = resendApiKey ? new Resend(resendApiKey) : null
@@ -11,12 +12,18 @@ export interface SendEmailOptions {
   subject: string
   html: string
   text?: string
+  attachments?: Array<{
+    filename: string
+    content: Buffer | string
+    contentId?: string
+    contentType?: string
+  }>
 }
 
 /**
  * Helper untuk mengirim email menggunakan Resend API
  */
-export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
+export async function sendEmail({ to, subject, html, text, attachments }: SendEmailOptions) {
   if (!resend) {
     console.warn('[Resend] RESEND_API_KEY belum dikonfigurasi di environment.')
     return { success: false, error: 'RESEND_API_KEY is not configured' }
@@ -29,6 +36,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
       subject,
       html,
       text,
+      attachments,
     })
 
     if (data.error) {
@@ -444,113 +452,142 @@ export async function sendSaleTransactionEmail({
 
   const showCash = paymentMethod?.toLowerCase().includes('tunai') || (cashReceived != null && cashReceived > 0)
 
-  // Desain struk thermal digital bersih, sama persis dengan struk POS
+  // Desain struk thermal digital bersih, sama persis dengan preview struk POS
   const itemsListHtml = items
     .map(
       (item) => `
-      <div style="margin-bottom: 10px;">
-        <div style="font-weight: 700; color: #1e293b; font-size: 13px;">${item.namaMenu}</div>
-        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #64748b; margin-top: 2px;">
-          <span>${item.qty} x ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.hargaJual)}</span>
-          <span style="font-weight: 700; color: #1e293b;">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.subtotal)}</span>
-        </div>
+      <div style="margin-bottom: 8px;">
+        <div style="font-weight: 700; color: #1e293b; font-size: 12px;">${item.namaMenu}</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size: 11px; color: #64748b; margin-top: 2px;">
+          <tr>
+            <td style="color: #64748b;">${item.qty} x ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.hargaJual)}</td>
+            <td align="right" style="font-weight: 700; color: #1e293b;">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.subtotal)}</td>
+          </tr>
+        </table>
       </div>
     `
     )
     .join('')
 
-  const dashBorder = `border-top: 1px dashed #cbd5e1; margin: 12px 0;`
+  const dashBorder = `border-top: 1px dashed #cbd5e1; margin: 10px 0;`
+
+  // Logo DapurTwin: Menggunakan URL publik hosting (jika ada NEXT_PUBLIC_SITE_URL) atau cid:dapurtwin-logo atau fallback data URI
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '')
+  const logoUrl = siteUrl ? `${siteUrl}/logo-sm.png` : 'cid:dapurtwin-logo'
 
   const html = `
     <!DOCTYPE html>
-    <html>
+    <html lang="id">
       <head>
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Struk Pembayaran - ${invoiceNumber}</title>
       </head>
-      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Courier New', Courier, monospace, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px 12px; color: #1e293b;">
-        <div style="max-width: 360px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 24px 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); font-family: 'Courier New', Courier, monospace, monospace;">
-          
-          <!-- Header Struk -->
-          <div style="text-align: center; margin-bottom: 12px;">
-            <div style="font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">${storeName}</div>
-            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Struk Pembayaran</div>
-          </div>
+      <body style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; background-color: #f8fafc; margin: 0; padding: 24px 12px; color: #1e293b;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td align="center">
+              <div style="max-width: 340px; width: 100%; margin: 0 auto; background: #ffffff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 20px 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 12px; line-height: 1.45; color: #1e293b; text-align: left;">
+                
+                <!-- Header Struk dengan Maskot Dapi Head & Latar Kuning -->
+                <div style="text-align: center; margin-bottom: 8px;">
+                  <div style="display: inline-block; width: 44px; height: 44px; border-radius: 14px; background-color: #FFF6D6; border: 1px solid #FFE49A; overflow: hidden; margin: 0 auto 6px auto; vertical-align: middle;">
+                    <img 
+                      src="${logoUrl}" 
+                      alt="DapurTwin Logo" 
+                      width="44" 
+                      height="44" 
+                      style="display: block; width: 44px; height: 44px; object-fit: contain; border-radius: 13px; border: 0;"
+                    />
+                  </div>
+                  <div style="font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">${storeName}</div>
+                  <div style="font-size: 11px; color: #64748b; margin-top: 1px;">Struk Pembayaran</div>
+                </div>
 
-          <div style="${dashBorder}"></div>
+                <div style="${dashBorder}"></div>
 
-          <!-- Info Transaksi -->
-          <div style="font-size: 11.5px; line-height: 1.6; color: #334155;">
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: #64748b;">No. Nota</span>
-              <span style="font-weight: 700; color: #0f172a;">${invoiceNumber}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: #64748b;">Waktu</span>
-              <span>${tgl}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: #64748b;">Kasir</span>
-              <span>${cashierName}</span>
-            </div>
-            ${customerName && customerName !== 'Pelanggan Umum' ? `
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: #64748b;">Pelanggan</span>
-              <span>${customerName}</span>
-            </div>` : ''}
-          </div>
+                <!-- Info Transaksi Struk (No. Nota, Waktu, Kasir, Pelanggan, E-Receipt) -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size: 11px; line-height: 1.6; color: #1e293b;">
+                  <tr>
+                    <td style="color: #64748b; padding-bottom: 2px;">No. Nota</td>
+                    <td align="right" style="font-weight: 700; color: #0f172a; padding-bottom: 2px;">${invoiceNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #64748b; padding-bottom: 2px;">Waktu</td>
+                    <td align="right" style="padding-bottom: 2px;">${tgl}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #64748b; padding-bottom: 2px;">Kasir</td>
+                    <td align="right" style="padding-bottom: 2px;">${cashierName}</td>
+                  </tr>
+                  ${customerName && customerName !== 'Pelanggan Umum' ? `
+                  <tr>
+                    <td style="color: #64748b; padding-bottom: 2px;">Pelanggan</td>
+                    <td align="right" style="font-weight: 500; padding-bottom: 2px;">${customerName}</td>
+                  </tr>` : ''}
+                  ${customerEmail ? `
+                  <tr>
+                    <td style="color: #64748b; padding-bottom: 2px;">E-Receipt</td>
+                    <td align="right" style="font-size: 10px; color: #92400e; padding-bottom: 2px;">${customerEmail}</td>
+                  </tr>` : ''}
+                </table>
 
-          <div style="${dashBorder}"></div>
+                <div style="${dashBorder}"></div>
 
-          <!-- Daftar Menu Pesanan -->
-          <div style="margin: 8px 0;">
-            ${itemsListHtml}
-          </div>
+                <!-- Daftar Menu Pesanan -->
+                <div style="margin: 4px 0;">
+                  ${itemsListHtml}
+                </div>
 
-          <div style="${dashBorder}"></div>
+                <div style="${dashBorder}"></div>
 
-          <!-- Total Belanja -->
-          <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; color: #0f172a; margin: 4px 0;">
-            <span>TOTAL</span>
-            <span>${formattedTotal}</span>
-          </div>
+                <!-- Total Belanja -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 4px 0;">
+                  <tr>
+                    <td>TOTAL</td>
+                    <td align="right">${formattedTotal}</td>
+                  </tr>
+                </table>
 
-          <!-- Rincian Metode & Pembayaran -->
-          <div style="margin-top: 8px; font-size: 11.5px; line-height: 1.6; color: #334155;">
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: #64748b;">Metode</span>
-              <span>${paymentMethod}</span>
-            </div>
-            ${showCash && cashReceived != null && cashReceived > 0 ? `
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: #64748b;">Uang diterima</span>
-              <span>${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cashReceived)}</span>
-            </div>` : ''}
-            ${showCash && changeAmount != null ? `
-            <div style="display: flex; justify-content: space-between; font-weight: 700;">
-              <span style="color: #64748b; font-weight: normal;">Kembalian</span>
-              <span>${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(changeAmount)}</span>
-            </div>` : ''}
-          </div>
+                <!-- Rincian Metode & Pembayaran -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 6px; font-size: 11px; line-height: 1.6; color: #1e293b;">
+                  <tr>
+                    <td style="color: #64748b; padding-bottom: 2px;">Metode</td>
+                    <td align="right" style="padding-bottom: 2px;">${paymentMethod}</td>
+                  </tr>
+                  ${showCash && cashReceived != null && cashReceived > 0 ? `
+                  <tr>
+                    <td style="color: #64748b; padding-bottom: 2px;">Uang diterima</td>
+                    <td align="right" style="padding-bottom: 2px;">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(cashReceived)}</td>
+                  </tr>` : ''}
+                  ${showCash && changeAmount != null ? `
+                  <tr>
+                    <td style="color: #64748b; padding-bottom: 2px;">Kembalian</td>
+                    <td align="right" style="font-weight: 700; padding-bottom: 2px;">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(changeAmount)}</td>
+                  </tr>` : ''}
+                </table>
 
-          ${notes ? `
-          <div style="${dashBorder}"></div>
-          <div style="font-size: 11px; color: #475569;">
-            <span style="color: #64748b;">Catatan: </span>${notes}
-          </div>` : ''}
+                ${notes ? `
+                <div style="${dashBorder}"></div>
+                <div style="font-size: 11px; color: #475569;">
+                  <span style="color: #64748b;">Catatan: </span>${notes}
+                </div>` : ''}
 
-          <div style="${dashBorder}"></div>
+                <div style="${dashBorder}"></div>
 
-          <!-- Ucapan Penutup Struk -->
-          <div style="text-align: center; font-size: 11px; color: #64748b; margin-top: 10px;">
-            Terima kasih, selamat menikmati!
-          </div>
+                <!-- Ucapan Penutup Struk Persis Preview -->
+                <div style="text-align: center; font-size: 11px; color: #64748b; margin: 8px 0 4px 0;">
+                  Terima kasih, selamat menikmati!
+                </div>
 
-          <!-- Pemberitahuan Otomatis Ringkas Sesuai Aturan -->
-          <div style="margin-top: 18px; padding-top: 10px; border-top: 1px dotted #cbd5e1; text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
-            Email struk ini dikirim secara otomatis. Mohon untuk tidak membalas.
-          </div>
-        </div>
+                <!-- Footer Otomatis -->
+                <div style="margin-top: 14px; padding-top: 8px; border-top: 1px dotted #cbd5e1; text-align: center; font-size: 10px; color: #94a3b8; line-height: 1.4;">
+                  Email struk ini dikirim secara otomatis oleh sistem kasir POS DapurTwin.
+                </div>
+              </div>
+            </td>
+          </tr>
+        </table>
       </body>
     </html>
   `
@@ -564,6 +601,14 @@ export async function sendSaleTransactionEmail({
     subject,
     html,
     text: `Struk Pembayaran ${storeName} - ${invoiceNumber}. Total: ${formattedTotal}. Metode: ${paymentMethod}. Email ini dikirim secara otomatis, mohon untuk tidak membalas.`,
+    attachments: [
+      {
+        filename: 'logo.png',
+        content: Buffer.from(DAPURTWIN_LOGO_BASE64, 'base64'),
+        contentId: 'dapurtwin-logo',
+        contentType: 'image/png',
+      },
+    ],
   })
 }
 
