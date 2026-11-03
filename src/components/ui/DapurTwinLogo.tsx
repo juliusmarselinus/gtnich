@@ -1,27 +1,21 @@
 import clsx from 'clsx'
+import DapurTwinIcon from './DapurTwinIcon'
 
 interface DapurTwinLogoProps {
-  /** warna lingkaran "dapur nyata"; putih di atas kuning, kuning di atas putih */
-  realFill?: string
+  /** ukuran ikon dalam px */
+  iconSize?: number
   showWordmark?: boolean
   className?: string
+  /** @deprecated tidak dipakai lagi sejak logo diganti ikon Dapi; dibiarkan agar pemanggil lama tidak error */
+  realFill?: string
 }
 
-/** Logo DapurTwin: lingkaran penuh (dapur nyata) + lingkaran putus-putus (kembarannya). */
-export default function DapurTwinLogo({
-  realFill = '#FFB800',
-  showWordmark = true,
-  className,
-}: DapurTwinLogoProps) {
+/** Logo DapurTwin: ikon Dapi (latar kuning) + tulisan "DapurTwin". */
+export default function DapurTwinLogo({ iconSize = 24, showWordmark = true, className }: DapurTwinLogoProps) {
   return (
     <span className={clsx('inline-flex items-center gap-1.5', className)}>
-      <svg width="28" height="20" viewBox="0 0 38 26" aria-hidden="true">
-        <circle cx="12" cy="13" r="10" fill={realFill} />
-        <circle cx="25" cy="13" r="10" fill="none" stroke="#2B221C" strokeWidth="3" strokeDasharray="4 3" />
-      </svg>
-      {showWordmark && (
-        <span className="text-lg font-black tracking-tight text-kopi">DapurTwin</span>
-      )}
+      <DapurTwinIcon size={iconSize} className="flex-shrink-0 rounded-[7px] shadow-[0_1px_2px_rgba(120,70,0,0.25)]" />
+      {showWordmark && <span className="text-lg font-black tracking-tight text-kopi">DapurTwin</span>}
     </span>
   )
 }

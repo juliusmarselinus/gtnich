@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import DapurTwinLogo from '@/components/ui/DapurTwinLogo'
 
 function friendlyError(msg: string) {
   const m = msg.toLowerCase()
@@ -285,7 +286,7 @@ export default function LoginPage() {
         {/* Dapi: di atas form (mobile), panel kiri besar (desktop) */}
         <div className="relative h-60 lg:h-auto lg:m-3 lg:rounded-[2rem] overflow-hidden lg:[&_svg]:w-[340px] lg:[&_svg]:h-auto">
           <DapiFace mood={mood} typingProgress={Math.min(email.length / 28, 1)} />
-          <span className="hidden lg:block absolute bottom-6 left-8 text-lg font-black tracking-tight">DapurTwin</span>
+          <DapurTwinLogo iconSize={28} className="hidden lg:inline-flex absolute bottom-6 left-8 [&_svg]:!h-7 [&_svg]:!w-7" />
         </div>
 
         {/* Form */}

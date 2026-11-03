@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, TrendingUp, ClipboardCheck, Sparkles, PieChart, Camera } from 'lucide-react'
 import DapiFace, { FaceMood } from '@/components/ui/DapiFace'
 import SplashScreen from '@/components/SplashScreen'
+import DapurTwinLogo from '@/components/ui/DapurTwinLogo'
 
 /**
  * Landing DapurTwin: perkenalan singkat bersama Dapi.
@@ -92,7 +93,7 @@ export default function LandingPage() {
         <div className="hidden lg:block relative m-3 rounded-[2rem] overflow-hidden [&_svg]:w-[380px] [&_svg]:h-auto">
           <DapiFace mood={bubble.mood} hideBubble typingProgress={0.5} />
           <div className="absolute top-8 left-8 flex items-center gap-2">
-            <span className="text-lg font-black tracking-tight">DapurTwin</span>
+            <DapurTwinLogo iconSize={28} className="[&_svg]:!h-7 [&_svg]:!w-7" />
           </div>
           <div className="absolute top-20 inset-x-0 flex justify-center">
             <div key={bubble.say} className="lp-bubble whitespace-nowrap rounded-2xl bg-white px-5 py-3 text-base font-bold shadow-[0_4px_0_rgba(43,34,28,0.1)]" style={{ transformOrigin: 'center bottom' }}>
