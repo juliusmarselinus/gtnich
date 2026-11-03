@@ -16,6 +16,7 @@ interface BahanTableProps {
   getStockCondition: (b: Bahan) => StockCondition
   onEdit: (b: Bahan) => void
   onDelete: (b: Bahan) => void
+  checkingId?: string | null
 }
 
 export default function BahanTable({
@@ -23,6 +24,7 @@ export default function BahanTable({
   getStockCondition,
   onEdit,
   onDelete,
+  checkingId = null,
 }: BahanTableProps) {
   return (
     <div className="clay-card overflow-hidden">
@@ -97,10 +99,15 @@ export default function BahanTable({
                     </button>
                     <button
                       onClick={() => onDelete(b)}
+                      disabled={checkingId === b.id}
                       title="Hapus"
-                      className="p-2 rounded-xl clay-btn text-slate-400 hover:text-rose-600"
+                      className="p-2 rounded-xl clay-btn text-slate-400 hover:text-rose-600 disabled:opacity-50"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      {checkingId === b.id ? (
+                        <span className="w-3.5 h-3.5 block border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   </div>
                 </td>

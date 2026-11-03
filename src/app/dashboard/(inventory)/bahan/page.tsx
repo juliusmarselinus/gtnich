@@ -49,7 +49,7 @@ export default function BahanPage() {
   // State untuk Custom Modal Konfirmasi Hapus Bahan
   const [deleteTarget, setDeleteTarget] = useState<Bahan | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [isCheckingUsage, setIsCheckingUsage] = useState(false)
+  const [checkingId, setCheckingId] = useState<string | null>(null)
   const [usedInMenus, setUsedInMenus] = useState<string[]>([])
 
   function openAdd() {
@@ -63,17 +63,18 @@ export default function BahanPage() {
   }
 
   async function openDeleteConfirm(b: Bahan) {
-    setDeleteTarget(b)
-    setIsCheckingUsage(true)
-    setUsedInMenus([])
-    // Cek keterkaitan resep menu masakan
+    setCheckingId(b.id)
     try {
+      // 1. Cek keterkaitan resep menu masakan TERLEBIH DAHULU sebelum modal dibuka
       const usage = await checkBahanUsage(b.id)
       setUsedInMenus(usage.menuNames)
+      // 2. Buka modal SETELAH data keterkaitan sudah pasti terisi
+      setDeleteTarget(b)
     } catch {
       setUsedInMenus([])
+      setDeleteTarget(b)
     } finally {
-      setIsCheckingUsage(false)
+      setCheckingId(null)
     }
   }
 
@@ -317,6 +318,7 @@ export default function BahanPage() {
             onEdit={openEdit}
             onDelete={openDeleteConfirm}
             onOpenAdd={openAdd}
+            checkingId={checkingId}
           />
         )}
       </main>
@@ -337,7 +339,6 @@ export default function BahanPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}
         isDeleting={isDeleting}
-        isCheckingUsage={isCheckingUsage}
         usedInMenus={usedInMenus}
       />
     </div>

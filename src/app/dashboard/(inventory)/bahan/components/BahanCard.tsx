@@ -2,7 +2,7 @@
 
 import { Bahan, StockCondition } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
-import { Edit2, Trash2, AlertTriangle, CheckCircle2, XCircle, ImageOff, Plus } from 'lucide-react'
+import { Edit2, Trash2, AlertTriangle, CheckCircle2, XCircle, ImageOff, Plus, Loader2 } from 'lucide-react'
 import DapiHead from '@/components/ui/DapiHead'
 import clsx from 'clsx'
 
@@ -88,6 +88,7 @@ interface BahanCardProps {
   onEdit: (b: Bahan) => void
   onDelete: (b: Bahan) => void
   onOpenAdd?: () => void
+  checkingId?: string | null
 }
 
 export default function BahanCard({
@@ -96,6 +97,7 @@ export default function BahanCard({
   onEdit,
   onDelete,
   onOpenAdd,
+  checkingId = null,
 }: BahanCardProps) {
   if (list.length === 0) {
     return (
@@ -250,11 +252,21 @@ export default function BahanCard({
               <button
                 type="button"
                 onClick={() => onDelete(b)}
+                disabled={checkingId === b.id}
                 title="Hapus bahan"
-                className="py-3 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-[#D8431F] hover:bg-[#FDE8E4]/50 transition-colors cursor-pointer"
+                className="py-3 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-[#D8431F] hover:bg-[#FDE8E4]/50 transition-colors cursor-pointer disabled:opacity-60"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Hapus</span>
+                {checkingId === b.id ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D8431F]" />
+                    <span className="text-[#D8431F]">Memeriksa...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Hapus</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

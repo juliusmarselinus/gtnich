@@ -11,7 +11,6 @@ interface DeleteBahanModalProps {
   onClose: () => void
   onConfirm: () => Promise<void>
   isDeleting?: boolean
-  isCheckingUsage?: boolean
   usedInMenus?: string[]
 }
 
@@ -21,14 +20,13 @@ export default function DeleteBahanModal({
   onClose,
   onConfirm,
   isDeleting = false,
-  isCheckingUsage = false,
   usedInMenus = [],
 }: DeleteBahanModalProps) {
   if (!isOpen || !bahan) return null
 
   const hasStock = Number(bahan.stok) > 0
   const isUsedInRecipe = usedInMenus.length > 0
-  const canDelete = !isCheckingUsage && !hasStock && !isUsedInRecipe
+  const canDelete = !hasStock && !isUsedInRecipe
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1D00]/45 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in-0 duration-200">
@@ -43,20 +41,18 @@ export default function DeleteBahanModal({
           <X className="w-4 h-4" />
         </button>
 
-        {/* Maskot Dapi Khawatir / Idle */}
+        {/* Maskot Dapi Khawatir */}
         <div className="w-20 h-20 rounded-full bg-[#FDE8E4] border border-[#FAD3CB] mx-auto flex items-center justify-center shadow-inner">
-          <DapiHead size={52} mood={isCheckingUsage ? 'senang' : 'khawatir'} />
+          <DapiHead size={52} mood="khawatir" />
         </div>
 
         {/* Judul & Info */}
         <div className="space-y-1.5">
           <h3 className="text-xl font-black text-[#2B1D00]">Hapus Bahan Baku?</h3>
           <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-xs mx-auto">
-            {isCheckingUsage
-              ? 'Memeriksa keterkaitan bahan dengan resep menu dan stok gudang...'
-              : canDelete
-                ? 'Apakah Anda yakin ingin menghapus bahan ini dari inventaris dapur secara permanen?'
-                : 'Bahan ini tidak dapat dihapus sekarang karena masih memiliki persediaan aktif atau terhubung ke menu.'}
+            {canDelete
+              ? 'Apakah Anda yakin ingin menghapus bahan ini dari inventaris dapur secara permanen?'
+              : 'Bahan ini tidak dapat dihapus sekarang karena masih memiliki persediaan aktif atau terhubung ke menu.'}
           </p>
         </div>
 
@@ -76,17 +72,8 @@ export default function DeleteBahanModal({
           </div>
         </div>
 
-        {/* State 1: Sedang Memeriksa Keterkaitan Bahan */}
-        {isCheckingUsage && (
-          <div className="p-4 rounded-2xl bg-[#FFFBF2] border border-[#FFE49A]/60 flex flex-col items-center justify-center gap-2 text-slate-600 py-6">
-            <Loader2 className="w-6 h-6 animate-spin text-[#FFB800]" />
-            <span className="text-xs font-bold text-slate-700">Memeriksa status keterkaitan bahan...</span>
-            <span className="text-[11px] text-slate-400">Memastikan bahan aman sebelum dihapus</span>
-          </div>
-        )}
-
-        {/* State 2: Peringatan Stok Masih Ada */}
-        {!isCheckingUsage && hasStock && (
+        {/* Peringatan Stok Masih Ada */}
+        {hasStock && (
           <div className="p-3.5 rounded-2xl bg-[#FFF4F0] border border-[#FFCCBA] text-left flex items-start gap-3 text-xs text-[#9E2B11]">
             <Package className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#D8431F]" />
             <div className="space-y-0.5">
@@ -98,8 +85,8 @@ export default function DeleteBahanModal({
           </div>
         )}
 
-        {/* State 3: Peringatan Masih Terdaftar di Resep Menu */}
-        {!isCheckingUsage && isUsedInRecipe && (
+        {/* Peringatan Masih Terdaftar di Resep Menu */}
+        {isUsedInRecipe && (
           <div className="p-3.5 rounded-2xl bg-[#FFF9EC] border border-[#FFE2A4] text-left flex items-start gap-3 text-xs text-[#8A5A00]">
             <BookOpen className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#D98B00]" />
             <div className="space-y-1 w-full">
@@ -134,7 +121,7 @@ export default function DeleteBahanModal({
           >
             {canDelete ? 'Batal' : 'Tutup'}
           </button>
-          {!isCheckingUsage && canDelete && (
+          {canDelete && (
             <button
               type="button"
               disabled={isDeleting}

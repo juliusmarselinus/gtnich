@@ -19,6 +19,7 @@ export interface BatchMasukItem {
   aiSisaHari?: number | null
   aiStatusFreshness?: FreshnessStatus
   isExpired?: boolean
+  isDibuang?: boolean // Ditandai sudah dibuang / dimusnahkan
 }
 
 export interface BahanKondisi {
