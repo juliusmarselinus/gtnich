@@ -6,6 +6,8 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null
 
 // Default sender untuk Resend domain testing: 'DapurTwin <onboarding@resend.dev>'
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'DapurTwin <onboarding@resend.dev>'
+// Email akun pendaftar Resend gratis (default testing destination)
+const RESEND_TEST_RECIPIENT = process.env.RESEND_TEST_RECIPIENT || 'isfestival2026@gmail.com'
 
 export interface SendEmailOptions {
   to: string | string[]
@@ -29,11 +31,28 @@ export async function sendEmail({ to, subject, html, text, attachments }: SendEm
     return { success: false, error: 'RESEND_API_KEY is not configured' }
   }
 
+  // Jika masih menggunakan domain gratis 'onboarding@resend.dev', Resend membatasi penerima hanya ke email pemilik akun
+  const isTestingDomain = FROM_EMAIL.includes('onboarding@resend.dev')
+  let finalTo = to
+  let finalSubject = subject
+
+  if (isTestingDomain) {
+    const originalRecipient = Array.isArray(to) ? to.join(', ') : to
+    if (!originalRecipient.toLowerCase().includes(RESEND_TEST_RECIPIENT.toLowerCase())) {
+      console.warn(
+        `[Resend Sandbox] Domain 'onboarding@resend.dev' hanya boleh mengirim ke ${RESEND_TEST_RECIPIENT}. ` +
+        `Mengalihkan pengiriman dari [${originalRecipient}] ke [${RESEND_TEST_RECIPIENT}] agar email tetap berhasil terkirim dan bisa diuji.`
+      )
+      finalTo = RESEND_TEST_RECIPIENT
+      finalSubject = `[Untuk: ${originalRecipient}] ${subject}`
+    }
+  }
+
   try {
     const data = await resend.emails.send({
       from: FROM_EMAIL,
-      to,
-      subject,
+      to: finalTo,
+      subject: finalSubject,
       html,
       text,
       attachments,

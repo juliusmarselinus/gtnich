@@ -81,21 +81,25 @@ export async function GET(request: Request) {
             })
           }
 
-          // Jika profil belum ada atau belum lengkap (misal user baru dari Google),
-          // biarkan full_name atau store_name kosong/null agar terdeteksi perlu melengkapi profil di dashboard.
-          // Jangan langsung menimpa dengan nama default Google jika profil sudah memiliki nama custom.
-          const fullName =
-            existingProfile?.full_name ||
-            ''
-          const storeName =
-            existingProfile?.store_name ||
-            ''
+          // Jika user login via Google dan profil belum lengkap, isi nama default dari akun Google
+          // agar langsung aktif dan user bisa langsung masuk ke aplikasi tanpa terhambat modal tanya personalized
+          const metaFullName =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            (user.email ? user.email.split('@')[0] : 'Pengguna Dapur')
+          const metaStoreName =
+            user.user_metadata?.store_name ||
+            `Dapur ${metaFullName}`
+
+          const fullName = existingProfile?.full_name || metaFullName
+          const storeName = existingProfile?.store_name || metaStoreName
 
           await supabase.from('profiles').upsert(
             {
               id: user.id,
               full_name: fullName,
               store_name: storeName,
+              is_completed: true,
               ...(surveyUsaha ? { business_type: surveyUsaha } : {}),
               ...(salesChannelsArray && salesChannelsArray.length > 0 ? { sales_channels: salesChannelsArray } : {}),
             },
@@ -145,8 +149,8 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get('x-forwarded-host')
       const isLocalEnv = process.env.NODE_ENV === 'development'
 
-      // Beri query param setup=1 agar dashboard secara eksplisit mengecek dan memicu modal pelengkapan data
-      const targetPath = next.includes('?') ? `${next}&setup=1` : `${next}?setup=1`
+      // Langsung arahkan ke dashboard aplikasi tanpa query param setup/personalized
+      const targetPath = next
 
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${targetPath}`)

@@ -61,7 +61,9 @@ export default function DashboardLayout({
           stockoutFrequency: status.stockout_frequency ?? 2,
         })
 
-        if (status.needs_setup) {
+        // Jangan blokir pengguna yang login via provider eksternal (OAuth Google)
+        const isOAuthUser = user.app_metadata?.provider === 'google'
+        if (status.needs_setup && !isOAuthUser) {
           setNeedsProfileSetup(true)
           return
         }
@@ -74,8 +76,9 @@ export default function DashboardLayout({
         .eq('id', user.id)
         .maybeSingle()
 
-      // Jika kolom is_completed di Supabase bernilai true, profil sudah tuntas
-      if (profile && (profile as any).is_completed === true) {
+      // Jika kolom is_completed di Supabase bernilai true atau user adalah user OAuth Google, langsung izinkan masuk
+      const isOAuthUser = user.app_metadata?.provider === 'google'
+      if (isOAuthUser || (profile && (profile as any).is_completed === true)) {
         setNeedsProfileSetup(false)
         return
       }
