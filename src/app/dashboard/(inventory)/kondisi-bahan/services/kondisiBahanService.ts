@@ -174,4 +174,79 @@ export const kondisiBahanService = {
       return (a.aiSisaHari ?? 999) - (b.aiSisaHari ?? 999)
     })
   },
+
+  /**
+   * Proses pengurangan / pemusnahan stok bahan yang kadaluarsa atau rusak.
+   * Mengurangi stok di tabel 'bahan' dan mencatat jejak audit ke 'stok_logs'
+   * dengan sumber 'Kadaluarsa' dan delta negatif.
+   */
+  async kurangiStokKadaluarsa(params: {
+    bahanId: string
+    jumlah: number
+    alasan?: string
+    nomorBatch?: number
+  }): Promise<{ newStok: number }> {
+    const supabase = createClient()
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    if (!userId) {
+      throw new Error('Sesi pengguna tidak valid. Silakan login kembali.')
+    }
+
+    if (params.jumlah <= 0) {
+      throw new Error('Jumlah pengurangan stok harus lebih dari 0.')
+    }
+
+    // 1. Ambil data bahan saat ini
+    const { data: bahan, error: bahanErr } = await supabase
+      .from('bahan')
+      .select('id, nama, stok, satuan')
+      .eq('id', params.bahanId)
+      .eq('user_id', userId)
+      .single()
+
+    if (bahanErr || !bahan) {
+      throw new Error('Data bahan tidak ditemukan atau akses ditolak.')
+    }
+
+    const currentStok = Number(bahan.stok) || 0
+    const delta = -Math.abs(params.jumlah)
+    const newStok = Math.max(0, Number((currentStok + delta).toFixed(3)))
+
+    // 2. Update stok bahan
+    const { error: updateErr } = await supabase
+      .from('bahan')
+      .update({
+        stok: newStok,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', params.bahanId)
+      .eq('user_id', userId)
+
+    if (updateErr) {
+      throw new Error(`Gagal memperbarui stok bahan: ${updateErr.message}`)
+    }
+
+    // 3. Catat mutasi audit di stok_logs
+    const catatan = params.alasan?.trim()
+      ? `Pengurangan stok kadaluarsa/rusak: ${params.alasan.trim()}${params.nomorBatch ? ` (Batch #${params.nomorBatch})` : ''}`
+      : `Pemusnahan bahan kadaluarsa/rusak${params.nomorBatch ? ` (Batch #${params.nomorBatch})` : ''}`
+
+    const { error: logErr } = await supabase.from('stok_logs').insert({
+      user_id: userId,
+      bahan_id: params.bahanId,
+      perubahan: delta,
+      stok_sebelum: currentStok,
+      stok_sesudah: newStok,
+      sumber: 'Kadaluarsa',
+      catatan,
+    })
+
+    if (logErr) {
+      console.warn('Gagal mencatat log mutasi stok_logs:', logErr)
+    }
+
+    return { newStok }
+  },
 }

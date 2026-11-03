@@ -106,6 +106,17 @@ export function useKondisiBahan() {
     }
   }, [list])
 
+  // Aksi pengurangan stok bahan kadaluarsa
+  const handleKurangiStok = async (params: {
+    bahanId: string
+    jumlah: number
+    alasan: string
+    nomorBatch?: number
+  }) => {
+    await kondisiBahanService.kurangiStokKadaluarsa(params)
+    await fetchAll()
+  }
+
   return {
     list: filteredList,
     rawCount: list.length,
@@ -120,5 +131,6 @@ export function useKondisiBahan() {
     filterFreshness,
     setFilterFreshness,
     refresh: () => fetchAll(),
+    handleKurangiStok,
   }
 }

@@ -196,6 +196,29 @@ export const notificationService = {
           timeAgo: getTimeAgo(b.updated_at || new Date().toISOString()),
         })
       }
+
+      // Deteksi bahan kategori beku (freezer)
+      const lower = b.nama.toLowerCase()
+      const isFrozenItem = ['daging', 'ayam', 'ikan', 'seafood', 'udang', 'cumi', 'bebek', 'nugget', 'sosis', 'frozen', 'fillet'].some(kw => lower.includes(kw))
+      if (isFrozenItem && stok > 0) {
+        notifications.push({
+          id: `synth-frozen-${b.id}`,
+          title: `Pantauan Bahan Beku: ${b.nama}`,
+          detail: `Tersimpan ${stok} ${b.satuan} di freezer. Jaga suhu beku stabil di bawah -18°C dan perhatikan jadwal thawing sebelum dimasak.`,
+          type: 'stok',
+          link: '/dashboard/kondisi-bahan',
+          isRead: false,
+          createdAt: b.updated_at || new Date().toISOString(),
+          timeAgo: getTimeAgo(b.updated_at || new Date().toISOString()),
+          metadata: {
+            isFrozen: true,
+            bahanId: b.id,
+            namaBahan: b.nama,
+            stok,
+            satuan: b.satuan,
+          },
+        })
+      }
     })
 
     // Notifikasi Tagihan Supplier / Barang Diterima & Peringatan Overdue > 1 Hari

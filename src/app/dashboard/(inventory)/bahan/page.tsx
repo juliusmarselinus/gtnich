@@ -7,6 +7,7 @@ import DapiMascot from '@/components/ui/DapiMascot'
 import BahanFilterBar from './components/BahanFilterBar'
 import BahanCard from './components/BahanCard'
 import BahanModal from './components/BahanModal'
+import DeleteBahanModal from './components/DeleteBahanModal'
 import { useBahan } from './hooks/useBahan'
 import { Bahan, FilterStatus } from './types'
 import { formatRupiah } from '@/lib/mock-data'
@@ -36,6 +37,7 @@ export default function BahanPage() {
     filterStatus,
     setFilterStatus,
     getStockCondition,
+    checkBahanUsage,
     saveBahan,
     deleteBahan,
     refresh,
@@ -43,6 +45,12 @@ export default function BahanPage() {
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Bahan | null>(null)
+
+  // State untuk Custom Modal Konfirmasi Hapus Bahan
+  const [deleteTarget, setDeleteTarget] = useState<Bahan | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isCheckingUsage, setIsCheckingUsage] = useState(false)
+  const [usedInMenus, setUsedInMenus] = useState<string[]>([])
 
   function openAdd() {
     setEditing(null)
@@ -54,9 +62,31 @@ export default function BahanPage() {
     setShowModal(true)
   }
 
-  function handleDelete(id: string) {
-    if (confirm('Yakin ingin menghapus bahan ini dari database?')) {
-      deleteBahan(id)
+  async function openDeleteConfirm(b: Bahan) {
+    setDeleteTarget(b)
+    setIsCheckingUsage(true)
+    setUsedInMenus([])
+    // Cek keterkaitan resep menu masakan
+    try {
+      const usage = await checkBahanUsage(b.id)
+      setUsedInMenus(usage.menuNames)
+    } catch {
+      setUsedInMenus([])
+    } finally {
+      setIsCheckingUsage(false)
+    }
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return
+    setIsDeleting(true)
+    try {
+      await deleteBahan(deleteTarget.id)
+      setDeleteTarget(null)
+    } catch {
+      // Error sudah ditangani di hook/state error
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -285,7 +315,7 @@ export default function BahanPage() {
             list={list}
             getStockCondition={getStockCondition}
             onEdit={openEdit}
-            onDelete={handleDelete}
+            onDelete={openDeleteConfirm}
             onOpenAdd={openAdd}
           />
         )}
@@ -298,6 +328,17 @@ export default function BahanPage() {
         onSave={saveBahan}
         editingBahan={editing}
         suppliers={suppliers}
+      />
+
+      {/* Custom Modal Konfirmasi Hapus Bahan */}
+      <DeleteBahanModal
+        isOpen={Boolean(deleteTarget)}
+        bahan={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        isCheckingUsage={isCheckingUsage}
+        usedInMenus={usedInMenus}
       />
     </div>
   )

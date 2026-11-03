@@ -111,6 +111,45 @@ export function useNotifications() {
           }
         }
       }
+
+      // 3. Notifikasi & Email Pantauan Bahan Beku (Freezer)
+      if (prefs.notifyFrozenBahan) {
+        const frozenNotifs = filtered.filter(n => n.id.startsWith('synth-frozen-') && n.metadata?.isFrozen)
+        if (frozenNotifs.length > 0) {
+          const supabase = createClient()
+          const { data: sessionData } = await supabase.auth.getSession()
+          const userEmail = sessionData?.session?.user?.email
+          const userId = sessionData?.session?.user?.id
+
+          if (userEmail && userId) {
+            const todayStr = new Date().toISOString().slice(0, 10)
+            const lastFrozenSent = localStorage.getItem('dapur_last_frozen_email_date')
+            
+            // Batasi pengiriman email 1x sehari agar tidak membebani kuota & email user
+            if (lastFrozenSent !== todayStr) {
+              const items = frozenNotifs.map(fn => ({
+                nama: fn.metadata?.namaBahan || fn.title.replace('Pantauan Bahan Beku: ', ''),
+                stok: fn.metadata?.stok || 0,
+                satuan: fn.metadata?.satuan || 'satuan',
+                tipsPenyimpanan: 'Pastikan suhu freezer stabil di bawah -18°C dan lakukan proses thawing perlahan di chiller.',
+              }))
+
+              fetch('/api/notify-frozen-bahan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: userEmail,
+                  items,
+                }),
+              })
+                .then(() => {
+                  localStorage.setItem('dapur_last_frozen_email_date', todayStr)
+                })
+                .catch(e => console.warn('Gagal memicu email bahan beku:', e))
+            }
+          }
+        }
+      }
     } catch (err) {
       console.warn('Failed to fetch notifications:', err)
     } finally {

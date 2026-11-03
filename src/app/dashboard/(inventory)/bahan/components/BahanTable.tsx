@@ -15,7 +15,7 @@ interface BahanTableProps {
   list: Bahan[]
   getStockCondition: (b: Bahan) => StockCondition
   onEdit: (b: Bahan) => void
-  onDelete: (id: string) => void
+  onDelete: (b: Bahan) => void
 }
 
 export default function BahanTable({
@@ -96,7 +96,7 @@ export default function BahanTable({
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => onDelete(b.id)}
+                      onClick={() => onDelete(b)}
                       title="Hapus"
                       className="p-2 rounded-xl clay-btn text-slate-400 hover:text-rose-600"
                     >

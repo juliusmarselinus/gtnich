@@ -90,6 +90,7 @@ export default function PengaturanModal({
   // State Editable Box 3: Pengaturan Notifikasi
   const [notifyTagihanOverdue, setNotifyTagihanOverdue] = useState<boolean>(true)
   const [notifyDailySales, setNotifyDailySales] = useState<boolean>(true)
+  const [notifyFrozenBahan, setNotifyFrozenBahan] = useState<boolean>(true)
 
   // State Box 4: Ganti Password
   const [newPassword, setNewPassword] = useState<string>('')
@@ -177,6 +178,9 @@ export default function PengaturanModal({
         )
         setNotifyDailySales(
           user.user_metadata?.notify_daily_sales ?? prefs.notifyDailySales
+        )
+        setNotifyFrozenBahan(
+          user.user_metadata?.notify_frozen_bahan ?? prefs.notifyFrozenBahan
         )
       } catch (err: unknown) {
         console.error('Error load profile:', err)
@@ -322,6 +326,7 @@ export default function PengaturanModal({
       const newPrefs: UserNotificationPreferences = {
         notifyTagihanOverdue,
         notifyDailySales,
+        notifyFrozenBahan,
       }
       saveNotificationPreferences(newPrefs)
 
@@ -330,6 +335,7 @@ export default function PengaturanModal({
           data: {
             notify_tagihan_overdue: notifyTagihanOverdue,
             notify_daily_sales: notifyDailySales,
+            notify_frozen_bahan: notifyFrozenBahan,
           },
         })
       } catch {
@@ -801,6 +807,23 @@ export default function PengaturanModal({
                             </span>
                             <span className="text-[11px] text-[#8A6A40] block mt-0.5">
                               Rekapitulasi otomatis omzet, margin kotor, dan porsi menu terjual setiap penutupan operasional dapur
+                            </span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#FFFBF2] border border-[#EDD9B0] cursor-pointer hover:bg-[#FFF6E0] transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={notifyFrozenBahan}
+                            onChange={e => setNotifyFrozenBahan(e.target.checked)}
+                            className="mt-0.5 rounded border-[#EDD9B0] text-[#FFB800] focus:ring-[#FFB800]"
+                          />
+                          <div>
+                            <span className="text-xs font-bold text-[#2B1D00] block">
+                              Peringatan Stok Bahan Beku (Freezer)
+                            </span>
+                            <span className="text-[11px] text-[#8A6A40] block mt-0.5">
+                              Pemberitahuan in-app &amp; email untuk bahan beku (daging, ayam, seafood) agar segera di-thawing, dipantau kualitasnya, atau segera diolah
                             </span>
                           </div>
                         </label>

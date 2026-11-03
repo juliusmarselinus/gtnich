@@ -3,6 +3,7 @@
 export interface UserNotificationPreferences {
   notifyTagihanOverdue: boolean // Notifikasi & email tagihan supplier melewati 1 hari
   notifyDailySales: boolean     // Notifikasi & email laporan harian penjualan pukul 22:00
+  notifyFrozenBahan: boolean    // Notifikasi & email pantauan bahan beku/freezer (daging/ayam/ikan/seafood)
 }
 
 const STORAGE_KEY = 'dapur_notification_preferences'
@@ -10,6 +11,7 @@ const STORAGE_KEY = 'dapur_notification_preferences'
 export const DEFAULT_NOTIFICATION_PREFERENCES: UserNotificationPreferences = {
   notifyTagihanOverdue: true,
   notifyDailySales: true,
+  notifyFrozenBahan: true,
 }
 
 export function getNotificationPreferences(): UserNotificationPreferences {

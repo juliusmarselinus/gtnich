@@ -86,7 +86,7 @@ interface BahanCardProps {
   list: Bahan[]
   getStockCondition: (b: Bahan) => StockCondition
   onEdit: (b: Bahan) => void
-  onDelete: (id: string) => void
+  onDelete: (b: Bahan) => void
   onOpenAdd?: () => void
 }
 
@@ -249,7 +249,7 @@ export default function BahanCard({
               </button>
               <button
                 type="button"
-                onClick={() => onDelete(b.id)}
+                onClick={() => onDelete(b)}
                 title="Hapus bahan"
                 className="py-3 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-[#D8431F] hover:bg-[#FDE8E4]/50 transition-colors cursor-pointer"
               >

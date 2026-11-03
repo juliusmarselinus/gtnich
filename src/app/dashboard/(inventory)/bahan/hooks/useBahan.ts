@@ -139,6 +139,7 @@ export function useBahan() {
     filterStatus,
     setFilterStatus,
     getStockCondition,
+    checkBahanUsage: bahanService.checkBahanUsage.bind(bahanService),
     saveBahan,
     deleteBahan,
     refresh: fetchAll,

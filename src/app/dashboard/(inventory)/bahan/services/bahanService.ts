@@ -176,8 +176,69 @@ export const bahanService = {
     return mapBahanFromDB(data as RawBahanDB)
   },
 
+  /**
+   * Cek apakah bahan saat ini digunakan dalam resep menu masakan
+   */
+  async checkBahanUsage(bahanId: string): Promise<{ isUsed: boolean; menuNames: string[] }> {
+    const supabase = createClient()
+    try {
+      const { data, error } = await supabase
+        .from('resep_items')
+        .select('id, menu_id, menus(id, nama)')
+        .eq('bahan_id', bahanId)
+
+      if (error) {
+        console.warn('Check bahan usage warning:', error.message)
+        return { isUsed: false, menuNames: [] }
+      }
+
+      const menuNames: string[] = []
+      if (data && Array.isArray(data)) {
+        for (const item of data) {
+          const menuData = (item as any).menus
+          if (menuData && menuData.nama) {
+            if (!menuNames.includes(menuData.nama)) {
+              menuNames.push(menuData.nama)
+            }
+          }
+        }
+      }
+
+      return {
+        isUsed: menuNames.length > 0,
+        menuNames,
+      }
+    } catch (err) {
+      console.warn('Exception checking bahan usage:', err)
+      return { isUsed: false, menuNames: [] }
+    }
+  },
+
   async delete(id: string): Promise<void> {
     const supabase = createClient()
+
+    // 1. Validasi cek apakah bahan memiliki stok fisik aktif
+    const { data: currentBahan, error: fetchErr } = await supabase
+      .from('bahan')
+      .select('nama, stok, satuan')
+      .eq('id', id)
+      .single()
+
+    if (!fetchErr && currentBahan && Number(currentBahan.stok) > 0) {
+      throw new Error(
+        `Bahan "${currentBahan.nama}" masih memiliki sisa stok (${currentBahan.stok} ${currentBahan.satuan}). Sesuaikan stok menjadi 0 terlebih dahulu sebelum menghapus.`
+      )
+    }
+
+    // 2. Validasi cek foreign key constraint resep_items
+    const { isUsed, menuNames } = await this.checkBahanUsage(id)
+    if (isUsed) {
+      const namesStr = menuNames.slice(0, 3).join(', ')
+      throw new Error(
+        `Bahan ini masih digunakan dalam resep menu: ${namesStr}. Harap hapus atau lepaskan bahan ini dari resep menu masakan tersebut terlebih dahulu.`
+      )
+    }
+
     const { error } = await supabase.from('bahan').delete().eq('id', id)
 
     if (error) {
@@ -187,6 +248,13 @@ export const bahanService = {
         hint: error.hint,
         code: error.code,
       })
+
+      if (error.message.includes('violates foreign key constraint') || error.code === '23503') {
+        throw new Error(
+          'Bahan ini tidak dapat dihapus karena masih terhubung dengan data lain (resep menu masakan, riwayat mutasi stok, atau purchase order).'
+        )
+      }
+
       throw new Error(error.message || 'Gagal menghapus bahan.')
     }
   },

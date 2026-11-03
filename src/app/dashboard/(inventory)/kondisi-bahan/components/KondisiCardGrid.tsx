@@ -3,11 +3,32 @@
 import { useState } from 'react'
 import { BahanKondisi, BatchMasukItem } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
-import { Package, Clock, AlertTriangle, ShieldCheck, ShieldAlert, Sparkles, ChevronDown, ChevronUp, Layers, History, Calendar } from 'lucide-react'
+import {
+  Package,
+  Clock,
+  AlertTriangle,
+  ShieldCheck,
+  ShieldAlert,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Layers,
+  Calendar,
+  Trash2,
+  AlertOctagon,
+} from 'lucide-react'
 import clsx from 'clsx'
+import KurangiStokModal from './KurangiStokModal'
 
 interface KondisiCardGridProps {
   list: BahanKondisi[]
+  onKurangiStok?: (params: {
+    bahanId: string
+    jumlah: number
+    alasan: string
+    nomorBatch?: number
+  }) => Promise<void>
+  onRefresh?: () => void
 }
 
 const FRESHNESS_BADGE = {
@@ -33,12 +54,26 @@ const FRESHNESS_BADGE = {
   },
 }
 
-export default function KondisiCardGrid({ list }: KondisiCardGridProps) {
+export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: KondisiCardGridProps) {
   // State untuk expand/collapse rincian batch per card bahan
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
 
+  // State untuk modal pengurangan stok kadaluarsa
+  const [selectedBahanForAction, setSelectedBahanForAction] = useState<BahanKondisi | null>(null)
+  const [selectedBatchForAction, setSelectedBatchForAction] = useState<BatchMasukItem | null>(null)
+
   const toggleExpand = (id: string) => {
     setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const handleOpenKurangiModal = (bahan: BahanKondisi, batch?: BatchMasukItem) => {
+    setSelectedBahanForAction(bahan)
+    setSelectedBatchForAction(batch || null)
+  }
+
+  const handleCloseKurangiModal = () => {
+    setSelectedBahanForAction(null)
+    setSelectedBatchForAction(null)
   }
 
   return (
@@ -87,13 +122,31 @@ export default function KondisiCardGrid({ list }: KondisiCardGridProps) {
                 </span>
               </div>
 
-              {/* Status Peringatan Batch Kadaluarsa di Card ini (jika ada) */}
+              {/* Status Peringatan Batch Kadaluarsa & Action Pengurangan di Card ini */}
               {b.expiredBatchesCount > 0 && (
-                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 text-rose-600 flex-shrink-0" />
-                  <span className="font-semibold">
-                    Peringatan: <strong>{b.expiredBatchesCount} batch belanja</strong> bahan ini sudah melewati masa kadaluarsa!
-                  </span>
+                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-2.5">
+                  <div className="flex items-start gap-2">
+                    <ShieldAlert className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-extrabold text-rose-900 leading-tight">
+                        Peringatan Kadaluarsa Dapur
+                      </p>
+                      <p className="text-[11px] text-rose-700 mt-0.5 font-medium leading-normal">
+                        Terdapat <strong>{b.expiredBatchesCount} batch belanja</strong> bahan ini yang telah melewati batas aman simpan dan berisiko menurunkan mutu masakan.
+                      </p>
+                    </div>
+                  </div>
+
+                  {onKurangiStok && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenKurangiModal(b)}
+                      className="w-full py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Proses Pengurangan Stok ({b.expiredBatchesCount} Batch Expire)</span>
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -212,18 +265,35 @@ export default function KondisiCardGrid({ list }: KondisiCardGridProps) {
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3 text-slate-400" /> Masuk: {tglBatchMasuk}
                             </span>
-                            <span
-                              className={clsx(
-                                'font-bold font-mono px-1.5 py-0.2 rounded text-[10px]',
-                                batch.isExpired
-                                  ? 'bg-rose-200 text-rose-800'
-                                  : batch.aiSisaHari !== null && batch.aiSisaHari !== undefined && batch.aiSisaHari <= 3
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-emerald-50 text-emerald-700'
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={clsx(
+                                  'font-bold font-mono px-1.5 py-0.2 rounded text-[10px]',
+                                  batch.isExpired
+                                    ? 'bg-rose-200 text-rose-800'
+                                    : batch.aiSisaHari !== null && batch.aiSisaHari !== undefined && batch.aiSisaHari <= 3
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-emerald-50 text-emerald-700'
+                                )}
+                              >
+                                {batch.isExpired ? 'Sudah Expire' : `Exp: ${tglBatchExpire} (${batch.aiSisaHari ?? '-'} hari)`}
+                              </span>
+
+                              {batch.isExpired && onKurangiStok && (
+                                <button
+                                  type="button"
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    handleOpenKurangiModal(b, batch)
+                                  }}
+                                  title="Kurangi stok batch kadaluarsa ini"
+                                  className="px-2 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <Trash2 className="w-2.5 h-2.5" />
+                                  <span>Kurangi</span>
+                                </button>
                               )}
-                            >
-                              {batch.isExpired ? 'Sudah Expire' : `Exp: ${tglBatchExpire} (${batch.aiSisaHari ?? '-'} hari)`}
-                            </span>
+                            </div>
                           </div>
 
                           {batch.nomorReferensi && (
@@ -254,6 +324,20 @@ export default function KondisiCardGrid({ list }: KondisiCardGridProps) {
         <div className="col-span-full clay-card py-16 text-center text-slate-400 text-sm font-medium">
           Tidak ada bahan yang sesuai filter.
         </div>
+      )}
+
+      {/* Modal Pengurangan Stok Bahan Kadaluarsa */}
+      {selectedBahanForAction && onKurangiStok && (
+        <KurangiStokModal
+          isOpen={!!selectedBahanForAction}
+          bahan={selectedBahanForAction}
+          batch={selectedBatchForAction}
+          onClose={handleCloseKurangiModal}
+          onSuccess={() => {
+            if (onRefresh) onRefresh()
+          }}
+          onProcess={onKurangiStok}
+        />
       )}
     </div>
   )

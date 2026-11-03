@@ -19,6 +19,7 @@ export default function KondisiBahanPage() {
     filterFreshness,
     setFilterFreshness,
     refresh,
+    handleKurangiStok,
   } = useKondisiBahan()
 
   return (
@@ -146,7 +147,11 @@ export default function KondisiBahanPage() {
             <p className="text-xs font-semibold">Menganalisis masa simpan dan memuat bahan...</p>
           </div>
         ) : (
-          <KondisiCardGrid list={list} />
+          <KondisiCardGrid
+            list={list}
+            onKurangiStok={handleKurangiStok}
+            onRefresh={refresh}
+          />
         )}
       </main>
     </div>
