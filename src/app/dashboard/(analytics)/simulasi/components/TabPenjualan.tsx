@@ -52,14 +52,18 @@ export default function TabPenjualan({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Parameter Input */}
-      <div className="rounded-[28px] bg-white border border-[#EBE6DC] shadow-xs p-6 space-y-5">
-        <div className="flex items-center gap-2 pb-2 border-b border-[#F0EBE1]">
-          <span className="w-8 h-8 rounded-xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center font-bold">
+      <div className="relative overflow-hidden rounded-[28px] bg-white border border-[#EBE6DC] shadow-[0_8px_24px_rgba(120,80,30,0.06)] p-6 space-y-5">
+        <span aria-hidden className="pointer-events-none absolute -right-10 -bottom-12 h-36 w-36 rounded-full bg-[#FFF9EC]/80" />
+        <div className="relative flex items-center gap-2.5 pb-3 border-b border-[#F0EBE1]">
+          <span className="w-9 h-9 rounded-2xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center font-bold shadow-2xs">
             <Calculator className="w-4 h-4" />
           </span>
-          <h3 className="text-xs font-extrabold text-[#2B261F] uppercase tracking-wider">
-            Parameter Simulasi Penjualan
-          </h3>
+          <div>
+            <h3 className="text-xs font-black text-[#2B261F] uppercase tracking-wider">
+              Parameter Simulasi Penjualan
+            </h3>
+            <p className="text-[11px] text-[#8C8275] font-medium">Tentukan target menu dan porsi</p>
+          </div>
         </div>
 
         <div>
@@ -127,14 +131,18 @@ export default function TabPenjualan({
       </div>
 
       {/* Proyeksi Finansial */}
-      <div className="rounded-[28px] bg-white border border-[#EBE6DC] shadow-xs p-6 space-y-5">
-        <div className="flex items-center gap-2 pb-2 border-b border-[#F0EBE1]">
-          <span className="w-8 h-8 rounded-xl bg-[#E8F5E4] text-[#2D7A1F] flex items-center justify-center font-bold">
+      <div className="relative overflow-hidden rounded-[28px] bg-white border border-[#EBE6DC] shadow-[0_8px_24px_rgba(120,80,30,0.06)] p-6 space-y-5">
+        <span aria-hidden className="pointer-events-none absolute -right-10 -bottom-12 h-36 w-36 rounded-full bg-[#E2EBC0]/35" />
+        <div className="relative flex items-center gap-2.5 pb-3 border-b border-[#F0EBE1]">
+          <span className="w-9 h-9 rounded-2xl bg-[#E8F5E4] text-[#2D7A1F] flex items-center justify-center font-bold shadow-2xs">
             <DollarSign className="w-4 h-4" />
           </span>
-          <h3 className="text-xs font-extrabold text-[#2B261F] uppercase tracking-wider">
-            Hasil Proyeksi Finansial
-          </h3>
+          <div>
+            <h3 className="text-xs font-black text-[#2B261F] uppercase tracking-wider">
+              Hasil Proyeksi Finansial
+            </h3>
+            <p className="text-[11px] text-[#8C8275] font-medium">Prediksi pendapatan dan profit margin</p>
+          </div>
         </div>
 
         <div className="space-y-2.5">

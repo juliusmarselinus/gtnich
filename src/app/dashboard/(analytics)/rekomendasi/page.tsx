@@ -1,7 +1,7 @@
 'use client'
 
 import Topbar from '@/components/Topbar'
-import DapiMascot from '@/components/ui/DapiMascot'
+import DapiHead from '@/components/ui/DapiHead'
 import { useRekomendasi } from './hooks/useRekomendasi'
 import { RekomendasiTipe } from './types'
 import {
@@ -17,6 +17,41 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import Link from 'next/link'
+
+const STATUS_CARDS = [
+  {
+    key: 'all' as const,
+    label: 'Total Insight',
+    hint: 'Semua anjuran dapur',
+    Icon: Lightbulb,
+    tint: 'bg-[#FFEDB3]',
+    on: 'bg-kuning text-kopi',
+  },
+  {
+    key: 'Stok' as const,
+    label: 'Stok Bahan',
+    hint: 'Kebutuhan reorder gudang',
+    Icon: Package,
+    tint: 'bg-[#E2EBC0]',
+    on: 'bg-[#7F9A2E] text-white',
+  },
+  {
+    key: 'Keuangan' as const,
+    label: 'Keuangan & Biaya',
+    hint: 'Tempo faktur distributor',
+    Icon: DollarSign,
+    tint: 'bg-[#F2D9CC]',
+    on: 'bg-[#C2502F] text-white',
+  },
+  {
+    key: 'Penjualan' as const,
+    label: 'Pola Penjualan',
+    hint: 'Optimalisasi omzet & margin',
+    Icon: TrendingUp,
+    tint: 'bg-[#E3DCF3]',
+    on: 'bg-[#6B5BB5] text-white',
+  },
+] as const
 
 const TIPE_CONFIG: Record<
   RekomendasiTipe,
@@ -63,57 +98,14 @@ export default function RekomendasiPage() {
         : 'Analisis cerdas dari stok gudang, tren pesanan kasir, dan profitabilitas menu untuk meningkatkan efisiensi operasional.',
   }
 
-  const STAT_CARDS = [
-    {
-      key: 'all' as const,
-      label: 'Total Insight',
-      value: summary.total,
-      unit: 'anjuran',
-      hint: 'Semua rekomendasi aktif',
-      icon: Lightbulb,
-      iconBg: 'bg-[#FFF6D6] text-[#8A5A00]',
-      activeRing: 'ring-2 ring-[#FFB800] bg-[#FFFBF2]',
-    },
-    {
-      key: 'Stok' as const,
-      label: 'Stok & Pasokan',
-      value: summary.stokCount,
-      unit: 'isu',
-      hint: 'Kebutuhan reorder bahan',
-      icon: Package,
-      iconBg: 'bg-[#E0F2FE] text-[#0284C7]',
-      activeRing: 'ring-2 ring-[#0284C7] bg-[#F0F9FF]',
-    },
-    {
-      key: 'Keuangan' as const,
-      label: 'Keuangan & Biaya',
-      value: summary.keuanganCount,
-      unit: 'tagihan',
-      hint: 'Tempo faktur distributor',
-      icon: DollarSign,
-      iconBg: 'bg-[#FFF0E6] text-[#FF6B00]',
-      activeRing: 'ring-2 ring-[#FF6B00] bg-[#FFF9F5]',
-    },
-    {
-      key: 'Penjualan' as const,
-      label: 'Pola Penjualan',
-      value: summary.penjualanCount,
-      unit: 'menu',
-      hint: 'Optimalisasi omzet & margin',
-      icon: TrendingUp,
-      iconBg: 'bg-[#E8F5E4] text-[#2D7A1F]',
-      activeRing: 'ring-2 ring-[#228B5B] bg-[#F4FAF2]',
-    },
-  ]
-
   return (
-    <div className="flex-1 pb-24 lg:pb-16">
+    <div className="flex-1 pb-16">
       <Topbar
         title="Rekomendasi Pintar Dapur"
         subtitle="Insight dan anjuran prediktif berbasis data riil stok gudang, tren penjualan kasir, dan kalkulasi profitabilitas"
       />
 
-      <main className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">
         {/* Error Alert */}
         {error && (
           <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-3">
@@ -131,89 +123,115 @@ export default function RekomendasiPage() {
           </div>
         )}
 
-        {/* Hero Section dengan Maskot Dapi */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#FFB800] px-6 py-6 sm:px-8 sm:py-7 min-h-[180px] shadow-xs">
-          <div className="absolute right-48 top-5 w-16 h-16 rounded-full bg-[#FF7A59] hidden md:block opacity-80" />
-          <div className="absolute right-36 top-16 w-28 h-8 rounded-full bg-white/90 hidden md:block" />
-
-          {/* Maskot Dapi */}
-          <div className="absolute right-4 sm:right-8 bottom-0 pointer-events-none">
-            <DapiMascot
-              width={150}
-              mood={heroStatus.mood}
-              className="translate-y-6 drop-shadow-xs"
-            />
+        {/* Banner utama: Dapi keluar dari kotak */}
+        <section className="relative mt-10 sm:mt-12 rounded-[36px] bg-gradient-to-br from-[#FFC93C] via-kuning to-[#FF9A1F] shadow-[0_22px_40px_rgba(220,130,0,0.28),inset_0_-10px_0_rgba(170,90,0,0.12)]">
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
+            <span className="absolute right-[18%] -top-24 h-80 w-80 rounded-full bg-white/20" />
+            <span className="absolute -right-14 -bottom-28 h-72 w-72 rounded-full bg-koral/25" />
+            <span className="absolute left-[46%] bottom-6 h-4 w-4 rounded-full bg-white/70" />
+            <span className="absolute left-[52%] top-8 h-2.5 w-2.5 rounded-full bg-koral/60" />
           </div>
 
-          <div className="relative space-y-3 pr-28 sm:pr-48">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-lg bg-[#2B1D00]/10 flex items-center justify-center text-[#2B1D00]">
-                <Lightbulb className="w-3.5 h-3.5" />
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#5C3D00]">
-                Analisis & Tindakan Strategis
-              </p>
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2B1D00] tracking-tight leading-tight">
+          <div className="relative flex flex-col gap-3 p-6 sm:p-10 md:max-w-[58%]">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none text-kopi">
               {heroStatus.title}
             </h2>
-
-            <p className="text-xs sm:text-sm text-[#4D3300] font-medium max-w-xl">
+            <p className="text-sm sm:text-base text-[#5A3A00] leading-snug">
               {heroStatus.subtitle}
             </p>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="mt-2 flex flex-wrap gap-2.5">
+              <button
+                type="button"
+                onClick={refresh}
+                disabled={isLoading}
+                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap disabled:opacity-50"
+              >
+                <RefreshCw className={clsx('w-4 h-4 flex-shrink-0', isLoading && 'animate-spin')} />
+                Analisis Ulang
+              </button>
               {summary.kritisCount > 0 ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#D8431F] text-white px-3.5 py-1.5 text-xs font-bold shadow-xs">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  {summary.kritisCount} tindakan kritis
-                </span>
+                <div className="h-11 px-5 rounded-full bg-[#D8431F] text-white text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                  <span>Tindakan Kritis:</span>
+                  <span className="font-mono font-black text-white">{summary.kritisCount}</span>
+                </div>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-[#2B1D00] shadow-xs">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#228B5B]" />
-                  Operasional dapur stabil
-                </span>
+                <div className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                  <span className="w-2 h-2 rounded-full bg-[#7F9A2E]" />
+                  <span>Operasional Stabil</span>
+                </div>
               )}
-
-              <span className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xs px-3.5 py-1.5 text-xs font-bold text-[#2B1D00]">
-                {summary.total} insight terdeteksi
-              </span>
+              <div className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                <span>Total Insight:</span>
+                <span className="font-mono font-black text-kopi">{summary.total}</span>
+              </div>
             </div>
+          </div>
+
+          {/* Kartu rekomendasi miring (dekorasi) */}
+          <div aria-hidden className="hidden lg:flex absolute right-[300px] -top-8 w-36 -rotate-[8deg] flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_18px_30px_rgba(120,60,0,0.25)]">
+            <span className="text-[11px] font-black text-koral-gelap tracking-wider">INSIGHT</span>
+            <span className="h-2 rounded bg-krim-garis" />
+            <span className="h-2 w-[70%] rounded bg-krim-garis" />
+            <span className="h-2 w-[85%] rounded bg-krim-garis" />
+          </div>
+
+          {/* Dapi menyembul keluar dari atas kotak */}
+          <div aria-hidden className="hidden md:block absolute right-8 lg:right-14 bottom-0 leading-[0] drop-shadow-[0_18px_22px_rgba(120,50,0,0.35)]">
+            <DapiHead size={220} />
           </div>
         </section>
 
-        {/* 4 Stat Cards Interaktif */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {STAT_CARDS.map(card => {
-            const Icon = card.icon
-            const isSelected = filter === card.key
+        {/* Status Flow Stats Card Identik PO */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {STATUS_CARDS.map(st => {
+            const active = filter === st.key
+            const val =
+              st.key === 'all'
+                ? summary.total
+                : st.key === 'Stok'
+                ? summary.stokCount
+                : st.key === 'Keuangan'
+                ? summary.keuanganCount
+                : summary.penjualanCount
 
             return (
               <button
-                key={card.key}
+                key={st.key}
                 type="button"
-                onClick={() => setFilter(card.key as RekomendasiTipe | 'all')}
+                onClick={() => setFilter(st.key as RekomendasiTipe | 'all')}
                 className={clsx(
-                  'text-left p-4 sm:p-5 rounded-[22px] bg-white border border-[#EBE6DC] shadow-xs transition-all hover:shadow-md cursor-pointer',
-                  isSelected && card.activeRing
+                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col gap-4 min-h-[140px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  active
+                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
+                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
                 )}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#7A7062]">
-                    {card.label}
-                  </span>
-                  <span className={clsx('w-8 h-8 rounded-xl flex items-center justify-center', card.iconBg)}>
-                    <Icon className="w-4 h-4" />
+                <span
+                  aria-hidden
+                  className={clsx(
+                    'absolute -right-10 -bottom-12 h-36 w-36 rounded-full',
+                    active ? 'bg-white/20' : 'bg-white/55'
+                  )}
+                />
+                <div className="relative flex items-center justify-between">
+                  <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
+                  <span
+                    className={clsx(
+                      'h-9 w-9 rounded-full flex items-center justify-center',
+                      active ? 'bg-white/30' : 'bg-white/60'
+                    )}
+                  >
+                    <st.Icon className="w-4 h-4" />
                   </span>
                 </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-[#2B261F] tracking-tight">
-                    {card.value}
-                  </span>
-                  <span className="text-xs font-semibold text-[#8C8275]">{card.unit}</span>
+                <div className="relative">
+                  <p className="text-3xl sm:text-4xl font-black font-mono tracking-tight leading-none">
+                    {val}
+                  </p>
+                  <p className={clsx('text-xs mt-1.5 truncate', active ? 'opacity-85' : 'text-kopi-muted')}>
+                    {st.hint}
+                  </p>
                 </div>
-                <p className="text-[11px] text-[#A69C8E] mt-1.5 font-medium">{card.hint}</p>
               </button>
             )
           })}

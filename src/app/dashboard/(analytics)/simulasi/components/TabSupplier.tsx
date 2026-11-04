@@ -67,14 +67,18 @@ export default function TabSupplier({
   return (
     <div className="space-y-6">
       {/* Parameter Skenario */}
-      <div className="rounded-[28px] bg-white border border-[#EBE6DC] shadow-xs p-6 space-y-5">
-        <div className="flex items-center gap-2 pb-2 border-b border-[#F0EBE1]">
-          <span className="w-8 h-8 rounded-xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center font-bold">
+      <div className="relative overflow-hidden rounded-[28px] bg-white border border-[#EBE6DC] shadow-[0_8px_24px_rgba(120,80,30,0.06)] p-6 space-y-5">
+        <span aria-hidden className="pointer-events-none absolute -right-10 -bottom-12 h-36 w-36 rounded-full bg-[#FFF9EC]/80" />
+        <div className="relative flex items-center gap-2.5 pb-3 border-b border-[#F0EBE1]">
+          <span className="w-9 h-9 rounded-2xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center font-bold shadow-2xs">
             <Truck className="w-4 h-4" />
           </span>
-          <h3 className="text-xs font-extrabold text-[#2B261F] uppercase tracking-wider">
-            Skenario Fluktuasi Harga Bahan Distributor
-          </h3>
+          <div>
+            <h3 className="text-xs font-black text-[#2B261F] uppercase tracking-wider">
+              Skenario Fluktuasi Harga Bahan Distributor
+            </h3>
+            <p className="text-[11px] text-[#8C8275] font-medium">Uji dampak harga beli ke HPP dan margin menu</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -153,13 +157,16 @@ export default function TabSupplier({
       </div>
 
       {/* Menu Terdampak */}
-      <div className="rounded-[28px] bg-white border border-[#EBE6DC] shadow-xs p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-[#F0EBE1]">
-          <h3 className="text-xs font-extrabold text-[#2B261F] uppercase tracking-wider flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-[#FF8F2B]" />
+      <div className="relative overflow-hidden rounded-[28px] bg-white border border-[#EBE6DC] shadow-[0_8px_24px_rgba(120,80,30,0.06)] p-6 space-y-4">
+        <span aria-hidden className="pointer-events-none absolute -right-10 -bottom-12 h-36 w-36 rounded-full bg-[#F2D9CC]/35" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-[#F0EBE1]">
+          <h3 className="text-xs font-black text-[#2B261F] uppercase tracking-wider flex items-center gap-2">
+            <span className="w-8 h-8 rounded-xl bg-[#FFF0E6] text-[#FF6B00] flex items-center justify-center font-bold shadow-2xs">
+              <Layers className="w-4 h-4 text-[#FF8F2B]" />
+            </span>
             Dampak Perubahan Pada Menu ({affectedMenus.length} Menu Terkait)
           </h3>
-          <span className="text-[11px] text-[#8C8275]">
+          <span className="text-[11px] text-[#8C8275] font-medium">
             Dihitung otomatis berdasarkan formula resep dapur
           </span>
         </div>

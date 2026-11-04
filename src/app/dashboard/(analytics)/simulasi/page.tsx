@@ -1,7 +1,7 @@
 'use client'
 
 import Topbar from '@/components/Topbar'
-import DapiMascot from '@/components/ui/DapiMascot'
+import DapiHead from '@/components/ui/DapiHead'
 import { useSimulasi } from './hooks/useSimulasi'
 import { SimTab } from './types'
 import TabPenjualan from './components/TabPenjualan'
@@ -9,6 +9,33 @@ import TabSupplier from './components/TabSupplier'
 import TabSupply from './components/TabSupply'
 import { TrendingUp, Truck, Package, RefreshCw, AlertCircle, Calculator } from 'lucide-react'
 import clsx from 'clsx'
+
+const STATUS_CARDS = [
+  {
+    key: 'penjualan' as const,
+    label: 'Simulasi Penjualan',
+    hint: 'Proyeksi omzet & laba menu',
+    Icon: TrendingUp,
+    tint: 'bg-[#FFEDB3]',
+    on: 'bg-kuning text-kopi',
+  },
+  {
+    key: 'supplier' as const,
+    label: 'Harga Supplier',
+    hint: 'Simulasi fluktuasi harga bahan',
+    Icon: Truck,
+    tint: 'bg-[#F2D9CC]',
+    on: 'bg-[#C2502F] text-white',
+  },
+  {
+    key: 'supply' as const,
+    label: 'Kecukupan Stok',
+    hint: 'Cek kesiapan batch porsi masak',
+    Icon: Package,
+    tint: 'bg-[#E2EBC0]',
+    on: 'bg-[#7F9A2E] text-white',
+  },
+] as const
 
 export default function SimulasiPage() {
   const {
@@ -58,13 +85,13 @@ export default function SimulasiPage() {
   }[tab]
 
   return (
-    <div className="flex-1 pb-24 lg:pb-16">
+    <div className="flex-1 pb-16">
       <Topbar
         title="Simulasi Dapur & Bisnis"
         subtitle="Eksplorasi proyeksi keuntungan penjualan, perubahan harga bahan baku distributor, dan kecukupan supply berbasis database"
       />
 
-      <main className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">
         {/* Error Alert */}
         {error && (
           <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-3">
@@ -82,84 +109,106 @@ export default function SimulasiPage() {
           </div>
         )}
 
-        {/* Hero Section dengan Maskot Dapi */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#FFB800] px-6 py-6 sm:px-8 sm:py-7 min-h-[180px] shadow-xs">
-          <div className="absolute right-48 top-5 w-16 h-16 rounded-full bg-[#FF7A59] hidden md:block opacity-80" />
-          <div className="absolute right-36 top-16 w-28 h-8 rounded-full bg-white/90 hidden md:block" />
-
-          {/* Maskot Dapi */}
-          <div className="absolute right-4 sm:right-8 bottom-0 pointer-events-none">
-            <DapiMascot
-              width={150}
-              mood="senang"
-              className="translate-y-6 drop-shadow-xs"
-            />
+        {/* Banner utama: Dapi keluar dari kotak */}
+        <section className="relative mt-10 sm:mt-12 rounded-[36px] bg-gradient-to-br from-[#FFC93C] via-kuning to-[#FF9A1F] shadow-[0_22px_40px_rgba(220,130,0,0.28),inset_0_-10px_0_rgba(170,90,0,0.12)]">
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
+            <span className="absolute right-[18%] -top-24 h-80 w-80 rounded-full bg-white/20" />
+            <span className="absolute -right-14 -bottom-28 h-72 w-72 rounded-full bg-koral/25" />
+            <span className="absolute left-[46%] bottom-6 h-4 w-4 rounded-full bg-white/70" />
+            <span className="absolute left-[52%] top-8 h-2.5 w-2.5 rounded-full bg-koral/60" />
           </div>
 
-          <div className="relative space-y-3 pr-28 sm:pr-48">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-lg bg-[#2B1D00]/10 flex items-center justify-center text-[#2B1D00]">
-                <Calculator className="w-3.5 h-3.5" />
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#5C3D00]">
-                Simulator Keuangan & Produksi
-              </p>
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2B1D00] tracking-tight leading-tight">
+          <div className="relative flex flex-col gap-3 p-6 sm:p-10 md:max-w-[58%]">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none text-kopi">
               {activeTabMeta.title}
             </h2>
-
-            <p className="text-xs sm:text-sm text-[#4D3300] font-medium max-w-xl">
+            <p className="text-sm sm:text-base text-[#5A3A00] leading-snug">
               {activeTabMeta.subtitle}
             </p>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="inline-flex items-center rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-[#2B1D00] shadow-xs">
-                {menus.length} menu siap jual
-              </span>
-
-              <span className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xs px-3.5 py-1.5 text-xs font-bold text-[#2B1D00]">
-                {bahanList.length} bahan baku terhubung
-              </span>
+            <div className="mt-2 flex flex-wrap gap-2.5">
+              <button
+                type="button"
+                onClick={refresh}
+                disabled={isLoading}
+                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap disabled:opacity-50"
+              >
+                <RefreshCw className={clsx('w-4 h-4 flex-shrink-0', isLoading && 'animate-spin')} />
+                Perbarui Kalkulasi
+              </button>
+              <div className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                <span>Menu Aktif:</span>
+                <span className="font-mono font-black text-kopi">{menus.length}</span>
+              </div>
+              <div className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                <span>Bahan Terhubung:</span>
+                <span className="font-mono font-black text-[#7F9A2E]">{bahanList.length}</span>
+              </div>
             </div>
+          </div>
+
+          {/* Kartu simulasi miring (dekorasi) */}
+          <div aria-hidden className="hidden lg:flex absolute right-[300px] -top-8 w-36 -rotate-[8deg] flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_18px_30px_rgba(120,60,0,0.25)]">
+            <span className="text-[11px] font-black text-koral-gelap tracking-wider">SIMULASI</span>
+            <span className="h-2 rounded bg-krim-garis" />
+            <span className="h-2 w-[70%] rounded bg-krim-garis" />
+            <span className="h-2 w-[85%] rounded bg-krim-garis" />
+          </div>
+
+          {/* Dapi menyembul keluar dari atas kotak */}
+          <div aria-hidden className="hidden md:block absolute right-8 lg:right-14 bottom-0 leading-[0] drop-shadow-[0_18px_22px_rgba(120,50,0,0.35)]">
+            <DapiHead size={220} />
           </div>
         </section>
 
-        {/* Navigation Tabs and Refresh Button */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            {tabsConfig.map(t => {
-              const Icon = t.icon
-              const active = tab === t.key
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setTab(t.key)}
+        {/* Status Flow Stats Card Identik PO */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {STATUS_CARDS.map(st => {
+            const active = tab === st.key
+            return (
+              <button
+                key={st.key}
+                type="button"
+                onClick={() => setTab(st.key)}
+                className={clsx(
+                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col gap-4 min-h-[140px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  active
+                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
+                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
+                )}
+              >
+                <span
+                  aria-hidden
                   className={clsx(
-                    'flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer',
-                    active
-                      ? 'bg-[#2B261F] text-white shadow-xs'
-                      : 'bg-white text-[#7A7062] border border-[#EBE6DC] hover:bg-[#FFF9EC]'
+                    'absolute -right-10 -bottom-12 h-36 w-36 rounded-full',
+                    active ? 'bg-white/20' : 'bg-white/55'
                   )}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{t.label}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={isLoading}
-            className="px-4 py-2.5 rounded-full bg-white border border-[#EBE6DC] text-xs font-bold text-[#7A7062] hover:text-[#2B261F] hover:bg-[#FFF9EC] transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#FF6B00]' : ''}`} />
-            <span>Perbarui Data</span>
-          </button>
+                />
+                <div className="relative flex items-center justify-between">
+                  <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
+                  <span
+                    className={clsx(
+                      'h-9 w-9 rounded-full flex items-center justify-center',
+                      active ? 'bg-white/30' : 'bg-white/60'
+                    )}
+                  >
+                    <st.Icon className="w-4 h-4" />
+                  </span>
+                </div>
+                <div className="relative">
+                  <p className="text-2xl sm:text-3xl font-black tracking-tight leading-none">
+                    {st.key === 'penjualan'
+                      ? `${menus.length} Menu`
+                      : st.key === 'supplier'
+                      ? `${bahanList.length} Bahan`
+                      : 'Kesiapan Stok'}
+                  </p>
+                  <p className={clsx('text-xs mt-1.5 truncate', active ? 'opacity-85' : 'text-kopi-muted')}>
+                    {st.hint}
+                  </p>
+                </div>
+              </button>
+            )
+          })}
         </div>
 
         {/* Loading State or Tab Content */}
