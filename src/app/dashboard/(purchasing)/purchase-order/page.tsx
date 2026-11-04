@@ -12,6 +12,7 @@ import { PurchaseOrder, AIPORekomendasiItem, CreatePOInput } from './types'
 import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn, ReceiptText, SlidersHorizontal, ScanLine, PencilLine, Truck, PackageCheck, Wallet, Bot } from 'lucide-react'
 import clsx from 'clsx'
 import DapiHead from '@/components/ui/DapiHead'
+import { useToast } from '@/context/ToastContext'
 
 const STATUS_CARDS = [
   { key: 'draft', label: 'Draft', hint: 'Belum dikirim ke supplier', Icon: PencilLine, tint: 'bg-[#FFEDB3]', on: 'bg-kuning text-kopi' },
@@ -38,6 +39,52 @@ export default function PurchaseOrderPage() {
     verifyPenerimaan,
     refresh,
   } = usePurchaseOrder()
+
+  const toast = useToast()
+
+  const handleCreatePOWithToast = async (input: CreatePOInput) => {
+    try {
+      await createPO(input)
+      toast.success(
+        'Purchase Order Berhasil Dibuat',
+        `PO untuk ${input.namaSupplier || 'Supplier'} siap diproses.`
+      )
+    } catch (err: any) {
+      toast.error('Gagal Membuat PO', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
+
+  const handleUpdateStatusWithToast = async (poId: string, newStatus: any) => {
+    try {
+      await updateStatus(poId, newStatus)
+      const statusLabel =
+        newStatus === 'dikirim'
+          ? 'Dikirim ke Supplier'
+          : newStatus === 'diterima'
+          ? 'Diterima'
+          : newStatus === 'tagihan'
+          ? 'Masuk ke Tagihan'
+          : newStatus
+      toast.success('Status PO Diperbarui', `Status PO berhasil diubah menjadi "${statusLabel}".`)
+    } catch (err: any) {
+      toast.error('Gagal Memperbarui Status', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
+
+  const handleVerifyPenerimaanWithToast = async (input: any) => {
+    try {
+      await verifyPenerimaan(input)
+      toast.success(
+        'Barang Diterima & Stok Bertambah',
+        'Stok bahan baku dapur telah otomatis diperbarui sesuai kuantitas aktual.'
+      )
+    } catch (err: any) {
+      toast.error('Gagal Verifikasi Barang', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
 
   const [showWizard, setShowWizard] = useState(false)
   const [verifyingPO, setVerifyingPO] = useState<PurchaseOrder | null>(null)
@@ -300,7 +347,7 @@ export default function PurchaseOrderPage() {
         ) : (
           <POTable
             list={list}
-            onUpdateStatus={updateStatus}
+            onUpdateStatus={handleUpdateStatusWithToast}
             onRequestVerifyTerima={po => setVerifyingPO(po)}
           />
         )}
@@ -313,7 +360,7 @@ export default function PurchaseOrderPage() {
           setShowWizard(false)
           setWizardPreload(null)
         }}
-        onSave={createPO}
+        onSave={handleCreatePOWithToast}
         suppliers={suppliers}
         bahanList={bahanList}
         initialItems={wizardPreload?.items}
@@ -340,7 +387,7 @@ export default function PurchaseOrderPage() {
         isOpen={!!verifyingPO}
         onClose={() => setVerifyingPO(null)}
         po={verifyingPO}
-        onConfirm={verifyPenerimaan}
+        onConfirm={handleVerifyPenerimaanWithToast}
       />
     </div>
   )

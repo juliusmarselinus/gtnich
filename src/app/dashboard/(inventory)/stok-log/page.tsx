@@ -9,6 +9,7 @@ import ManualMutasiModal from './components/ManualMutasiModal'
 import { useStokLog } from './hooks/useStokLog'
 import { Database, ClipboardCheck, Plus, Loader2, AlertCircle, RefreshCw, LogIn, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
 import clsx from 'clsx'
+import { useToast } from '@/context/ToastContext'
 
 export default function StokLogPage() {
   const {
@@ -32,6 +33,34 @@ export default function StokLogPage() {
 
   const [tab, setTab] = useState<'log' | 'opname'>('log')
   const [showModal, setShowModal] = useState(false)
+  const toast = useToast()
+
+  const handleSaveOpnameWithToast = async (): Promise<number> => {
+    try {
+      const count = await saveOpname()
+      toast.success(
+        'Stock Opname Berhasil Disimpan',
+        `Penyesuaian selisih fisik (${count} item) telah diaudit dan stok gudang diperbarui.`
+      )
+      return count
+    } catch (err: any) {
+      toast.error('Gagal Menyimpan Opname', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
+
+  const handleRecordManualMutasiWithToast = async (input: any) => {
+    try {
+      await recordManualMutasi(input)
+      toast.success(
+        'Mutasi Stok Manual Tercatat',
+        `Perubahan stok sebesar ${input.perubahan > 0 ? '+' : ''}${input.perubahan} berhasil dibukukan.`
+      )
+    } catch (err: any) {
+      toast.error('Gagal Mencatat Mutasi', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
 
   return (
     <div className="flex-1 pb-16">
@@ -165,7 +194,7 @@ export default function StokLogPage() {
               <OpnameTable
                 entries={opnameList}
                 onUpdateAktual={updateOpnameAktual}
-                onSave={saveOpname}
+                onSave={handleSaveOpnameWithToast}
               />
             )}
           </>
@@ -176,7 +205,7 @@ export default function StokLogPage() {
       <ManualMutasiModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onSave={recordManualMutasi}
+        onSave={handleRecordManualMutasiWithToast}
         bahanList={bahanList}
       />
     </div>

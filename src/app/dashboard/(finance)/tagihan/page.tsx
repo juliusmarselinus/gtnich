@@ -22,6 +22,7 @@ import {
 import CustomSelect from '@/components/ui/CustomSelect'
 import { formatRupiah } from '@/lib/mock-data'
 import clsx from 'clsx'
+import { useToast } from '@/context/ToastContext'
 
 export default function TagihanPage() {
   const {
@@ -42,6 +43,20 @@ export default function TagihanPage() {
   } = useTagihan()
 
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null)
+  const toast = useToast()
+
+  const handlePayTagihanWithToast = async (input: any) => {
+    try {
+      await payTagihan(input)
+      toast.success(
+        'Pembayaran Tagihan Berhasil',
+        `PO ${input.noPO} senilai ${formatRupiah(input.nominalBayar)} telah ditandai lunas.`
+      )
+    } catch (err: any) {
+      toast.error('Gagal Memproses Pembayaran', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
 
   return (
     <div className="flex-1 pb-16">
@@ -227,7 +242,7 @@ export default function TagihanPage() {
         isOpen={!!selectedPO}
         onClose={() => setSelectedPO(null)}
         po={selectedPO}
-        onBayarSuccess={payTagihan}
+        onBayarSuccess={handlePayTagihanWithToast}
       />
     </div>
   )

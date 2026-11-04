@@ -26,6 +26,7 @@ import {
   UtensilsCrossed,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { useToast } from '@/context/ToastContext'
 
 export default function PenjualanPage() {
   const {
@@ -59,6 +60,7 @@ export default function PenjualanPage() {
   const [activeTab, setActiveTab] = useState<'katalog' | 'riwayat'>('katalog')
   const [successNotif, setSuccessNotif] = useState<string | null>(null)
   const [receiptOrder, setReceiptOrder] = useState<OrderRecord | null>(null)
+  const toast = useToast()
 
   const cartItemCounts = cart.reduce((acc, item) => {
     acc[item.menuId] = item.cartQty
@@ -83,11 +85,20 @@ export default function PenjualanPage() {
   }
 
   const handleCheckout = async (form: CheckoutFormInput) => {
-    const res = await processCheckout(form)
-    setReceiptOrder(res)
-    setSuccessNotif(`Transaksi ${res.invoiceNumber} berhasil disimpan!`)
-    setTimeout(() => setSuccessNotif(null), 4500)
-    return res
+    try {
+      const res = await processCheckout(form)
+      setReceiptOrder(res)
+      setSuccessNotif(`Transaksi ${res.invoiceNumber} berhasil disimpan!`)
+      toast.success(
+        'Transaksi Berhasil Disimpan',
+        `No. Struk ${res.invoiceNumber} senilai ${formatRupiah(res.totalPrice)} dicatat. Stok dapur otomatis terpotong.`
+      )
+      setTimeout(() => setSuccessNotif(null), 4500)
+      return res
+    } catch (err: any) {
+      toast.error('Gagal Proses Transaksi', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
   }
 
   return (

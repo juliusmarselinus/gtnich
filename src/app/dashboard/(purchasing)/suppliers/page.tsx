@@ -9,6 +9,7 @@ import SupplierModal from './components/SupplierModal'
 import { useSuppliers } from './hooks/useSuppliers'
 import { Supplier } from './types'
 import { Loader2, RefreshCw, AlertCircle, LogIn } from 'lucide-react'
+import { useToast } from '@/context/ToastContext'
 
 export default function SuppliersPage() {
   const {
@@ -27,6 +28,7 @@ export default function SuppliersPage() {
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Supplier | null>(null)
+  const toast = useToast()
 
   function openAdd() {
     setEditing(null)
@@ -38,9 +40,29 @@ export default function SuppliersPage() {
     setShowModal(true)
   }
 
-  function handleDelete(id: string) {
-    if (confirm('Yakin ingin menghapus supplier ini dari database?')) {
-      deleteSupplier(id)
+  const handleSaveSupplierWithToast = async (id: string | null, form: any) => {
+    try {
+      await saveSupplier(id, form)
+      toast.success(
+        id ? 'Supplier Berhasil Diperbarui' : 'Supplier Berhasil Ditambahkan',
+        `Kemitraan supplier "${form.nama}" tersimpan.`
+      )
+    } catch (err: any) {
+      toast.error('Gagal Menyimpan Supplier', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
+
+  async function handleDelete(id: string) {
+    const target = list.find(s => s.id === id)
+    const namaSupplier = target ? target.nama : 'Supplier'
+    if (confirm(`Yakin ingin menghapus ${namaSupplier} dari database?`)) {
+      try {
+        await deleteSupplier(id)
+        toast.success('Supplier Dihapus', `${namaSupplier} telah dihapus dari daftar.`)
+      } catch (err: any) {
+        toast.error('Gagal Menghapus Supplier', err.message || 'Terjadi kesalahan sistem')
+      }
     }
   }
 
@@ -113,7 +135,7 @@ export default function SuppliersPage() {
       <SupplierModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onSave={saveSupplier}
+        onSave={handleSaveSupplierWithToast}
         editingSupplier={editing}
         categories={categories}
       />

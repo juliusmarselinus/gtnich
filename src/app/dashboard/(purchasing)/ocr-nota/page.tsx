@@ -5,6 +5,7 @@ import Topbar from '@/components/Topbar'
 import { useOCRNota } from './hooks/useOCRNota'
 import ScanResultView from './components/ScanResultView'
 import { Image as ImageIcon, Loader2, Sparkles, CheckCircle2, ShieldAlert } from 'lucide-react'
+import { useToast } from '@/context/ToastContext'
 
 export default function OCRNotaPage() {
   const {
@@ -34,6 +35,22 @@ export default function OCRNotaPage() {
   } = useOCRNota()
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const toast = useToast()
+
+  const handleSaveToPOWithToast = async () => {
+    try {
+      await handleSaveToPO()
+      toast.success(
+        'Nota Berhasil Disimpan ke PO',
+        updateStokDirectly
+          ? 'Purchase Order dibuat dan stok bahan telah otomatis masuk ke dapur.'
+          : 'Purchase Order berhasil dibuat dari pemindaian nota.'
+      )
+    } catch (err: any) {
+      toast.error('Gagal Menyimpan Nota ke PO', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -165,7 +182,7 @@ export default function OCRNotaPage() {
             onRemoveItem={handleRemoveItem}
             onAddItem={handleAddItem}
             onReset={handleReset}
-            onSaveToPO={handleSaveToPO}
+            onSaveToPO={handleSaveToPOWithToast}
             isSaving={isSaving}
             savedPO={savedPO}
           />

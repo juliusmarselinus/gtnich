@@ -23,6 +23,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { useToast } from '@/context/ToastContext'
 
 export default function MenuPage() {
   const {
@@ -73,14 +74,32 @@ export default function MenuPage() {
     setDeletingMenu(m)
   }
 
+  const toast = useToast()
+
+  const handleSaveMenuWithToast = async (id: string | null, form: any) => {
+    try {
+      await saveMenu(id, form)
+      toast.success(
+        id ? 'Menu Berhasil Diperbarui' : 'Menu Berhasil Ditambahkan',
+        `Hidangan "${form.nama}" siap disajikan dan dipantau HPP-nya.`
+      )
+    } catch (err: any) {
+      toast.error('Gagal Menyimpan Menu', err.message || 'Terjadi kesalahan sistem')
+      throw err
+    }
+  }
+
   async function handleConfirmDelete() {
     if (!deletingMenu) return
+    const namaMenu = deletingMenu.nama
     setIsDeleting(true)
     try {
       await deleteMenu(deletingMenu.id)
       setDeletingMenu(null)
-    } catch (err) {
+      toast.success('Menu Dihapus', `Menu "${namaMenu}" telah dihapus dari daftar.`)
+    } catch (err: any) {
       console.error('Delete menu error:', err)
+      toast.error('Gagal Menghapus Menu', err.message || 'Terjadi kesalahan sistem')
     } finally {
       setIsDeleting(false)
     }
@@ -347,7 +366,7 @@ export default function MenuPage() {
       <MenuModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onSave={saveMenu}
+        onSave={handleSaveMenuWithToast}
         editingMenu={editing}
         bahanList={bahanList}
         onRefreshBahan={refresh}
