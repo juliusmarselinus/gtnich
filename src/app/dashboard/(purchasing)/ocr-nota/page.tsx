@@ -2,9 +2,18 @@
 
 import { useRef } from 'react'
 import Topbar from '@/components/Topbar'
+import DapiMascot from '@/components/ui/DapiMascot'
 import { useOCRNota } from './hooks/useOCRNota'
 import ScanResultView from './components/ScanResultView'
-import { Image as ImageIcon, Loader2, Sparkles, CheckCircle2, ShieldAlert } from 'lucide-react'
+import {
+  Image as ImageIcon,
+  Loader2,
+  ShieldAlert,
+  ScanLine,
+  UploadCloud,
+  FileCheck2,
+  Layers,
+} from 'lucide-react'
 import { useToast } from '@/context/ToastContext'
 
 export default function OCRNotaPage() {
@@ -67,37 +76,33 @@ export default function OCRNotaPage() {
     }
   }
 
+  const heroStatus = {
+    mood: (error ? 'khawatir' : 'senang') as 'khawatir' | 'senang',
+    title:
+      state === 'done'
+        ? `${items.length} Bahan Terbaca dari Nota`
+        : state === 'uploading'
+        ? 'Sedang Membaca Dokumen Nota...'
+        : 'Pemindai Struk & Nota Pembelian',
+    subtitle:
+      state === 'done'
+        ? 'Periksa kembali hasil pembacaan sebelum disimpan ke Purchase Order atau dimasukkan langsung ke stok.'
+        : state === 'uploading'
+        ? 'Menganalisis baris teks, angka kuantitas, dan harga belanja secara otomatis.'
+        : 'Unggah struk minimarket, pasar tradisional, atau faktur distributor untuk otomatisasi pencatatan PO dapur.',
+  }
+
   return (
-    <div className="flex-1 pb-16">
+    <div className="flex-1 pb-24 lg:pb-16">
       <Topbar
         title="Pemindai Struk & Nota Pembelian"
         subtitle="Foto atau unggah nota belanja supplier untuk membaca rincian bahan secara otomatis"
       />
 
-      <main className="p-4 sm:p-6 md:p-8 space-y-7 max-w-5xl mx-auto">
-        {/* Banner Fitur Pindai Cerdas */}
-        <div className="clay-card p-4 sm:p-5 border-l-4 border-l-[#FF8F2B] bg-[#FFF6EC]/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="w-9 h-9 rounded-xl bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2] flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-5 h-5" />
-            </span>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-                Pindai Otomatis Nota Belanja Dapur
-              </h4>
-              <p className="text-[11px] text-slate-500">
-                Membantu koki & pemilik usaha membaca berbagai format nota fisik & digital (struk minimarket, nota pasar tradisional, grosir) langsung jadi daftar stok.
-              </p>
-            </div>
-          </div>
-          <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200 font-mono self-start sm:self-auto">
-            Fitur Cerdas Aktif
-          </span>
-        </div>
-
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
         {/* Error Alert jika ada */}
         {error && (
-          <div className="clay-card p-4 border border-rose-200 bg-rose-50 text-rose-700 flex items-start gap-3 text-xs animate-in fade-in">
+          <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50 text-rose-700 flex items-start gap-3 text-xs animate-in fade-in">
             <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5 text-rose-500" />
             <div>
               <p className="font-bold">Gagal Memproses Nota</p>
@@ -106,13 +111,57 @@ export default function OCRNotaPage() {
           </div>
         )}
 
+        {/* Hero Section dengan Maskot Dapi */}
+        <section className="relative overflow-hidden rounded-[28px] bg-[#FFB800] px-6 py-6 sm:px-8 sm:py-7 min-h-[180px] shadow-xs">
+          <div className="absolute right-48 top-5 w-16 h-16 rounded-full bg-[#FF7A59] hidden md:block opacity-80" />
+          <div className="absolute right-36 top-16 w-28 h-8 rounded-full bg-white/90 hidden md:block" />
+
+          {/* Maskot Dapi */}
+          <div className="absolute right-4 sm:right-8 bottom-0 pointer-events-none">
+            <DapiMascot
+              width={150}
+              mood={heroStatus.mood}
+              className="translate-y-6 drop-shadow-xs"
+            />
+          </div>
+
+          <div className="relative space-y-3 pr-28 sm:pr-48">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-lg bg-[#2B1D00]/10 flex items-center justify-center text-[#2B1D00]">
+                <ScanLine className="w-3.5 h-3.5" />
+              </span>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#5C3D00]">
+                Ekstraksi Pembelian Dapur
+              </p>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2B1D00] tracking-tight leading-tight">
+              {heroStatus.title}
+            </h2>
+
+            <p className="text-xs sm:text-sm text-[#4D3300] font-medium max-w-xl">
+              {heroStatus.subtitle}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="inline-flex items-center rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-[#2B1D00] shadow-xs">
+                Format: JPG, PNG, WebP
+              </span>
+
+              <span className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xs px-3.5 py-1.5 text-xs font-bold text-[#2B1D00]">
+                Otomatis Cocokkan Satuan & DB
+              </span>
+            </div>
+          </div>
+        </section>
+
         {/* State 1: Upload Dropzone (Ketika belum ada file diproses) */}
         {state === 'idle' && (
           <div
             onDragOver={e => e.preventDefault()}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="clay-card border-2 border-dashed border-slate-300 hover:border-[#FF8F2B] hover:bg-[#FFF6EC]/20 transition-all p-10 sm:p-14 text-center cursor-pointer group rounded-3xl"
+            className="rounded-[32px] bg-white border-2 border-dashed border-[#EBE6DC] hover:border-[#FF8F2B] hover:bg-[#FFFDF9] transition-all p-10 sm:p-14 text-center cursor-pointer group shadow-xs"
           >
             <input
               type="file"
@@ -121,44 +170,45 @@ export default function OCRNotaPage() {
               accept="image/*,.pdf"
               className="hidden"
             />
-            <div className="w-16 h-16 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform clay-pill">
-              <ImageIcon className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-2xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-xs">
+              <UploadCloud className="w-8 h-8" />
             </div>
-            <h3 className="text-sm sm:text-base font-extrabold text-slate-800">
+            <h3 className="text-sm sm:text-base font-extrabold text-[#2B261F]">
               Pilih atau Tarik Foto Nota Pembelian ke Sini
             </h3>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              Mendukung file JPG, PNG, atau WebP. Pastikan foto memiliki pencahayaan cukup dan teks terbaca jelas.
+            <p className="text-xs text-[#8C8275] mt-1 max-w-sm mx-auto">
+              Mendukung foto nota fisik, struk belanja pasar, atau tangkapan layar e-receipt.
             </p>
-            <div className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl clay-btn-primary text-xs font-bold shadow-sm">
-              Unggah Foto Nota
+            <div className="mt-5 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all">
+              <ImageIcon className="w-4 h-4" />
+              <span>Unggah Foto Nota</span>
             </div>
           </div>
         )}
 
         {/* State 2: Progress OCR Processing */}
         {state === 'uploading' && (
-          <div className="clay-card p-10 sm:p-14 text-center space-y-4 max-w-lg mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-[#FFF6EC] text-[#FF8F2B] flex items-center justify-center mx-auto clay-pill animate-pulse">
+          <div className="rounded-[32px] bg-white border border-[#EBE6DC] p-10 sm:p-14 text-center space-y-4 max-w-lg mx-auto shadow-xs">
+            <div className="w-16 h-16 rounded-2xl bg-[#FFF6D6] text-[#FF6B00] flex items-center justify-center mx-auto shadow-xs">
               <Loader2 className="w-8 h-8 animate-spin" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-800">
+              <h3 className="text-sm sm:text-base font-extrabold text-[#2B261F]">
                 Sedang Memindai & Mengekstrak Nota...
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-[#8C8275] mt-1">
                 {ocrStatusText || 'Menganalisis teks nota...'}
               </p>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-[#F5F2EB] rounded-full h-2.5 overflow-hidden border border-[#EBE6DC]">
               <div
-                className="bg-[#FF8F2B] h-2.5 rounded-full transition-all duration-300 ease-out"
+                className="bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] h-2.5 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${Math.max(5, ocrProgress)}%` }}
               />
             </div>
-            <p className="text-[11px] font-mono text-slate-400 font-bold">
+            <p className="text-[11px] font-mono text-[#8C8275] font-bold">
               {ocrProgress}% selesai
             </p>
           </div>

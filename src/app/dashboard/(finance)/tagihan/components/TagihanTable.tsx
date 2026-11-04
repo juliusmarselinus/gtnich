@@ -1,18 +1,23 @@
 'use client'
 
-import { useState } from 'react'
 import { PurchaseOrder } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import {
   FileText,
   Calendar,
-  Building2,
   CheckCircle2,
   Clock,
   ChevronRight,
   CreditCard,
-  Package,
 } from 'lucide-react'
+import clsx from 'clsx'
+
+const AVATAR_BG = ['bg-kuning-batang', 'bg-koral-muda', 'bg-[#E2EBC0]', 'bg-[#E3DCF3]', 'bg-krim']
+
+function initialOf(name: string) {
+  const clean = name.replace(/^(PT|CV|UD|Toko|Pasar)\.?\s+/i, '').trim()
+  return (clean[0] || '?').toUpperCase()
+}
 
 interface TagihanTableProps {
   list: PurchaseOrder[]
@@ -26,34 +31,34 @@ export default function TagihanTable({
   onBayar,
 }: TagihanTableProps) {
   return (
-    <div className="rounded-[32px] bg-white p-2 sm:p-4 shadow-[0_14px_34px_rgba(120,80,30,0.10)] border border-[#EBE6DC] overflow-hidden">
-      {/* 1. TAMPILAN DESKTOP (Tabel Lebar Bersih DapurTwin) */}
+    <div className="rounded-[32px] bg-white p-2 sm:p-3 shadow-[0_14px_34px_rgba(120,80,30,0.10)] overflow-hidden">
+      {/* 1. TAMPILAN DESKTOP (Tabel Lebar Identik PO) */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-xs min-w-[780px] border-separate border-spacing-y-2">
           <thead>
             <tr className="whitespace-nowrap">
-              <th className="text-left px-5 pt-3 pb-1 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+              <th className="text-left px-5 pt-3 pb-1 font-bold text-kopi-muted/80 uppercase tracking-wider text-[11px]">
                 No. Tagihan / PO
               </th>
-              <th className="text-left px-5 pt-3 pb-1 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+              <th className="text-left px-5 pt-3 pb-1 font-bold text-kopi-muted/80 uppercase tracking-wider text-[11px]">
                 Distributor / Supplier
               </th>
-              <th className="text-left px-5 pt-3 pb-1 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+              <th className="text-left px-5 pt-3 pb-1 font-bold text-kopi-muted/80 uppercase tracking-wider text-[11px]">
                 Tgl Diterima
               </th>
-              <th className="text-center px-5 pt-3 pb-1 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+              <th className="text-center px-4 pt-3 pb-1 font-bold text-kopi-muted/80 uppercase tracking-wider text-[11px]">
                 Status Pembayaran
               </th>
-              <th className="text-right px-5 pt-3 pb-1 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
+              <th className="text-right px-5 pt-3 pb-1 font-bold text-kopi-muted/80 uppercase tracking-wider text-[11px]">
                 Total Tagihan Aktual
               </th>
-              <th className="px-5 pt-3 pb-1 text-right font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                Tindakan
+              <th className="px-5 pt-3 pb-1 text-right font-bold text-kopi-muted/80 uppercase tracking-wider text-[11px]">
+                Aksi & Tindakan
               </th>
             </tr>
           </thead>
           <tbody>
-            {list.map(po => {
+            {list.map((po, idx) => {
               const amount = po.totalAktual > 0 ? po.totalAktual : po.totalEstimasi
               const isLunas = po.catatan?.includes('[LUNAS') || false
               const tglTerimaStr = po.tanggalTerima
@@ -63,68 +68,83 @@ export default function TagihanTable({
                     year: 'numeric',
                   })
                 : po.tanggalBuat
+              const supplierName = po.namaSupplier || 'Tanpa Supplier (Beli Langsung)'
 
               return (
                 <tr
                   key={po.id}
-                  className="rounded-2xl transition-all duration-200 bg-[#FFFDF9] hover:bg-[#FFF6EC] shadow-[0_2px_8px_rgba(120,80,30,0.04)]"
+                  className="group transition-colors"
                 >
-                  <td className="px-5 py-4 rounded-l-2xl">
-                    <p className="font-mono font-bold text-[#2B1D00] text-sm flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-slate-400" />
+                  <td className="px-5 py-3.5 whitespace-nowrap rounded-l-3xl border-l-2 border-y-2 border-transparent bg-[#FAF7F2] group-hover:bg-kuning-pucat group-hover:border-kuning-batang/30">
+                    <p className="font-black text-kopi text-xs sm:text-sm flex items-center gap-1.5 font-mono">
+                      <FileText className="w-3.5 h-3.5 text-kopi-muted flex-shrink-0" />
                       {po.noPO}
                     </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
+                    <span className="text-[10px] text-kopi-muted block mt-0.5">
                       {po.items.length} item bahan dipesan
-                    </p>
+                    </span>
                   </td>
 
-                  <td className="px-5 py-4 font-semibold text-slate-700">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-[#FFE4BF] text-[#7A4B00] flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {po.namaSupplier ? po.namaSupplier[0].toUpperCase() : 'S'}
+                  <td className="px-5 py-3.5 border-y-2 border-transparent bg-[#FAF7F2] group-hover:bg-kuning-pucat group-hover:border-kuning-batang/30">
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={clsx(
+                          'flex-shrink-0 h-9 w-9 rounded-xl flex items-center justify-center text-xs font-black text-kopi',
+                          AVATAR_BG[idx % AVATAR_BG.length]
+                        )}
+                      >
+                        {initialOf(supplierName)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-bold text-kopi text-xs sm:text-sm leading-snug truncate max-w-[180px] sm:max-w-[220px]" title={supplierName}>
+                          {supplierName}
+                        </p>
+                        <span className="text-[10px] text-kopi-muted block mt-0.5">
+                          Faktur Masuk
+                        </span>
                       </div>
-                      <span className="font-bold text-[#2B1D00]">{po.namaSupplier}</span>
                     </div>
                   </td>
 
-                  <td className="px-5 py-4 text-slate-500 font-mono text-[11px]">
+                  <td className="px-5 py-3.5 text-kopi-muted font-mono text-[11px] whitespace-nowrap border-y-2 border-transparent bg-[#FAF7F2] group-hover:bg-kuning-pucat group-hover:border-kuning-batang/30">
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <Calendar className="w-3.5 h-3.5 text-kopi-muted" />
                       <span>{tglTerimaStr}</span>
                     </div>
                   </td>
 
-                  <td className="px-5 py-4 text-center">
+                  <td className="px-4 py-3.5 text-center whitespace-nowrap border-y-2 border-transparent bg-[#FAF7F2] group-hover:bg-kuning-pucat group-hover:border-kuning-batang/30">
                     {isLunas ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-[#E8F5E4] text-[#2D7A1F] border border-[#C3E6BD]">
-                        <CheckCircle2 className="w-3 h-3 text-[#2D7A1F]" /> Lunas Terbayar
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#E2EBC0] text-[#5E7420]">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Lunas Terbayar
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-[#FDE8E4] text-[#D8431F] border border-[#FAD3CB]">
-                        <Clock className="w-3 h-3 text-[#D8431F]" /> Menunggu Pembayaran
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#F2D9CC] text-[#C2502F]">
+                        <Clock className="w-3.5 h-3.5" /> Menunggu Pembayaran
                       </span>
                     )}
                   </td>
 
-                  <td className="px-5 py-4 text-right font-mono font-black text-[#2B1D00] text-sm">
+                  <td className="px-5 py-3.5 text-right font-black text-kopi text-xs sm:text-sm whitespace-nowrap font-mono border-y-2 border-transparent bg-[#FAF7F2] group-hover:bg-kuning-pucat group-hover:border-kuning-batang/30">
                     {formatRupiah(amount)}
                   </td>
 
-                  <td className="px-5 py-4 text-right rounded-r-2xl">
+                  <td className="px-5 py-3.5 text-right whitespace-nowrap rounded-r-3xl border-r-2 border-y-2 border-transparent bg-[#FAF7F2] group-hover:bg-kuning-pucat group-hover:border-kuning-batang/30">
                     <div className="flex items-center justify-end gap-2">
                       <button
+                        type="button"
                         onClick={() => onSelectDetail(po)}
-                        className="px-3.5 py-1.5 rounded-full bg-white border border-[#EBE6DC] text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-[#F7F5F0] transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+                        className="h-9 px-3.5 rounded-full bg-white border border-[#EBE6DC] text-xs font-bold text-kopi hover:bg-krim transition-all cursor-pointer flex items-center gap-1 shadow-[0_3px_10px_rgba(120,80,30,0.06)] hover:-translate-y-0.5"
                       >
                         <span>Rincian</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                        <ChevronRight className="w-3.5 h-3.5 text-kopi-muted" />
                       </button>
 
                       {!isLunas && (
                         <button
+                          type="button"
                           onClick={() => onBayar(po)}
-                          className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] hover:from-[#FF7A10] hover:to-[#E55F00] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-xs shadow-[#FF8F2B]/20 transition-all hover:scale-102"
+                          className="h-9 px-4 rounded-full bg-[#C2502F] hover:bg-[#a63f22] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-[0_6px_14px_rgba(194,80,47,0.25)] transition-all hover:-translate-y-0.5"
                         >
                           <CreditCard className="w-3.5 h-3.5" />
                           <span>Bayar</span>
@@ -139,86 +159,78 @@ export default function TagihanTable({
         </table>
       </div>
 
-      {/* 2. TAMPILAN MOBILE: Kolom Terpadu & Multi-Informasi Efisien */}
-      <div className="block md:hidden space-y-3">
-        {list.map(po => {
+      {/* 2. TAMPILAN MOBILE & TABLET (Card-based Layout Identik PO) */}
+      <div className="md:hidden space-y-3 p-1">
+        {list.map((po, idx) => {
           const amount = po.totalAktual > 0 ? po.totalAktual : po.totalEstimasi
           const isLunas = po.catatan?.includes('[LUNAS') || false
           const tglTerimaStr = po.tanggalTerima
             ? new Date(po.tanggalTerima).toLocaleDateString('id-ID', {
-                day: 'numeric',
+                day: '2-digit',
                 month: 'short',
                 year: 'numeric',
               })
             : po.tanggalBuat
+          const supplierName = po.namaSupplier || 'Tanpa Supplier (Beli Langsung)'
 
           return (
             <div
               key={po.id}
-              className="p-4 rounded-2xl bg-[#FFFDF9] border border-[#EBE6DC] space-y-3 hover:border-[#FFB800] transition-colors shadow-xs"
+              className="p-5 rounded-[26px] bg-[#FAF7F2] border border-[#EBE6DC]/80 space-y-4"
             >
-              {/* Baris 1: No PO + Status Tagihan */}
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="font-mono font-black text-[#2B1D00] text-sm flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#FF8F2B]" />
-                    {po.noPO}
+                <div className="flex items-center gap-3">
+                  <span
+                    className={clsx(
+                      'flex-shrink-0 h-11 w-11 rounded-2xl flex items-center justify-center text-sm font-black text-kopi',
+                      AVATAR_BG[idx % AVATAR_BG.length]
+                    )}
+                  >
+                    {initialOf(supplierName)}
                   </span>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
-                    <span className="flex items-center gap-1 text-[#2B1D00] font-semibold truncate max-w-[140px]">
-                      <Building2 className="w-3 h-3 text-slate-400" />
-                      {po.namaSupplier}
-                    </span>
-                    <span>•</span>
-                    <span className="font-mono">{po.items.length} item</span>
+                  <div>
+                    <h4 className="font-extrabold text-kopi text-sm leading-snug">{supplierName}</h4>
+                    <p className="text-[11px] text-kopi-muted font-mono mt-0.5">{po.noPO}</p>
                   </div>
                 </div>
 
-                <div>
-                  {isLunas ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F5E4] text-[#2D7A1F] border border-[#C3E6BD]">
-                      <CheckCircle2 className="w-2.5 h-2.5 text-[#2D7A1F]" /> Lunas
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FDE8E4] text-[#D8431F] border border-[#FAD3CB]">
-                      <Clock className="w-2.5 h-2.5 text-[#D8431F]" /> Menunggu
-                    </span>
-                  )}
-                </div>
+                {isLunas ? (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-[#E2EBC0] text-[#5E7420]">
+                    <CheckCircle2 className="w-3 h-3" /> Lunas
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-[#F2D9CC] text-[#C2502F]">
+                    <Clock className="w-3 h-3" /> Belum Lunas
+                  </span>
+                )}
               </div>
 
-              {/* Baris 2: Tanggal Diterima & Total Nominal Tagihan */}
-              <div className="flex items-end justify-between pt-1 border-t border-slate-100">
-                <div className="text-[11px] text-slate-400 font-medium">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-slate-400" />
-                    Terima: {tglTerimaStr}
-                  </span>
+              <div className="flex items-center justify-between pt-2 border-t border-[#EBE6DC]/60 text-xs">
+                <div>
+                  <span className="text-[10px] text-kopi-muted uppercase block font-semibold">Tgl Terima</span>
+                  <span className="font-mono text-kopi font-bold text-[11px]">{tglTerimaStr}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 font-medium block">Total Tagihan</span>
-                  <span className="font-mono font-black text-[#2B1D00] text-sm">
-                    {formatRupiah(amount)}
-                  </span>
+                  <span className="text-[10px] text-kopi-muted uppercase block font-semibold">Total Tagihan</span>
+                  <span className="font-mono text-kopi font-black text-base">{formatRupiah(amount)}</span>
                 </div>
               </div>
 
-              {/* Baris 3: Tombol Aksi */}
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex items-center justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => onSelectDetail(po)}
-                  className="flex-1 py-2 rounded-xl bg-white border border-[#EBE6DC] text-xs font-bold text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+                  className="flex-1 py-2.5 rounded-full bg-white border border-[#EBE6DC] text-xs font-bold text-kopi hover:bg-krim transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-xs"
                 >
-                  <span>Lihat Rincian</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Rincian Item</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-kopi-muted" />
                 </button>
 
                 {!isLunas && (
                   <button
                     type="button"
                     onClick={() => onBayar(po)}
-                    className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-xs font-bold cursor-pointer flex items-center justify-center gap-1.5 shadow-xs shadow-[#FF8F2B]/20 text-white"
+                    className="flex-1 py-2.5 rounded-full bg-[#C2502F] hover:bg-[#a63f22] text-white text-xs font-bold cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
                   >
                     <CreditCard className="w-3.5 h-3.5" />
                     <span>Bayar Sekarang</span>
@@ -231,8 +243,8 @@ export default function TagihanTable({
       </div>
 
       {list.length === 0 && (
-        <div className="text-center py-16 text-slate-400 text-sm font-medium">
-          Belum ada data tagihan supplier. Tagihan akan otomatis masuk setelah barang pada Pembelian Stok diterima.
+        <div className="text-center py-12 text-kopi-muted text-sm font-medium">
+          Belum ada data tagihan pembelian yang sesuai filter.
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { OpnameEntry } from '../types'
-import { ClipboardCheck, AlertTriangle, Loader2 } from 'lucide-react'
+import { ClipboardCheck, AlertTriangle, Loader2, Sparkles, CheckCircle2 } from 'lucide-react'
 import clsx from 'clsx'
 
 interface OpnameTableProps {
@@ -27,7 +27,7 @@ export default function OpnameTable({
     try {
       const count = await onSave()
       if (count === 0) {
-        setStatusMsg({ text: 'Tidak ada perbedaan stok. Seluruh data sudah sesuai.', type: 'info' })
+        setStatusMsg({ text: 'Tidak ada perbedaan stok. Seluruh data fisik sudah sesuai.', type: 'info' })
       } else {
         setStatusMsg({
           text: `Berhasil menyesuaikan ${count} bahan ke database dan mencatat jejak audit Opname!`,
@@ -43,17 +43,19 @@ export default function OpnameTable({
   }
 
   return (
-    <div className="space-y-5">
-      {/* Informative notification */}
-      <div className="clay-card p-4.5 bg-amber-50/80 border border-amber-200/80 text-xs text-amber-800 font-medium rounded-2xl flex items-center justify-between gap-3">
+    <div className="space-y-4">
+      {/* Informative Callout Banner */}
+      <div className="p-4 sm:p-5 rounded-[24px] bg-[#FFF9EC] border border-[#FFE49A]/80 text-xs text-[#5C3D00] font-medium flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 flex-shrink-0 animate-ping" />
-          <span>
-            Masukkan hasil perhitungan fisik riil di gudang. Ketika Anda menekan tombol simpan, stok di tabel bahan akan otomatis diperbarui dan dicatat di buku mutasi.
+          <span className="w-8 h-8 rounded-xl bg-[#FFF0CE] text-[#8A5A00] flex items-center justify-center font-bold flex-shrink-0">
+            <ClipboardCheck className="w-4 h-4" />
           </span>
+          <p className="leading-relaxed">
+            Masukkan hasil perhitungan fisik riil di gudang. Ketika Anda menekan tombol simpan, stok di tabel bahan akan otomatis diperbarui dan dicatat di buku mutasi stok.
+          </p>
         </div>
         {selisihCount > 0 && (
-          <span className="px-3 py-1 bg-amber-200 text-amber-900 rounded-xl font-bold flex-shrink-0 flex items-center gap-1.5">
+          <span className="px-3.5 py-1.5 bg-[#FDE8E4] text-[#D8431F] border border-[#F9C2B8] rounded-full font-bold flex-shrink-0 flex items-center gap-1.5 shadow-xs">
             <AlertTriangle className="w-3.5 h-3.5" /> {selisihCount} Perbedaan Fisik
           </span>
         )}
@@ -62,103 +64,102 @@ export default function OpnameTable({
       {statusMsg && (
         <div
           className={clsx(
-            'flex items-center gap-2.5 p-4 rounded-2xl text-xs font-bold clay-pill',
+            'flex items-center gap-2.5 p-4 rounded-2xl text-xs font-bold border shadow-xs animate-in fade-in-50 duration-200',
             statusMsg.type === 'success'
-              ? 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]'
-              : 'bg-blue-50 text-blue-700'
+              ? 'bg-[#E8F5E4] text-[#2D7A1F] border-[#C5E8BD]'
+              : 'bg-[#FFF6D6] text-[#8A5A00] border-[#FFE49A]'
           )}
         >
-          <ClipboardCheck className="w-5 h-5 flex-shrink-0" />
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           <span>{statusMsg.text}</span>
         </div>
       )}
 
-      {/* Table */}
-      <div className="clay-card overflow-hidden">
+      {/* Table Container */}
+      <div className="rounded-[32px] bg-white border border-[#EBE6DC] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs min-w-[650px]">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 whitespace-nowrap">
-              <th className="text-left px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                Bahan Baku
-              </th>
-              <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                Stok Database
-              </th>
-              <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                Hitungan Fisik Nyata
-              </th>
-              <th className="text-right px-6 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">
-                Disparitas / Selisih
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {entries.map(o => {
-              const hasDisc = o.selisih !== 0
-              return (
-                <tr
-                  key={o.bahanId}
-                  className={clsx('transition-colors', hasDisc ? 'bg-rose-50/30' : 'hover:bg-slate-50/50')}
-                >
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-slate-800 text-sm">{o.namaBahan}</p>
-                    <p className="text-[10px] text-slate-400 font-semibold">{o.satuan}</p>
-                  </td>
-                  <td className="px-6 py-4 text-right font-mono font-bold text-slate-500">
-                    {o.stokSystem} {o.satuan}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <input
-                      type="number"
-                      step="any"
-                      min="0"
-                      value={o.stokAktual}
-                      onChange={e => onUpdateAktual(o.bahanId, parseFloat(e.target.value))}
-                      className={clsx(
-                        'w-28 px-3 py-1.5 clay-inset text-xs text-right font-mono font-bold',
-                        hasDisc ? 'border-rose-300 text-rose-700 bg-rose-50/20' : 'text-slate-800'
-                      )}
-                    />
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span
-                      className={clsx(
-                        'font-mono font-black text-xs px-2.5 py-1 rounded-full clay-pill',
-                        o.selisih === 0
-                          ? 'bg-slate-100 text-slate-400'
-                          : o.selisih > 0
-                          ? 'bg-[#FFF6EC] text-[#FF8F2B]'
-                          : 'bg-rose-50 text-rose-600'
-                      )}
-                    >
-                      {o.selisih === 0
-                        ? '0 Sesuai'
-                        : `${o.selisih > 0 ? '+' : ''}${o.selisih} ${o.satuan}`}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+              <tr className="border-b border-[#F0EBE1] bg-[#FCFAF6] text-[#8C8275] text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
+                <th className="text-left px-6 py-4">Bahan Baku</th>
+                <th className="text-right px-6 py-4">Stok Database</th>
+                <th className="text-right px-6 py-4">Hitungan Fisik Nyata</th>
+                <th className="text-right px-6 py-4">Disparitas / Selisih</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#F5F2EB]">
+              {entries.map(o => {
+                const hasDisc = o.selisih !== 0
+                return (
+                  <tr
+                    key={o.bahanId}
+                    className={clsx(
+                      'transition-colors',
+                      hasDisc ? 'bg-[#FEF9F8] hover:bg-[#FDF4F2]' : 'hover:bg-[#FFFDF9]'
+                    )}
+                  >
+                    <td className="px-6 py-4">
+                      <p className="font-extrabold text-[#2B261F] text-sm">{o.namaBahan}</p>
+                      <p className="text-[10px] text-[#8C8275] font-semibold mt-0.5">{o.satuan}</p>
+                    </td>
+                    <td className="px-6 py-4 text-right font-mono font-bold text-[#8C8275]">
+                      {o.stokSystem} {o.satuan}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        value={o.stokAktual}
+                        onChange={e => onUpdateAktual(o.bahanId, parseFloat(e.target.value))}
+                        className={clsx(
+                          'w-28 px-3.5 py-1.5 rounded-xl text-xs text-right font-mono font-bold border transition-all focus:outline-none focus:ring-2 focus:ring-[#FFB800]',
+                          hasDisc
+                            ? 'border-[#F9C2B8] text-[#D8431F] bg-[#FEF4F2]'
+                            : 'border-[#FFE49A]/60 text-[#2B261F] bg-[#FFF9EC]'
+                        )}
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span
+                        className={clsx(
+                          'font-mono font-bold text-xs px-2.5 py-1 rounded-full border shadow-xs inline-block',
+                          o.selisih === 0
+                            ? 'bg-[#F5F2EB] text-[#7A7062] border-[#EBE6DC]'
+                            : o.selisih > 0
+                            ? 'bg-[#E8F5E4] text-[#2D7A1F] border-[#C5E8BD]'
+                            : 'bg-[#FDE8E4] text-[#D8431F] border-[#F9C2B8]'
+                        )}
+                      >
+                        {o.selisih === 0
+                          ? '0 Sesuai'
+                          : `${o.selisih > 0 ? '+' : ''}${o.selisih} ${o.satuan}`}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
 
         {entries.length === 0 && (
-          <div className="text-center py-12 text-slate-400 text-sm font-medium">
+          <div className="text-center py-16 text-[#8C8275] text-sm font-medium">
             Belum ada bahan baku yang terdaftar di database.
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-2">
-        <p className="text-xs text-slate-400">
-          *Hanya bahan dengan selisih yang akan dicatat di stok log.
+      {/* Action Footer */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+        <p className="text-xs text-[#8C8275]">
+          *Hanya bahan dengan selisih yang akan dicatat di buku stok log.
         </p>
         <button
+          type="button"
           onClick={handleSave}
           disabled={isSaving || entries.length === 0}
-          className="clay-btn-primary px-7 py-3 text-xs font-bold flex items-center gap-2 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-xs font-bold shadow-xs hover:shadow-md hover:brightness-105 active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
         >
           {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
           <span>Simpan & Rekonsiliasi Opname</span>

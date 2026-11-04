@@ -2,7 +2,7 @@
 
 import { SimulasiMenuItem } from '../types'
 import CustomSelect from '@/components/ui/CustomSelect'
-import { Sparkles, Package, AlertTriangle, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Package, AlertTriangle, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react'
 import clsx from 'clsx'
 import Link from 'next/link'
 
@@ -43,9 +43,11 @@ export default function TabSupply({
 
   if (menus.length === 0) {
     return (
-      <div className="clay-card p-12 text-center text-slate-400">
-        <AlertTriangle className="w-8 h-8 mx-auto text-amber-500 mb-2" />
-        <p className="text-xs font-bold text-slate-700">Belum ada menu di database</p>
+      <div className="rounded-[32px] bg-white border border-[#EBE6DC] shadow-xs p-12 text-center text-[#8C8275]">
+        <div className="w-12 h-12 rounded-2xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center mx-auto mb-3">
+          <AlertTriangle className="w-6 h-6" />
+        </div>
+        <p className="text-sm font-bold text-[#2B261F]">Belum ada menu di database</p>
       </div>
     )
   }
@@ -53,13 +55,18 @@ export default function TabSupply({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Parameter Target Produksi */}
-      <div className="clay-card p-6 space-y-4">
-        <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
-          <Sparkles className="w-4 h-4 text-[#FF8F2B]" /> Rencana Target Batch Produksi
-        </h3>
+      <div className="rounded-[28px] bg-white border border-[#EBE6DC] shadow-xs p-6 space-y-5">
+        <div className="flex items-center gap-2 pb-2 border-b border-[#F0EBE1]">
+          <span className="w-8 h-8 rounded-xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center font-bold">
+            <Package className="w-4 h-4" />
+          </span>
+          <h3 className="text-xs font-extrabold text-[#2B261F] uppercase tracking-wider">
+            Rencana Target Batch Produksi
+          </h3>
+        </div>
 
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 mb-1.5">
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#7A7062] mb-1.5">
             Pilih Menu yang Ingin Diproduksi
           </label>
           <CustomSelect
@@ -73,7 +80,7 @@ export default function TabSupply({
         </div>
 
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 mb-1.5">
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-[#7A7062] mb-1.5">
             Target Porsi Dibuat (Batch)
           </label>
           <input
@@ -81,79 +88,87 @@ export default function TabSupply({
             min={1}
             value={servings || ''}
             onChange={e => onChangeServings(Math.max(1, Number(e.target.value) || 1))}
-            className="w-full px-3.5 py-2.5 clay-inset text-xs text-slate-800 font-mono font-bold"
+            className="w-full px-4 py-2.5 rounded-2xl bg-[#FFF9EC] border border-[#FFE49A]/60 text-xs text-[#2B261F] font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#FFB800] transition-all"
           />
         </div>
 
         {hasShortage ? (
-          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-[11px] text-rose-800 space-y-2">
-            <div className="flex items-center gap-2 font-bold">
-              <AlertCircle className="w-4 h-4 text-rose-600" />
+          <div className="p-4 rounded-2xl bg-[#FEF4F2] border border-[#F9C2B8] text-[11px] text-[#D8431F] space-y-2.5 shadow-xs">
+            <div className="flex items-center gap-2 font-extrabold text-[#8F220B]">
+              <AlertCircle className="w-4 h-4 text-[#D8431F] flex-shrink-0" />
               Peringatan: Stok bahan di gudang tidak mencukupi target batch ini!
             </div>
-            <p className="text-rose-700">
+            <p className="text-[#A6351B] leading-relaxed">
               Disarankan membuat Purchase Order (PO) ke supplier sebelum memulai proses produksi dapur.
             </p>
             <Link
               href="/dashboard/purchase-order"
-              className="inline-block px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold text-[10px] hover:bg-rose-700 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white font-bold text-[10px] shadow-xs hover:shadow-md hover:brightness-105 active:scale-98 transition-all cursor-pointer"
             >
-              Buat Purchase Order (PO) Sekarang →
+              <span>Buat Purchase Order (PO) Sekarang</span>
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         ) : (
-          <div className="p-3.5 rounded-2xl bg-[#FFF6EC] border border-[#FFE2C2] text-[11px] text-[#C86400] flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#FF8F2B] flex-shrink-0" />
+          <div className="p-4 rounded-2xl bg-[#E8F5E4] border border-[#C5E8BD] text-[11px] text-[#2D7A1F] flex items-center gap-2.5 shadow-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-[#2D7A1F] flex-shrink-0" />
             <span>Semua bahan baku tersedia cukup di gudang untuk membuat {servings} porsi.</span>
           </div>
         )}
       </div>
 
       {/* Status Ketersediaan Bahan */}
-      <div className="clay-card p-6 space-y-3">
-        <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <Package className="w-4 h-4 text-[#FF8F2B]" /> Status Ketersediaan Bahan di Dapur
-        </h3>
+      <div className="rounded-[28px] bg-white border border-[#EBE6DC] shadow-xs p-6 space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-[#F0EBE1]">
+          <span className="w-8 h-8 rounded-xl bg-[#FFF0E6] text-[#FF6B00] flex items-center justify-center font-bold">
+            <Package className="w-4 h-4" />
+          </span>
+          <h3 className="text-xs font-extrabold text-[#2B261F] uppercase tracking-wider">
+            Status Ketersediaan Bahan di Dapur
+          </h3>
+        </div>
 
         {supplyNeeded.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+          <div className="py-10 text-center text-xs text-[#8C8275] bg-[#FCFAF6] rounded-2xl border border-dashed border-[#EBE6DC]">
             Menu ini belum memiliki daftar resep bahan baku.
           </div>
         ) : (
-          <div className="space-y-2.5 max-h-[460px] overflow-y-auto">
+          <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
             {supplyNeeded.map((s, i) => (
-              <div key={i} className="p-3.5 clay-inset rounded-2xl">
-                <div className="flex justify-between items-center mb-1">
-                  <p className="text-xs font-bold text-slate-800">{s.namaBahan}</p>
+              <div key={i} className="p-3.5 rounded-2xl bg-[#FCFAF6] border border-[#F0EBE1] space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-xs font-bold text-[#2B261F]">{s.namaBahan}</p>
                   <span
                     className={clsx(
-                      'text-[10px] font-bold px-2.5 py-0.5 rounded-full clay-pill',
-                      s.cukup ? 'bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]' : 'bg-rose-50 text-rose-700'
+                      'text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-xs',
+                      s.cukup
+                        ? 'bg-[#E8F5E4] text-[#2D7A1F] border-[#C5E8BD]'
+                        : 'bg-[#FEF4F2] text-[#D8431F] border-[#F9C2B8]'
                     )}
                   >
                     {s.cukup ? '✓ Stok Cukup' : '✗ Kurang'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 mt-2 text-center text-[10px]">
+                <div className="grid grid-cols-3 gap-2 text-center text-[10px] pt-1 border-t border-[#EBE6DC]">
                   <div>
-                    <p className="text-slate-400 font-medium">Dibutuhkan</p>
-                    <p className="font-mono font-bold text-slate-800">
+                    <p className="text-[#8C8275] font-medium">Dibutuhkan</p>
+                    <p className="font-mono font-bold text-[#2B261F]">
                       {Math.round(s.needed * 100) / 100} {s.satuan}
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-400 font-medium">Stok Ada</p>
-                    <p className="font-mono font-bold text-slate-800">
+                    <p className="text-[#8C8275] font-medium">Stok Ada</p>
+                    <p className="font-mono font-bold text-[#2B261F]">
                       {s.stok} {s.satuan}
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-400 font-medium">Kekurangan</p>
+                    <p className="text-[#8C8275] font-medium">Kekurangan</p>
                     <p
                       className={clsx(
                         'font-mono font-bold',
-                        s.cukup ? 'text-[#FF8F2B]' : 'text-rose-600'
+                        s.cukup ? 'text-[#2D7A1F]' : 'text-[#D8431F]'
                       )}
                     >
                       {s.cukup ? '0' : `-${Math.round(s.kekurangan * 100) / 100} ${s.satuan}`}
