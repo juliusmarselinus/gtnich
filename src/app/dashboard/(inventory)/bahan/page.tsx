@@ -27,6 +27,7 @@ import {
   ScanLine,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { CardGridSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
   {
@@ -333,12 +334,7 @@ export default function BahanPage() {
 
         {/* Loading State or Card Grid */}
         {loading ? (
-          <div className="rounded-[32px] bg-white shadow-[0_14px_34px_rgba(120,80,30,0.10)] py-24 flex flex-col items-center justify-center gap-3 text-kopi-muted">
-            <Loader2 className="w-7 h-7 animate-spin text-kuning" />
-            <p className="text-xs font-semibold">
-              Memuat data bahan dari database Supabase...
-            </p>
-          </div>
+          <CardGridSkeleton count={6} cardHeight="h-72" />
         ) : (
           <BahanCard
             list={list}

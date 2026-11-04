@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import Link from 'next/link'
+import { RekomendasiSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
   {
@@ -275,12 +276,7 @@ export default function RekomendasiPage() {
 
         {/* Loading State or Recommendation Cards */}
         {isLoading && !items.length ? (
-          <div className="rounded-[32px] bg-white border border-[#EBE6DC] p-16 flex flex-col items-center justify-center gap-3 text-slate-500 shadow-xs">
-            <RefreshCw className="w-7 h-7 animate-spin text-[#FF6B00]" />
-            <p className="text-xs font-semibold text-[#7A7062]">
-              Menganalisis indikator performa & rekomendasi dapur...
-            </p>
-          </div>
+          <RekomendasiSkeleton count={4} />
         ) : items.length === 0 ? (
           <div className="rounded-[32px] bg-white border border-[#EBE6DC] shadow-xs p-16 text-center text-[#8C8275]">
             <div className="w-12 h-12 rounded-2xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center mx-auto mb-3">

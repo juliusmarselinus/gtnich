@@ -14,6 +14,7 @@ import { generateLaporanPrintHTML } from './services/laporanPrintGenerator'
 import { formatRupiah } from '@/lib/mock-data'
 import { RefreshCw, AlertCircle, Printer, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
+import { LaporanSkeleton } from '@/components/ui/Skeleton'
 
 const RANGE_OPTIONS: { label: string; value: TimeRangeFilter }[] = [
   { label: '7 Hari Terakhir', value: '7d' },
@@ -182,12 +183,7 @@ export default function LaporanPage() {
 
         {/* Loading State Skeleton */}
         {isLoading && !data ? (
-          <div className="rounded-[28px] bg-white border border-[#EBE6DC] py-20 flex flex-col items-center justify-center gap-3 text-slate-500 shadow-xs">
-            <Loader2 className="w-7 h-7 animate-spin text-[#FFB800]" />
-            <p className="text-xs font-bold text-slate-600">
-              Menghitung rekapitulasi keuangan dapur dari database Supabase...
-            </p>
-          </div>
+          <LaporanSkeleton />
         ) : (
           data && (
             <>

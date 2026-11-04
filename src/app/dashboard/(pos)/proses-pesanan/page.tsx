@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import clsx from 'clsx'
+import { CardGridSkeleton } from '@/components/ui/Skeleton'
 
 export default function ProsesPesananPage() {
   const {
@@ -298,12 +299,9 @@ export default function ProsesPesananPage() {
           </div>
         </div>
 
-        {/* Loading Spinner atau Card Grid Pesanan */}
+        {/* Loading Skeleton atau Card Grid Pesanan */}
         {loading ? (
-          <div className="rounded-[28px] bg-white border border-[#EBE6DC] shadow-[0_4px_20px_rgba(120,80,30,0.06)] py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-7 h-7 animate-spin text-[#FF8F2B]" />
-            <p className="text-xs font-semibold text-kopi-muted">Memuat dan menganalisis antrean pesanan...</p>
-          </div>
+          <CardGridSkeleton count={6} cardHeight="h-80" />
         ) : pesananList.length === 0 ? (
           <div className="rounded-[28px] bg-white border border-[#EBE6DC] shadow-[0_4px_20px_rgba(120,80,30,0.06)] py-16 text-center text-kopi-muted text-xs font-medium space-y-2">
             <CookingPot className="w-10 h-10 text-kopi-muted/40 mx-auto" />

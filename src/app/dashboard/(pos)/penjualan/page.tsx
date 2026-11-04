@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useToast } from '@/context/ToastContext'
+import { PenjualanKatalogSkeleton } from '@/components/ui/Skeleton'
 
 export default function PenjualanPage() {
   const {
@@ -318,9 +319,8 @@ export default function PenjualanPage() {
               </div>
 
               {loading ? (
-                <div className="bg-white rounded-[28px] py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#FFB800]" />
-                  <p className="text-xs font-semibold">Memuat katalog menu dari database Supabase...</p>
+                <div className="bg-white rounded-[28px] p-5 border border-[#EBE6DC] shadow-xs">
+                  <PenjualanKatalogSkeleton count={8} />
                 </div>
               ) : (
                 <MenuKatalogGrid

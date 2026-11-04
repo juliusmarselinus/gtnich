@@ -31,6 +31,7 @@ import {
   saveNotificationPreferences,
   UserNotificationPreferences,
 } from '@/lib/notificationSettings'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 const USAHA_OPTIONS = [
   { id: 'kafe', label: 'Kafe / kedai minuman', icon: '☕' },
@@ -499,9 +500,22 @@ export default function PengaturanModal({
           {/* Konten Tab Kanan */}
           <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#8A6A40]">
-                <Loader2 className="w-7 h-7 animate-spin text-[#FFB800]" />
-                <p className="text-xs font-semibold">Memuat pengaturan akun...</p>
+              <div className="space-y-6 animate-pulse">
+                <div className="rounded-[24px] bg-[#FFF8E8] border border-[#EDD9B0] p-5 space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#EDD9B0]">
+                    <Skeleton className="h-4 w-36 rounded-full" />
+                    <Skeleton className="h-4 w-16 rounded-full" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Skeleton className="h-10 w-full rounded-xl" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-40 rounded-full" />
+                  <Skeleton className="h-12 w-full rounded-2xl" />
+                  <Skeleton className="h-12 w-full rounded-2xl" />
+                </div>
               </div>
             ) : (
               <>

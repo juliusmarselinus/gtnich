@@ -9,6 +9,7 @@ import TabSupplier from './components/TabSupplier'
 import TabSupply from './components/TabSupply'
 import { TrendingUp, Truck, Package, RefreshCw, AlertCircle, Calculator } from 'lucide-react'
 import clsx from 'clsx'
+import { RekomendasiSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
   {
@@ -213,12 +214,7 @@ export default function SimulasiPage() {
 
         {/* Loading State or Tab Content */}
         {isLoading && !menus.length && !bahanList.length ? (
-          <div className="rounded-[32px] bg-white border border-[#EBE6DC] p-16 flex flex-col items-center justify-center gap-3 text-slate-500 shadow-xs">
-            <RefreshCw className="w-7 h-7 animate-spin text-[#FF6B00]" />
-            <p className="text-xs font-semibold text-[#7A7062]">
-              Memuat data kalkulasi menu & bahan...
-            </p>
-          </div>
+          <RekomendasiSkeleton count={3} />
         ) : (
           <>
             {/* Simulasi Penjualan */}

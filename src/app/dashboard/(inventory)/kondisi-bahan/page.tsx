@@ -19,6 +19,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { CardGridSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
   {
@@ -280,14 +281,9 @@ export default function KondisiBahanPage() {
           </div>
         </div>
 
-        {/* Loading Spinner or Grid Cards */}
+        {/* Loading Skeleton or Grid Cards */}
         {loading ? (
-          <div className="rounded-[32px] bg-white border border-[#EBE6DC] p-16 flex flex-col items-center justify-center gap-3 text-slate-500 shadow-xs">
-            <Loader2 className="w-7 h-7 animate-spin text-[#FF6B00]" />
-            <p className="text-xs font-semibold text-[#7A7062]">
-              Menganalisis masa simpan dan memuat bahan...
-            </p>
-          </div>
+          <CardGridSkeleton count={6} cardHeight="h-72" />
         ) : (
           <KondisiCardGrid
             list={list}

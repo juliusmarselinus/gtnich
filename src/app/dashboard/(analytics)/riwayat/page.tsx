@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import clsx from 'clsx'
+import { TableSkeleton } from '@/components/ui/Skeleton'
 
 export default function RiwayatPage() {
   const {
@@ -190,14 +191,7 @@ export default function RiwayatPage() {
 
         {/* Content Area */}
         {isLoading && !penjualanList.length && !poList.length ? (
-          <div className="rounded-[30px] bg-[#FFFBF2] border border-[#EDE0C4] p-8 space-y-4">
-            <div className="h-6 w-48 bg-[#F0D898] rounded animate-pulse" />
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 bg-[#FFF6E0] rounded-xl animate-pulse" />
-              ))}
-            </div>
-          </div>
+          <TableSkeleton rows={6} cols={5} />
         ) : tab === 'penjualan' ? (
           <RiwayatPenjualanTable penjualanList={penjualanList} />
         ) : (

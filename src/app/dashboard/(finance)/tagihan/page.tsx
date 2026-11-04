@@ -24,6 +24,7 @@ import {
 import clsx from 'clsx'
 import DapiHead from '@/components/ui/DapiHead'
 import { useToast } from '@/context/ToastContext'
+import { TableSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
   {
@@ -292,10 +293,7 @@ export default function TagihanPage() {
 
         {/* Loading / Tagihan Table */}
         {loading ? (
-          <div className="rounded-[32px] bg-white shadow-[0_14px_34px_rgba(120,80,30,0.10)] py-20 flex flex-col items-center justify-center gap-3 text-kopi-muted">
-            <Loader2 className="w-6 h-6 animate-spin text-kuning" />
-            <p className="text-xs font-semibold">Mengambil data tagihan faktur dari database...</p>
-          </div>
+          <TableSkeleton rows={6} cols={5} />
         ) : (
           <TagihanTable
             list={list}

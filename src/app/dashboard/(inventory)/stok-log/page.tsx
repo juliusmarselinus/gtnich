@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useToast } from '@/context/ToastContext'
+import { TableSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
   {
@@ -292,14 +293,9 @@ export default function StokLogPage() {
           )}
         </div>
 
-        {/* Loading Spinner */}
+        {/* Loading Skeleton */}
         {loading ? (
-          <div className="rounded-[32px] bg-white border border-[#EBE6DC] p-16 flex flex-col items-center justify-center gap-3 text-slate-500 shadow-xs">
-            <Loader2 className="w-7 h-7 animate-spin text-[#FF6B00]" />
-            <p className="text-xs font-semibold text-[#7A7062]">
-              Mengambil data mutasi stok dari database...
-            </p>
-          </div>
+          <TableSkeleton rows={6} cols={5} />
         ) : (
           <>
             {/* Tab 1: Log Table */}

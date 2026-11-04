@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useToast } from '@/context/ToastContext'
+import { CardGridSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
   {
@@ -364,14 +365,9 @@ export default function MenuPage() {
           </div>
         </section>
 
-        {/* Loading Spinner or Grid Cards */}
+        {/* Loading Skeleton or Grid Cards */}
         {loading ? (
-          <div className="rounded-[28px] bg-white border border-[#EBE6DC] py-20 flex flex-col items-center justify-center gap-3 text-slate-500 shadow-xs">
-            <Loader2 className="w-7 h-7 animate-spin text-[#FFB800]" />
-            <p className="text-xs font-bold text-slate-600">
-              Mengambil daftar menu dan komposisi resep dari database Supabase...
-            </p>
-          </div>
+          <CardGridSkeleton count={6} cardHeight="h-80" />
         ) : (
           <MenuCardGrid
             list={list}

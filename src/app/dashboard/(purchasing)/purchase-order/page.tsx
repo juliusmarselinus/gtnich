@@ -13,6 +13,7 @@ import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn, ReceiptText, Slid
 import clsx from 'clsx'
 import DapiHead from '@/components/ui/DapiHead'
 import { useToast } from '@/context/ToastContext'
+import { TableSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
   { key: 'draft', label: 'Draft', hint: 'Belum dikirim ke supplier', Icon: PencilLine, tint: 'bg-[#FFEDB3]', on: 'bg-kuning text-kopi' },
@@ -340,10 +341,7 @@ export default function PurchaseOrderPage() {
 
         {/* Loading / PO List Table */}
         {loading ? (
-          <div className="rounded-[32px] bg-white shadow-[0_14px_34px_rgba(120,80,30,0.10)] py-20 flex flex-col items-center justify-center gap-3 text-kopi-muted">
-           <Loader2 className="w-6 h-6 animate-spin text-kuning" />
-            <p className="text-xs font-semibold">Mengambil data purchase order dari database Supabase...</p>
-          </div>
+          <TableSkeleton rows={6} cols={5} />
         ) : (
           <POTable
             list={list}
