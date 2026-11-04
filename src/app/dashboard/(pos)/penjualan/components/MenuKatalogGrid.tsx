@@ -68,6 +68,10 @@ export default function MenuKatalogGrid({
 
   const handleCardClick = (menu: MenuItem) => {
     const info = stockInfo[menu.id]
+    if (info?.isExpired) {
+      showTooltip(menu.id, `Bahan ${info.expiredBahanNama || 'resep'} KADALUARSA! Menu tidak bisa diaktifkan.`)
+      return
+    }
     if (info && info.sisa <= 0) {
       showTooltip(menu.id, `Stok ${info.bahanPembatas ?? 'bahan'} habis`)
       return
@@ -169,16 +173,21 @@ export default function MenuKatalogGrid({
           const inCartCount = cartItemCounts[menu.id] || 0
           const isJustAdded = justAddedId === menu.id
           const info = stockInfo[menu.id]
+          const isExpired = !!info?.isExpired
           const sisa = info?.sisa ?? Infinity
           const level = getLevel(sisa)
-          const habis = sisa <= 0
+          const habis = sisa <= 0 || isExpired
           const marginPct =
             menu.hargaJual > 0
               ? Math.round(((menu.hargaJual - menu.estimasiHPP) / menu.hargaJual) * 100)
               : 0
 
-          const ringClass = isJustAdded ? 'ring-2 ring-[#FFB800]' : level?.ring ?? ''
-          const bgClass = habis ? 'bg-[#FFF5F3]' : isJustAdded ? 'bg-[#FFFBEF]' : 'bg-white'
+          const ringClass = isExpired
+            ? 'ring-2 ring-rose-500'
+            : isJustAdded
+            ? 'ring-2 ring-[#FFB800]'
+            : level?.ring ?? ''
+          const bgClass = isExpired ? 'bg-rose-50/70' : habis ? 'bg-[#FFF5F3]' : isJustAdded ? 'bg-[#FFFBEF]' : 'bg-white'
 
           return (
             <div
@@ -199,9 +208,14 @@ export default function MenuKatalogGrid({
               )}
 
               {/* Chip status: stok + jumlah di keranjang */}
-              {(level || inCartCount > 0) && (
+              {(isExpired || level || inCartCount > 0) && (
                 <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                  {level && (
+                  {isExpired ? (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full bg-rose-600 text-white">
+                      <Ban className="w-3 h-3" />
+                      Bahan Expire
+                    </span>
+                  ) : level ? (
                     <span
                       className={`inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full ${level.chip}`}
                     >
@@ -212,7 +226,7 @@ export default function MenuKatalogGrid({
                       )}
                       {habis ? 'Stok habis' : `Sisa ${sisa} porsi`}
                     </span>
-                  )}
+                  ) : null}
                   {inCartCount > 0 && (
                     <span className="inline-flex items-center gap-1 bg-[#FFF6D6] text-[#8A5A00] text-[11px] font-extrabold px-3 py-1 rounded-full">
                       <ShoppingCart className="w-3 h-3" />
@@ -270,16 +284,18 @@ export default function MenuKatalogGrid({
                   type="button"
                   disabled={habis}
                   onClick={e => handleQuickAdd(e, menu)}
-                  title={habis ? 'Stok habis' : 'Tambah 1 porsi langsung'}
+                  title={isExpired ? `Bahan ${info?.expiredBahanNama || 'resep'} kadaluarsa` : habis ? 'Stok habis' : 'Tambah 1 porsi langsung'}
                   className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all ${
-                    habis
+                    isExpired
+                      ? 'bg-rose-100 text-rose-500 cursor-not-allowed'
+                      : habis
                       ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                       : isJustAdded
                       ? 'bg-[#D8431F] text-white cursor-pointer'
                       : 'bg-[#FFB800] text-[#2B1D00] hover:bg-[#D8431F] hover:text-white cursor-pointer'
                   }`}
                 >
-                  {habis ? (
+                  {isExpired || habis ? (
                     <Ban className="w-4 h-4" />
                   ) : isJustAdded ? (
                     <Check className="w-4 h-4 animate-in zoom-in" />

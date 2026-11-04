@@ -110,6 +110,22 @@ export default function BahanPage() {
     }
   }
 
+  async function handleUpdateHarga(b: Bahan, hargaBaru: number) {
+    try {
+      await saveBahan(b.id, {
+        nama: b.nama,
+        satuan: b.satuan,
+        hargaPerSatuan: hargaBaru,
+        stok: b.stok,
+        stokMinimum: b.stokMinimum,
+        supplierId: b.supplierId || '',
+        foto: b.foto || null,
+      })
+    } catch (err: any) {
+      console.warn('Gagal sinkron harga baru:', err)
+    }
+  }
+
   // Hitung total nilai valuasi stok bahan di gudang
   const totalNilaiInventaris = useMemo(() => {
     return list.reduce((sum, b) => sum + (b.stok || 0) * (b.hargaPerSatuan || 0), 0)
@@ -337,6 +353,7 @@ export default function BahanPage() {
             onEdit={openEdit}
             onDelete={openDeleteConfirm}
             onOpenAdd={openAdd}
+            onUpdateHarga={handleUpdateHarga}
             checkingId={checkingId}
           />
         )}

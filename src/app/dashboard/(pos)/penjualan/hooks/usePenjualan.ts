@@ -19,6 +19,8 @@ export type MenuSortOption =
 export interface StockInfo {
   sisa: number
   bahanPembatas?: string
+  isExpired?: boolean
+  expiredBahanNama?: string
 }
 export type StockInfoMap = Record<string, StockInfo>
 
@@ -31,6 +33,7 @@ export interface AddResult {
 export function usePenjualan() {
   const [menus, setMenus] = useState<MenuItem[]>([])
   const [stokMap, setStokMap] = useState<Record<string, number>>({})
+  const [expiredBahanIds, setExpiredBahanIds] = useState<string[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [recentOrders, setRecentOrders] = useState<OrderRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,15 +69,17 @@ export function usePenjualan() {
 
       setUserEmail(session.user.email || null)
 
-      const [menuData, ordersData, stok] = await Promise.all([
+      const [menuData, ordersData, stok, expiredIds] = await Promise.all([
         penjualanService.getKatalogMenu(),
         penjualanService.getRecentOrders(8),
         penjualanService.getStokBahan(),
+        penjualanService.getExpiredBahanIds(),
       ])
 
       setMenus(menuData || [])
       setRecentOrders(ordersData || [])
       setStokMap(stok)
+      setExpiredBahanIds(expiredIds || [])
     } catch (err: unknown) {
       const e = err as Error
       console.error('Fetch penjualan data error:', e)
@@ -101,7 +106,16 @@ export function usePenjualan() {
     menus.forEach(m => {
       let sisa = Infinity
       let pembatas: string | undefined
+      let isExpired = false
+      let expiredBahanNama: string | undefined
+
       ;(m.resep || []).forEach(r => {
+        // Cek apakah bahan ini termasuk bahan yang kadaluarsa
+        if (expiredBahanIds.includes(r.bahanId)) {
+          isExpired = true
+          if (!expiredBahanNama) expiredBahanNama = r.namaBahan
+        }
+
         if (!r.qty || r.qty <= 0) return
         const free = (stokMap[r.bahanId] ?? 0) - (used[r.bahanId] || 0)
         const porsi = Math.max(0, Math.floor(free / r.qty + 1e-9))
@@ -110,10 +124,17 @@ export function usePenjualan() {
           pembatas = r.namaBahan
         }
       })
-      map[m.id] = { sisa, bahanPembatas: pembatas }
+
+      // Jika ada bahan resep yang expired, menu tidak boleh diaktifkan/dijual (porsi = 0)
+      if (isExpired) {
+        sisa = 0
+        pembatas = `${expiredBahanNama || 'Bahan'} (Kadaluarsa)`
+      }
+
+      map[m.id] = { sisa, bahanPembatas: pembatas, isExpired, expiredBahanNama }
     })
     return map
-  }, [menus, cart, stokMap])
+  }, [menus, cart, stokMap, expiredBahanIds])
 
   const kategoriList = useMemo(() => {
     const setKat = new Set<string>()
@@ -157,9 +178,18 @@ export function usePenjualan() {
     })
   }, [menus, selectedKategori, searchMenu, sortBy])
 
-  // Tambah ke keranjang, otomatis dibatasi sisa stok
+  // Tambah ke keranjang, otomatis dibatasi sisa stok & status expire
   const addToCart = (menu: MenuItem, qty: number = 1): AddResult => {
     const info = stockInfo[menu.id]
+
+    if (info?.isExpired) {
+      return {
+        ok: false,
+        added: 0,
+        message: `Bahan ${info.expiredBahanNama || 'resep'} KADALUARSA! Menu ${menu.nama} tidak dapat diaktifkan/dijual.`,
+      }
+    }
+
     const sisa = info?.sisa ?? Infinity
 
     if (sisa <= 0) {
@@ -266,6 +296,7 @@ export function usePenjualan() {
     menus: filteredMenus,
     rawMenuCount: menus.length,
     stockInfo,
+    expiredBahanCount: expiredBahanIds.length,
     kategoriList,
     selectedKategori,
     setSelectedKategori,

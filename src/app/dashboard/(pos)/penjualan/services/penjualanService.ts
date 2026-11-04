@@ -117,6 +117,22 @@ export const penjualanService = {
     return Object.fromEntries((data || []).map(b => [b.id as string, Number(b.stok) || 0]))
   },
 
+  // Ambil daftar ID bahan yang memiliki batch kadaluarsa aktif
+  async getExpiredBahanIds(): Promise<string[]> {
+    try {
+      const { kondisiBahanService } = await import('@/app/dashboard/(inventory)/kondisi-bahan/services/kondisiBahanService')
+      const kondisiList = await kondisiBahanService.getBahanKondisi()
+      // Bahan dianggap kadaluarsa jika memiliki expiredBatchesCount > 0 atau status 'kadaluarsa' dan stoknya masih ada > 0
+      const expiredBahan = kondisiList.filter(
+        b => (b.expiredBatchesCount > 0 || b.aiStatusFreshness === 'kadaluarsa') && b.totalStok > 0
+      )
+      return expiredBahan.map(b => b.id)
+    } catch (e) {
+      console.warn('Gagal memuat status bahan expire untuk penjualan:', e)
+      return []
+    }
+  },
+
   async getRecentOrders(limit = 10): Promise<OrderRecord[]> {
     const supabase = createClient()
     const { data, error } = await supabase
@@ -237,6 +253,19 @@ export const penjualanService = {
   async createPenjualan(cart: CartItem[], form: CheckoutFormInput): Promise<OrderRecord> {
     if (cart.length === 0) {
       throw new Error('Keranjang belanja masih kosong.')
+    }
+
+    // Validasi Bahan Expire: Menu dengan bahan kadaluarsa dilarang keras diproses
+    const expiredIds = await penjualanService.getExpiredBahanIds()
+    if (expiredIds.length > 0) {
+      for (const item of cart) {
+        const itemExpiredBahan = (item.resep || []).find(r => expiredIds.includes(r.bahanId))
+        if (itemExpiredBahan) {
+          throw new Error(
+            `Tidak dapat melanjutkan proses penjualan! Menu "${item.namaMenu}" mengandung bahan "${itemExpiredBahan.namaBahan}" yang sudah KADALUARSA (Expired). Musnahkan bahan kadaluarsa terlebih dahulu di menu Kondisi Bahan.`
+          )
+        }
+      }
     }
 
     // Validasi stok terbaru langsung dari database

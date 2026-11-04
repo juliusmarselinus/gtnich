@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bahan, BahanFormData, Supplier } from '../types'
 import { DEFAULT_SATUAN_LIST, getUnitConversionFactor } from '@/lib/satuan'
-import { Loader2, PlusCircle, Camera, X, Upload, PackagePlus, Edit3, Lock } from 'lucide-react'
+import { Loader2, PlusCircle, Camera, X, Upload, PackagePlus, Edit3, Lock, Search } from 'lucide-react'
 import CustomSelect from '@/components/ui/CustomSelect'
 import DapiHead from '@/components/ui/DapiHead'
+import { useToast } from '@/context/ToastContext'
 
 interface BahanModalProps {
   isOpen: boolean
@@ -42,6 +43,9 @@ export default function BahanModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [fotoPreview, setFotoPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isEstimatingPrice, setIsEstimatingPrice] = useState(false)
+  const [priceNote, setPriceNote] = useState<string | null>(null)
+  const toast = useToast()
 
   useEffect(() => {
     if (editingBahan) {
@@ -72,6 +76,7 @@ export default function BahanModal({
       setCustomSatuanText('')
     }
     setErrorMsg(null)
+    setPriceNote(null)
   }, [editingBahan, isOpen])
 
   // Tutup dengan tombol Escape
@@ -147,6 +152,46 @@ export default function BahanModal({
     setFotoPreview(null)
     setForm(p => ({ ...p, foto: null }))
     if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleCariHargaPasaran = async () => {
+    if (!form.nama.trim()) {
+      setErrorMsg('Ketik nama bahan baku terlebih dahulu untuk mencari estimasi harga pasar.')
+      return
+    }
+
+    const currentSatuan = isCustomSatuan ? customSatuanText.trim() : form.satuan.trim()
+    setIsEstimatingPrice(true)
+    setErrorMsg(null)
+    setPriceNote(null)
+
+    try {
+      const res = await fetch('/api/harga-pasar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nama: form.nama.trim(),
+          satuan: currentSatuan || 'kg',
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Gagal memperoleh estimasi harga pasar.')
+      }
+
+      const { harga, rentang, catatan } = json.data
+      setForm(p => ({ ...p, hargaPerSatuan: harga }))
+      const note = rentang ? `${rentang}${catatan ? ` · ${catatan}` : ''}` : catatan || 'Estimasi harga pasar ditemukan.'
+      setPriceNote(note)
+      toast.success('Harga Pasar Diterapkan', `Estimasi Rp ${harga.toLocaleString('id-ID')} / ${currentSatuan || 'satuan'} berhasil diset`)
+    } catch (err: any) {
+      const msg = err.message || 'Gagal memuat harga pasar'
+      setErrorMsg(msg)
+      toast.error('Gagal Estimasi Harga', msg)
+    } finally {
+      setIsEstimatingPrice(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -354,9 +399,30 @@ export default function BahanModal({
 
           {/* Harga Satuan */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 mb-1 px-1">
-              Harga per Satuan (Rp / {isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
-            </label>
+            <div className="flex items-center justify-between mb-1 px-1">
+              <label className="block text-[11px] font-bold text-slate-600">
+                Harga per Satuan (Rp / {isCustomSatuan ? customSatuanText || 'satuan' : form.satuan})
+              </label>
+              <button
+                type="button"
+                onClick={handleCariHargaPasaran}
+                disabled={isEstimatingPrice || !form.nama.trim()}
+                title="Cari estimasi harga pasar wajar untuk bahan ini"
+                className="text-[11px] font-semibold text-[#8A5A00] hover:text-[#5A3A00] flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {isEstimatingPrice ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin text-[#8A5A00]" />
+                    <span>Mencari harga pasar...</span>
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-3 h-3" />
+                    <span>Cari Harga Pasaran</span>
+                  </>
+                )}
+              </button>
+            </div>
             <input
               type="number"
               min="0"
@@ -368,6 +434,12 @@ export default function BahanModal({
               placeholder="0"
               className={`${INPUT_STYLE} font-mono font-bold text-slate-900`}
             />
+            {priceNote && (
+              <p className="text-[10px] text-slate-500 font-medium mt-1 px-1 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#228B5B]" />
+                {priceNote}
+              </p>
+            )}
           </div>
 
           {/* Stok Saat Ini & Min. Stok */}

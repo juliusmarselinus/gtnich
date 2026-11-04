@@ -2,9 +2,11 @@
 
 import { Bahan, StockCondition } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
-import { Edit2, Trash2, AlertTriangle, CheckCircle2, XCircle, ImageOff, Plus, Loader2 } from 'lucide-react'
+import { Edit2, Trash2, AlertTriangle, CheckCircle2, XCircle, ImageOff, Plus, Loader2, Search } from 'lucide-react'
 import DapiHead from '@/components/ui/DapiHead'
 import clsx from 'clsx'
+import { useState } from 'react'
+import { useToast } from '@/context/ToastContext'
 
 // Peta kata kunci -> foto Unsplash berkualitas tinggi
 const FOTO_MAP: { keywords: string[]; url: string }[] = [
@@ -88,6 +90,7 @@ interface BahanCardProps {
   onEdit: (b: Bahan) => void
   onDelete: (b: Bahan) => void
   onOpenAdd?: () => void
+  onUpdateHarga?: (b: Bahan, hargaBaru: number) => Promise<void>
   checkingId?: string | null
 }
 
@@ -97,8 +100,48 @@ export default function BahanCard({
   onEdit,
   onDelete,
   onOpenAdd,
+  onUpdateHarga,
   checkingId = null,
 }: BahanCardProps) {
+  const [checkingPriceId, setCheckingPriceId] = useState<string | null>(null)
+  const [priceNotes, setPriceNotes] = useState<Record<string, string>>({})
+  const toast = useToast()
+
+  const handleCariHargaPasarBox = async (b: Bahan) => {
+    setCheckingPriceId(b.id)
+    try {
+      const res = await fetch('/api/harga-pasar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nama: b.nama,
+          satuan: b.satuan,
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Gagal memperoleh estimasi harga pasar.')
+      }
+
+      const { harga, rentang, catatan } = json.data
+      const note = rentang ? `${rentang}` : catatan || 'Harga pasaran wajar'
+      setPriceNotes(prev => ({ ...prev, [b.id]: note }))
+
+      if (onUpdateHarga) {
+        await onUpdateHarga(b, harga)
+      }
+
+      toast.success(
+        'Harga Pasar Diperbarui',
+        `${b.nama}: Rp ${harga.toLocaleString('id-ID')} / ${b.satuan} (${note})`
+      )
+    } catch (err: any) {
+      toast.error('Gagal Cek Harga Pasar', err.message || 'Terjadi kesalahan sistem')
+    } finally {
+      setCheckingPriceId(null)
+    }
+  }
   if (list.length === 0) {
     return (
       <div className="bg-white rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] border border-[#EBE3D7]/70 py-16 px-6 flex flex-col items-center justify-center text-center space-y-4">
@@ -202,11 +245,33 @@ export default function BahanCard({
               <div className="pt-1 border-t border-[#F7F2E9] space-y-1">
                 <div className="flex items-baseline justify-between text-xs">
                   <span className="text-[11px] text-slate-500 font-medium">Harga Beli</span>
-                  <span className="font-extrabold text-[#D98B00]">
-                    {formatRupiah(b.hargaPerSatuan)}
-                    <span className="text-slate-400 font-normal text-[10px]"> /{b.satuan}</span>
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-extrabold text-[#D98B00]">
+                      {formatRupiah(b.hargaPerSatuan)}
+                      <span className="text-slate-400 font-normal text-[10px]"> /{b.satuan}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCariHargaPasarBox(b)}
+                      disabled={checkingPriceId === b.id}
+                      title="Cek harga pasaran wajar untuk bahan ini"
+                      aria-label="Cek harga pasar"
+                      className="p-1 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[#8A5A00] transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {checkingPriceId === b.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin text-[#8A5A00]" />
+                      ) : (
+                        <Search className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
                 </div>
+                {priceNotes[b.id] && (
+                  <p className="text-[10px] text-slate-500 font-medium truncate flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#228B5B] flex-shrink-0" />
+                    Pasaran: {priceNotes[b.id]}
+                  </p>
+                )}
                 <div className="flex items-baseline justify-between text-xs">
                   <span className="text-[10px] text-slate-400">Nilai Total Stok</span>
                   <span className="font-bold text-slate-700 text-[11px]">

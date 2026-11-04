@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
 
     const routerUrl = process.env.NEXT_9ROUTER_URL || 'https://router.hitungmin.my.id/v1'
     const routerKey = process.env.NEXT_9ROUTER_KEY || 'sk-c294c01527d313cd-aaa9eu-c656a5e8'
-    const routerModel = process.env.NEXT_9ROUTER_MODEL || 'gemini/gemini-3.1-flash-lite'
+    // Prioritaskan opencode-code atau gemini-3.1-flash-lite yang responsif
+    const routerModel = process.env.NEXT_9ROUTER_MODEL || 'opencode-code'
 
     let endpoint = routerUrl.trim().replace(/\/+$/, '')
     if (!endpoint.includes('/chat/completions')) {
@@ -62,9 +63,9 @@ Format JSON yang wajib Anda kembalikan:
   "catatan": "Estimasi harga pasaran rata-rata"
 }`
 
-    // 20s timeout controller
+    // 25s timeout controller
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 20000)
+    const timeoutId = setTimeout(() => controller.abort(), 25000)
 
     try {
       const response = await fetch(endpoint, {

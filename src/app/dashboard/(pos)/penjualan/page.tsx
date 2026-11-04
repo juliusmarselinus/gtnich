@@ -32,6 +32,7 @@ export default function PenjualanPage() {
     menus,
     rawMenuCount,
     stockInfo,
+    expiredBahanCount,
     kategoriList,
     selectedKategori,
     setSelectedKategori,
@@ -140,6 +141,29 @@ export default function PenjualanPage() {
               className="px-4 py-2 rounded-full bg-[#D8431F] text-white font-bold flex items-center gap-1.5 hover:bg-[#BF3818] transition-colors"
             >
               <LogIn className="w-3.5 h-3.5" /> Masuk Akun
+            </Link>
+          </div>
+        )}
+
+        {/* Peringatan Bahan Kadaluarsa Aktif di Dapur */}
+        {expiredBahanCount > 0 && !loading && (
+          <div className="p-4 rounded-[24px] bg-rose-50 border border-rose-200 flex flex-wrap items-center justify-between gap-3 text-rose-800 text-xs animate-in fade-in-0">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600 mt-0.5" />
+              <div>
+                <p className="font-extrabold text-rose-900 leading-tight">
+                  Operasional Kasir Dicegat: Ada {expiredBahanCount} Bahan Baku Kadaluarsa!
+                </p>
+                <p className="text-[11px] text-rose-700 mt-0.5 font-medium leading-normal">
+                  Menu yang menggunakan bahan kadaluarsa otomatis dinonaktifkan dari kasir dan tidak bisa diproses demi keamanan mutu pangan.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/dashboard/kondisi-bahan"
+              className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+            >
+              Musnahkan Bahan Kadaluarsa →
             </Link>
           </div>
         )}
