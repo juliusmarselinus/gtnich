@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Supplier } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import {
@@ -15,6 +15,7 @@ import {
   Receipt,
   Calendar,
 } from 'lucide-react'
+import Pagination from '@/components/ui/Pagination'
 
 interface SupplierTableProps {
   list: Supplier[]
@@ -28,6 +29,13 @@ export default function SupplierTable({
   onDelete,
 }: SupplierTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 10
+
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return list.slice(start, start + PAGE_SIZE)
+  }, [list, currentPage])
 
   if (list.length === 0) {
     return (
@@ -58,7 +66,7 @@ export default function SupplierTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#F5F2EB]">
-            {list.map(s => {
+            {paginatedList.map(s => {
               const isExpanded = expandedId === s.id
               const orderCount = s.riwayat?.length || 0
 
@@ -147,7 +155,7 @@ export default function SupplierTable({
 
       {/* Mobile Card View */}
       <div className="md:hidden divide-y divide-[#F5F2EB]">
-        {list.map(s => {
+        {paginatedList.map(s => {
           const isExpanded = expandedId === s.id
           const orderCount = s.riwayat?.length || 0
 
@@ -292,6 +300,16 @@ export default function SupplierTable({
           })()}
         </div>
       )}
+
+      <div className="p-3 border-t border-[#F0EBE1] bg-[#FCFAF6]">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={list.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+          itemLabel="mitra supplier"
+        />
+      </div>
     </div>
   )
 }

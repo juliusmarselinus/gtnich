@@ -1,8 +1,10 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { StokLog } from '../types'
 import { TrendingUp, TrendingDown, Clock, Search, Database } from 'lucide-react'
 import clsx from 'clsx'
+import Pagination from '@/components/ui/Pagination'
 
 const sourceBadge: Record<string, string> = {
   PO: 'bg-[#FFF0E6] text-[#FF6B00] border-[#FFD9C7]',
@@ -29,6 +31,13 @@ export default function StokLogTable({
   filterSource,
   onFilterSourceChange,
 }: StokLogTableProps) {
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 15
+
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return logs.slice(start, start + PAGE_SIZE)
+  }, [logs, currentPage])
   return (
     <div className="space-y-4">
       {/* Search & Source Filter Bar */}
@@ -78,7 +87,7 @@ export default function StokLogTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F5F2EB]">
-              {logs.map(log => {
+              {paginatedLogs.map(log => {
                 const isMasuk = log.perubahan > 0
                 return (
                   <tr key={log.id} className="hover:bg-[#FFFDF9] transition-colors group">
@@ -144,7 +153,7 @@ export default function StokLogTable({
 
         {/* Mobile View */}
         <div className="md:hidden divide-y divide-[#F5F2EB]">
-          {logs.map(log => {
+          {paginatedLogs.map(log => {
             const isMasuk = log.perubahan > 0
             return (
               <div key={log.id} className="p-4 space-y-2.5">
@@ -202,6 +211,16 @@ export default function StokLogTable({
             Belum ada catatan mutasi stok di database.
           </div>
         )}
+
+        <div className="p-3 border-t border-[#F0EBE1] bg-[#FCFAF6]">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={logs.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            itemLabel="riwayat mutasi stok"
+          />
+        </div>
       </div>
     </div>
   )

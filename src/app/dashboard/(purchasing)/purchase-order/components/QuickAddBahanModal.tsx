@@ -81,8 +81,8 @@ export default function QuickAddBahanModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-sm rounded-[24px] bg-white p-5 sm:p-6 shadow-2xl border border-[#F2E3D0] space-y-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+      <div className="w-full max-w-sm my-auto max-h-[92vh] overflow-y-auto rounded-[24px] bg-white p-5 sm:p-6 shadow-2xl border border-[#F2E3D0] space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-[#F2E3D0]">
           <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
             <Package className="w-4 h-4 text-[#FF8F28]" />

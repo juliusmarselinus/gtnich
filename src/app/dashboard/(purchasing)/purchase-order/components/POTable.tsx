@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, Fragment } from 'react'
+import { useState, useMemo, Fragment } from 'react'
 import { PurchaseOrder, POStatus } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import { ChevronDown, ChevronUp, PackageCheck, Clock, FileCheck } from 'lucide-react'
 import clsx from 'clsx'
+import Pagination from '@/components/ui/Pagination'
 
 const STATUS_CONFIG: Record<POStatus, { label: string; cls: string; nextStatus?: POStatus; nextLabel?: string }> = {
   draft: { label: 'Draft', cls: 'bg-[#FFEDB3] text-kuning-teks', nextStatus: 'dikirim', nextLabel: 'Kirim ke Supplier' },
@@ -33,6 +34,13 @@ export default function POTable({
 }: POTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [loadingActionId, setLoadingActionId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 10
+
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return list.slice(start, start + PAGE_SIZE)
+  }, [list, currentPage])
 
   const handleAction = async (po: PurchaseOrder, nextStatus: POStatus) => {
     if (nextStatus === 'diterima') {
@@ -74,7 +82,7 @@ export default function POTable({
             </tr>
           </thead>
           <tbody>
-            {list.map((po, idx) => {
+            {paginatedList.map((po, idx) => {
               const cfg = STATUS_CONFIG[po.status] || STATUS_CONFIG.draft
               const exp = expandedId === po.id
               const isProcessing = loadingActionId === po.id
@@ -106,9 +114,21 @@ export default function POTable({
                           <p className="font-bold text-kopi text-sm leading-snug break-words max-w-[220px]">
                             {supplierName}
                           </p>
-                          <span className="text-[11px] text-kopi-muted block mt-0.5">
-                            {po.items.length} jenis bahan
-                          </span>
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white text-kopi-muted border border-krim-garis">
+                              {po.items.length} jenis bahan
+                            </span>
+                            {po.items.slice(0, 2).map((item, itmIdx) => (
+                              <span key={itmIdx} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-kuning/20 text-[#6B4E00]">
+                                {item.namaBahan} ({item.qty} {item.satuan})
+                              </span>
+                            ))}
+                            {po.items.length > 2 && (
+                              <span className="text-[10px] text-kopi-muted">
+                                +{po.items.length - 2} lainnya
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -229,6 +249,16 @@ export default function POTable({
           Belum ada data Pembelian Stok di database.
         </div>
       )}
+
+      <div className="p-3 border-t border-krim-garis/50 bg-[#FCFAF6] rounded-b-[28px]">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={list.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+          itemLabel="pesanan pembelian (PO)"
+        />
+      </div>
     </div>
   )
 }

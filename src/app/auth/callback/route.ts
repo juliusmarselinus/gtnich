@@ -147,21 +147,26 @@ export async function GET(request: Request) {
       }
 
       const forwardedHost = request.headers.get('x-forwarded-host')
-      const isLocalEnv = process.env.NODE_ENV === 'development'
+      const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+      const host = request.headers.get('host')
+
+      // Tentukan base URL sebenarnya tempat user mengakses aplikasi
+      let redirectBase = origin
+      if (forwardedHost) {
+        redirectBase = `${forwardedProto}://${forwardedHost}`
+      } else if (host && !host.includes('localhost') && origin.includes('localhost')) {
+        redirectBase = `https://${host}`
+      }
 
       // Langsung arahkan ke dashboard aplikasi tanpa query param setup/personalized
-      const targetPath = next
-
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${targetPath}`)
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${targetPath}`)
-      } else {
-        return NextResponse.redirect(`${origin}${targetPath}`)
-      }
+      const targetPath = next.startsWith('/') ? next : `/${next}`
+      return NextResponse.redirect(`${redirectBase}${targetPath}`)
     }
   }
 
   // Jika gagal, kembalikan ke halaman login dengan notifikasi error
-  return NextResponse.redirect(`${origin}/login?error=oauth_error`)
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https'
+  const redirectBase = forwardedHost ? `${forwardedProto}://${forwardedHost}` : origin
+  return NextResponse.redirect(`${redirectBase}/login?error=oauth_error`)
 }

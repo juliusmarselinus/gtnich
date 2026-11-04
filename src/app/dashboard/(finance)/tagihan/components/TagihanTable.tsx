@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { PurchaseOrder } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import {
@@ -9,8 +10,10 @@ import {
   Clock,
   ChevronRight,
   CreditCard,
+  AlertTriangle,
 } from 'lucide-react'
 import clsx from 'clsx'
+import Pagination from '@/components/ui/Pagination'
 
 const AVATAR_BG = ['bg-kuning-batang', 'bg-koral-muda', 'bg-[#E2EBC0]', 'bg-[#E3DCF3]', 'bg-krim']
 
@@ -30,6 +33,36 @@ export default function TagihanTable({
   onSelectDetail,
   onBayar,
 }: TagihanTableProps) {
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 10
+
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return list.slice(start, start + PAGE_SIZE)
+  }, [list, currentPage])
+
+  // Fungsi utilitas hitung usia tagihan (hari belum pembayaran)
+  const getOverdueInfo = (po: PurchaseOrder) => {
+    const isLunas = po.catatan?.includes('[LUNAS') || false
+    if (isLunas) return null
+
+    const baseDateStr = po.tanggalTerima || po.tanggalBuat
+    if (!baseDateStr) return null
+
+    const baseTime = new Date(baseDateStr).getTime()
+    if (isNaN(baseTime)) return null
+
+    const diffDays = Math.floor((Date.now() - baseTime) / (1000 * 60 * 60 * 24))
+    if (diffDays <= 0) {
+      return { text: 'Hari ini', isOverdue: false, days: 0 }
+    } else if (diffDays === 1) {
+      return { text: '1 hari lalu', isOverdue: false, days: 1 }
+    } else if (diffDays >= 7) {
+      return { text: `Belum bayar ${diffDays} hari`, isOverdue: true, days: diffDays }
+    } else {
+      return { text: `${diffDays} hari lalu`, isOverdue: false, days: diffDays }
+    }
+  }
   return (
     <div className="rounded-[32px] bg-white p-2 sm:p-3 shadow-[0_14px_34px_rgba(120,80,30,0.10)] overflow-hidden">
       {/* 1. TAMPILAN DESKTOP (Tabel Lebar Identik PO) */}
@@ -58,9 +91,10 @@ export default function TagihanTable({
             </tr>
           </thead>
           <tbody>
-            {list.map((po, idx) => {
+            {paginatedList.map((po, idx) => {
               const amount = po.totalAktual > 0 ? po.totalAktual : po.totalEstimasi
               const isLunas = po.catatan?.includes('[LUNAS') || false
+              const overdue = getOverdueInfo(po)
               const tglTerimaStr = po.tanggalTerima
                 ? new Date(po.tanggalTerima).toLocaleDateString('id-ID', {
                     day: '2-digit',
@@ -119,9 +153,24 @@ export default function TagihanTable({
                         <CheckCircle2 className="w-3.5 h-3.5" /> Lunas Terbayar
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#F2D9CC] text-[#C2502F]">
-                        <Clock className="w-3.5 h-3.5" /> Menunggu Pembayaran
-                      </span>
+                      <div className="inline-flex flex-col items-center gap-1">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#F2D9CC] text-[#C2502F]">
+                          <Clock className="w-3.5 h-3.5" /> Belum Dibayar
+                        </span>
+                        {overdue && (
+                          <span
+                            className={clsx(
+                              'text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1',
+                              overdue.isOverdue
+                                ? 'bg-rose-100 text-rose-700 font-extrabold animate-pulse'
+                                : 'bg-[#FFF0D4] text-[#8A5A00]'
+                            )}
+                          >
+                            {overdue.isOverdue && <AlertTriangle className="w-2.5 h-2.5" />}
+                            {overdue.text}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </td>
 
@@ -161,9 +210,10 @@ export default function TagihanTable({
 
       {/* 2. TAMPILAN MOBILE & TABLET (Card-based Layout Identik PO) */}
       <div className="md:hidden space-y-3 p-1">
-        {list.map((po, idx) => {
+        {paginatedList.map((po, idx) => {
           const amount = po.totalAktual > 0 ? po.totalAktual : po.totalEstimasi
           const isLunas = po.catatan?.includes('[LUNAS') || false
+          const overdue = getOverdueInfo(po)
           const tglTerimaStr = po.tanggalTerima
             ? new Date(po.tanggalTerima).toLocaleDateString('id-ID', {
                 day: '2-digit',
@@ -199,9 +249,22 @@ export default function TagihanTable({
                     <CheckCircle2 className="w-3 h-3" /> Lunas
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-[#F2D9CC] text-[#C2502F]">
-                    <Clock className="w-3 h-3" /> Belum Lunas
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-[#F2D9CC] text-[#C2502F]">
+                      <Clock className="w-3 h-3" /> Belum Lunas
+                    </span>
+                    {overdue && (
+                      <span
+                        className={clsx(
+                          'text-[9.5px] font-bold px-2 py-0.5 rounded-md flex items-center gap-0.5',
+                          overdue.isOverdue ? 'bg-rose-100 text-rose-700 font-extrabold' : 'bg-[#FFF0D4] text-[#8A5A00]'
+                        )}
+                      >
+                        {overdue.isOverdue && <AlertTriangle className="w-2.5 h-2.5" />}
+                        {overdue.text}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -247,6 +310,16 @@ export default function TagihanTable({
           Belum ada data tagihan pembelian yang sesuai filter.
         </div>
       )}
+
+      <div className="p-3 border-t border-krim-garis/50 bg-[#FCFAF6] rounded-b-[28px]">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={list.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+          itemLabel="faktur tagihan"
+        />
+      </div>
     </div>
   )
 }

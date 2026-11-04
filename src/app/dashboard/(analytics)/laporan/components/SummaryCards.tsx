@@ -115,11 +115,11 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
             </div>
 
             {/* Baris bawah: angka + sub-label */}
-            <div className="relative">
-              <p className={clsx('text-2xl sm:text-3xl font-black tracking-tight leading-none', c.textColor)}>
+            <div className="relative min-w-0">
+              <p className={clsx('text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-tight truncate', c.textColor)}>
                 {c.value}
               </p>
-              <p className={clsx('text-xs mt-1.5', c.mutedColor)}>{c.sub}</p>
+              <p className={clsx('text-xs mt-1.5 line-clamp-1', c.mutedColor)}>{c.sub}</p>
             </div>
           </div>
         )

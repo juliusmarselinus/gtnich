@@ -1,9 +1,10 @@
 'use client'
 
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useMemo } from 'react'
 import { RiwayatPenjualan } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import { ChevronDown, ChevronUp, User, ShoppingBag, Receipt } from 'lucide-react'
+import Pagination from '@/components/ui/Pagination'
 
 interface RiwayatPenjualanTableProps {
   penjualanList: RiwayatPenjualan[]
@@ -11,6 +12,13 @@ interface RiwayatPenjualanTableProps {
 
 export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjualanTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 10
+
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return penjualanList.slice(start, start + PAGE_SIZE)
+  }, [penjualanList, currentPage])
 
   if (penjualanList.length === 0) {
     return (
@@ -54,7 +62,7 @@ export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjuala
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EDD9B0]/70">
-            {penjualanList.map(t => {
+            {paginatedList.map(t => {
               const exp = expandedId === t.id
               const createdDate = new Date(t.createdAt)
               return (
@@ -171,6 +179,16 @@ export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjuala
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="p-3 border-t border-[#EDD9B0]/50 bg-[#FFFDF7]">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={penjualanList.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+          itemLabel="transaksi kasir"
+        />
       </div>
     </div>
   )

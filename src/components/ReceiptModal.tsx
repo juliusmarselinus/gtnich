@@ -33,10 +33,10 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-stone-100 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-stone-100 flex flex-col max-h-[95vh] sm:max-h-[90vh]">
         {/* Modal Top Header */}
-        <div className="px-6 py-4 bg-stone-50/80 border-b border-stone-100 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-stone-50/80 border-b border-stone-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#FF8F2B] animate-pulse" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-stone-600">Rincian Struk Transaksi</h3>

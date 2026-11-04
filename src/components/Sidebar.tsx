@@ -248,23 +248,18 @@ export default function Sidebar() {
 
         {/* Bagian Bawah: Pengaturan & Profil Pengguna */}
         <div className="flex flex-col gap-2 flex-shrink-0 pt-1.5 border-t border-krim-garis/80">
-          {/* Tombol Pengaturan Khusus (Membuka Modal Pengaturan) */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsSettingsOpen(true)
-              onNavigate()
-            }}
-            aria-haspopup="dialog"
-            aria-expanded={isSettingsOpen}
+          {/* Link Halaman Pengaturan Sistem */}
+          <Link
+            href="/dashboard/pengaturan"
+            onClick={onNavigate}
             title={collapsed ? 'Pengaturan' : undefined}
-            className={clsx(rowClass(isSettingsOpen), 'flex-shrink-0')}
+            className={clsx(rowClass(pathname === '/dashboard/pengaturan'), 'flex-shrink-0')}
           >
-            <span className={iconClass(isSettingsOpen)}>
+            <span className={iconClass(pathname === '/dashboard/pengaturan')}>
               <Settings className="h-4 w-4" />
             </span>
             <span className={clsx('truncate', hideWhenCollapsed)}>Pengaturan</span>
-          </button>
+          </Link>
 
           {/* Profil Pengguna */}
           <div

@@ -59,8 +59,8 @@ export default function ManualMutasiModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in-50 duration-200">
-      <div className="w-full max-w-md mx-auto bg-white rounded-[28px] border border-[#EBE6DC] shadow-2xl p-6 sm:p-7 space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in-50 duration-200">
+      <div className="w-full max-w-md mx-auto my-auto max-h-[92vh] overflow-y-auto bg-white rounded-[28px] border border-[#EBE6DC] shadow-2xl p-5 sm:p-7 space-y-5">
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#F0EBE1]">
           <div className="flex items-center gap-2.5">

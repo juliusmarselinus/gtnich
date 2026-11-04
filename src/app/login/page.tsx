@@ -103,8 +103,9 @@ export default function LoginPage() {
     setMessage(null)
 
     try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')
-      const callbackUrl = new URL('/auth/callback', siteUrl)
+      // Gunakan window.location.origin secara dinamis agar sesuai domain akses aktual user (baik domain live maupun localhost)
+      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+      const callbackUrl = new URL('/auth/callback', currentOrigin)
       if (surveyData.usaha) callbackUrl.searchParams.set('usaha', surveyData.usaha)
       if (surveyData.kanal) callbackUrl.searchParams.set('kanal', surveyData.kanal)
       if (surveyData.habis !== undefined) callbackUrl.searchParams.set('habis', String(surveyData.habis))

@@ -1,12 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import PengaturanModal from '@/components/PengaturanModal'
 import Topbar from '@/components/Topbar'
 
 export default function PengaturanPage() {
-  const router = useRouter()
-
   return (
     <div className="flex-1 pb-16">
       <Topbar
@@ -14,10 +11,12 @@ export default function PengaturanPage() {
         subtitle="Kelola profil akun, identitas usaha, dan preferensi operasional dapur"
       />
 
-      <PengaturanModal
-        isOpen={true}
-        onClose={() => router.push('/dashboard')}
-      />
+      <main className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto">
+        <PengaturanModal
+          isOpen={true}
+          asPage={true}
+        />
+      </main>
     </div>
   )
 }

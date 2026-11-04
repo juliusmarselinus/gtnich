@@ -280,8 +280,8 @@ export default function PurchaseOrderPage() {
                   </span>
                 </div>
                 <div className="relative">
-                  <p className="text-4xl sm:text-5xl font-black tracking-tighter leading-none font-mono">{count}</p>
-                  <p className={clsx('text-xs mt-1.5', active ? 'opacity-85' : 'text-kopi-muted')}>{st.hint}</p>
+                  <p className="text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono truncate">{count}</p>
+                  <p className={clsx('text-xs mt-1.5 line-clamp-1', active ? 'opacity-85' : 'text-kopi-muted')}>{st.hint}</p>
                 </div>
               </button>
             )
@@ -300,8 +300,8 @@ export default function PurchaseOrderPage() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-bold text-kopi-muted uppercase tracking-wider flex items-center gap-1.5 mr-1">
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none flex-nowrap">
+            <span className="text-[11px] font-bold text-kopi-muted uppercase tracking-wider flex items-center gap-1.5 mr-1 flex-shrink-0">
               <SlidersHorizontal className="w-3.5 h-3.5" /> Filter Status
             </span>
             {[
@@ -318,7 +318,7 @@ export default function PurchaseOrderPage() {
                   type="button"
                   onClick={() => setStatusFilter(f.key)}
                   className={clsx(
-                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer flex items-center gap-2 active:scale-95',
+                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer flex items-center gap-2 active:scale-95 flex-shrink-0 whitespace-nowrap',
                     isActive
                       ? clsx(f.on, 'shadow-[0_8px_16px_rgba(43,34,28,0.18)] scale-105')
                       : 'bg-white text-kopi shadow-[0_3px_10px_rgba(120,80,30,0.08)] hover:-translate-y-0.5'

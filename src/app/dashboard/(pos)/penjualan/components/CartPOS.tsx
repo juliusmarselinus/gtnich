@@ -453,8 +453,8 @@ export default function CartPOS({
 
       {/* Modal checkout: 2 Kolom (Kiri: Pembayaran, Kanan: Struk Live) */}
       {showCheckoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1D00]/45 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-[32px] shadow-2xl p-6 sm:p-7 w-full max-w-4xl max-h-[92vh] overflow-y-auto space-y-5 animate-in fade-in-0 zoom-in-95 my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1D00]/45 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-[28px] sm:rounded-[32px] shadow-2xl p-4 sm:p-6 md:p-7 w-full max-w-4xl max-h-[96vh] sm:max-h-[92vh] overflow-y-auto space-y-4 sm:space-y-5 animate-in fade-in-0 zoom-in-95 my-auto">
             {/* Header Modal */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">

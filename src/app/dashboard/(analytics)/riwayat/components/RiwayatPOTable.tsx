@@ -1,10 +1,11 @@
 'use client'
 
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useMemo } from 'react'
 import { RiwayatPO } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import { ChevronDown, ChevronUp, Truck, PackageCheck } from 'lucide-react'
 import clsx from 'clsx'
+import Pagination from '@/components/ui/Pagination'
 
 interface RiwayatPOTableProps {
   poList: RiwayatPO[]
@@ -12,6 +13,13 @@ interface RiwayatPOTableProps {
 
 export default function RiwayatPOTable({ poList }: RiwayatPOTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 10
+
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return poList.slice(start, start + PAGE_SIZE)
+  }, [poList, currentPage])
 
   const statusCls: Record<string, string> = {
     draft: 'bg-[#F5EDD8] text-[#5A3A00] border border-[#E8D4A0]',
@@ -59,7 +67,7 @@ export default function RiwayatPOTable({ poList }: RiwayatPOTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#F0E0B8]/60">
-            {poList.map(po => {
+            {paginatedList.map(po => {
               const exp = expandedId === po.id
               const dateCreated = new Date(po.tanggalBuat)
               const badgeClass = statusCls[po.status.toLowerCase()] || 'bg-[#F5EDD8] text-[#5A3A00]'
@@ -175,6 +183,16 @@ export default function RiwayatPOTable({ poList }: RiwayatPOTableProps) {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="p-3 border-t border-[#EDD9B0]/50 bg-[#FFFDF7]">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={poList.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+          itemLabel="purchase order"
+        />
       </div>
     </div>
   )

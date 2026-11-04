@@ -5,8 +5,9 @@ import { formatRupiah } from '@/lib/mock-data'
 import { Edit2, Trash2, AlertTriangle, CheckCircle2, XCircle, ImageOff, Plus, Loader2, Search } from 'lucide-react'
 import DapiHead from '@/components/ui/DapiHead'
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useToast } from '@/context/ToastContext'
+import Pagination from '@/components/ui/Pagination'
 
 // Peta kata kunci -> foto Unsplash berkualitas tinggi
 const FOTO_MAP: { keywords: string[]; url: string }[] = [
@@ -114,6 +115,13 @@ export default function BahanCard({
     catatan?: string
   } | null>(null)
   const [isUpdatingPrice, setIsUpdatingPrice] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 12
+
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return list.slice(start, start + PAGE_SIZE)
+  }, [list, currentPage])
   const toast = useToast()
 
   const handleCariHargaPasarBox = async (b: Bahan) => {
@@ -194,9 +202,10 @@ export default function BahanCard({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-      {list.map(b => {
-        const st = getStockCondition(b)
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        {paginatedList.map(b => {
+          const st = getStockCondition(b)
         const cfg = statusConfig[st]
         const Icon = cfg.icon
         const fotoUrl = b.foto || getDefaultFoto(b.nama)
@@ -368,17 +377,28 @@ export default function BahanCard({
         )
       })}
 
-      {/* Modal Konfirmasi Penerapan Harga Baru */}
-      <ConfirmUpdateHargaModal
-        isOpen={Boolean(pendingConfirm)}
-        bahan={pendingConfirm?.bahan || null}
-        hargaBaru={pendingConfirm?.hargaBaru || 0}
-        rentang={pendingConfirm?.rentang}
-        catatan={pendingConfirm?.catatan}
-        onClose={() => setPendingConfirm(null)}
-        onConfirm={handleConfirmUpdateHarga}
-        isUpdating={isUpdatingPrice}
-      />
+        {/* Modal Konfirmasi Penerapan Harga Baru */}
+        <ConfirmUpdateHargaModal
+          isOpen={Boolean(pendingConfirm)}
+          bahan={pendingConfirm?.bahan || null}
+          hargaBaru={pendingConfirm?.hargaBaru || 0}
+          rentang={pendingConfirm?.rentang}
+          catatan={pendingConfirm?.catatan}
+          onClose={() => setPendingConfirm(null)}
+          onConfirm={handleConfirmUpdateHarga}
+          isUpdating={isUpdatingPrice}
+        />
+      </div>
+
+      <div className="rounded-[28px] bg-white border border-[#EBE6DC] p-2 sm:p-3 shadow-xs">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={list.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+          itemLabel="bahan baku"
+        />
+      </div>
     </div>
   )
 }

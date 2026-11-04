@@ -88,12 +88,12 @@ export default function KurangiStokModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-kurangi-stok-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 bg-[#2B1D00]/50 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 bg-[#2B1D00]/50 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
       onClick={e => {
         if (e.target === e.currentTarget && !submitting) onClose()
       }}
     >
-      <div className="relative w-full max-w-lg rounded-[28px] bg-[#FFFBF2] border border-[#E8DCC8] shadow-[0_24px_60px_rgba(43,29,0,0.28)] overflow-hidden animate-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-lg my-auto max-h-[92vh] overflow-y-auto rounded-[28px] bg-[#FFFBF2] border border-[#E8DCC8] shadow-[0_24px_60px_rgba(43,29,0,0.28)] overflow-hidden animate-in zoom-in-95 duration-150">
         {/* Header Modal DapurTwin */}
         <div className="flex items-center justify-between px-6 py-4.5 border-b border-[#E8DCC8] bg-[#FFF4DC]">
           <div className="flex items-center gap-3">

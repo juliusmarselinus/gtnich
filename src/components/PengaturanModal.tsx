@@ -59,15 +59,17 @@ const HABIS_OPTIONS = [
 type SettingsTab = 'account' | 'preference' | 'notification' | 'security'
 
 interface PengaturanModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen?: boolean
+  onClose?: () => void
   defaultTab?: SettingsTab
+  asPage?: boolean
 }
 
 export default function PengaturanModal({
-  isOpen,
-  onClose,
+  isOpen = true,
+  onClose = () => {},
   defaultTab = 'account',
+  asPage = false,
 }: PengaturanModalProps) {
   const supabase = createClient()
   const [activeTab, setActiveTab] = useState<SettingsTab>(defaultTab)
@@ -422,17 +424,8 @@ export default function PengaturanModal({
     },
   ]
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-settings-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 bg-kopi/50 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-[32px] bg-[#FFFBF2] border border-[#E8DCC8] shadow-[0_24px_60px_rgba(43,29,0,0.28)] overflow-hidden">
+  const modalBody = (
+    <div className={clsx("relative w-full flex flex-col rounded-[32px] bg-[#FFFBF2] border border-[#E8DCC8] overflow-hidden", asPage ? "max-w-5xl mx-auto shadow-[0_14px_40px_rgba(43,29,0,0.08)] min-h-[640px]" : "max-w-4xl max-h-[92vh] shadow-[0_24px_60px_rgba(43,29,0,0.28)]")}>
         {/* Header Modal */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#E8DCC8] bg-[#FFF6E0]">
           <div className="flex items-center gap-3">
@@ -449,6 +442,7 @@ export default function PengaturanModal({
             </div>
           </div>
 
+          {!asPage && (
           <button
             type="button"
             onClick={onClose}
@@ -457,6 +451,7 @@ export default function PengaturanModal({
           >
             <X className="w-5 h-5" />
           </button>
+        )}
         </div>
 
         {/* Body Modal: Sidebar Kiri + Konten Kanan */}
@@ -978,6 +973,23 @@ export default function PengaturanModal({
           </div>
         </div>
       </div>
+  )
+
+  if (asPage) {
+    return modalBody
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-settings-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 bg-kopi/50 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={e => {
+        if (e.target === e.currentTarget && onClose) onClose()
+      }}
+    >
+      {modalBody}
     </div>
   )
 }

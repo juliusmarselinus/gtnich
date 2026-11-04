@@ -98,23 +98,24 @@ export default function ProsesPesananPage() {
         title="Proses Pesanan & Pre-Order"
         subtitle="Kelola pesanan masuk, pantau ketersediaan bahan baku dapur, dan proses pesanan pre-order secara berurutan"
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={refresh}
               disabled={loading}
               title="Perbarui daftar pesanan"
-              className="flex h-11 px-3.5 items-center gap-1.5 rounded-full bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs border border-[#E8DCC8] cursor-pointer disabled:opacity-50"
+              className="flex h-10 sm:h-11 px-3 sm:px-3.5 items-center gap-1.5 rounded-full bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs border border-[#E8DCC8] cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={clsx('w-3.5 h-3.5', loading && 'animate-spin')} />
-              <span className="hidden sm:inline">Segarkan</span>
+              <span className="hidden md:inline">Segarkan</span>
             </button>
             <Link
               href="/dashboard/penjualan"
-              className="flex h-11 px-4 items-center gap-1.5 rounded-full bg-[#FF8F2B] hover:bg-[#E57A18] text-white text-xs font-bold transition-colors shadow-xs"
+              className="flex h-10 sm:h-11 px-3.5 sm:px-4 items-center gap-1.5 rounded-full bg-[#FF8F2B] hover:bg-[#E57A18] text-white text-xs font-bold transition-all shadow-xs active:scale-95 whitespace-nowrap"
             >
-              <Plus className="w-4 h-4" />
-              <span>Input Penjualan / Pre-Order</span>
+              <Plus className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden xs:inline sm:inline">Input Penjualan / PO</span>
+              <span className="xs:hidden sm:hidden">Input PO</span>
             </Link>
           </div>
         }
