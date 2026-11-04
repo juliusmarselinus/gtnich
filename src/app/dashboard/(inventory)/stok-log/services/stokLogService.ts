@@ -20,6 +20,69 @@ interface RawLogDB {
   } | null
 }
 
+const KNOWN_UNITS = [
+  'kg',
+  'gram',
+  'gr',
+  'g',
+  'liter',
+  'l',
+  'ml',
+  'butir',
+  'pcs',
+  'sachet',
+  'bungkus',
+  'kaleng',
+  'botol',
+  'pack',
+  'lembar',
+  'sdm',
+  'sdt',
+  'ikat',
+  'tray',
+  'dus',
+  'karton',
+  'bal',
+  'karung',
+  'porsi',
+  'cup',
+]
+
+/**
+ * Ekstrak satuan historis yang berlaku saat mutasi stok dicatat.
+ * Log stok bersifat immutable: jika satuan bahan diubah di masa depan,
+ * log lama tetap menampilkan satuan historis aslinya saat transaksi terjadi.
+ */
+function resolveHistoricalUnit(catatan?: string | null, fallbackUnit = 'item'): string {
+  if (!catatan) return fallbackUnit
+
+  // 1. Pola konversi satuan master: "... 10 kg ➔ 10000 gram" -> simpan satuan target konversi
+  const convMatch = catatan.match(/(?:➔|->)\s*[\d,.]+\s*([a-zA-Z]+)/)
+  if (convMatch && KNOWN_UNITS.includes(convMatch[1].toLowerCase())) {
+    return convMatch[1].toLowerCase()
+  }
+
+  // 2. Pola dalam tanda kurung, misal (10 kg) atau (Selisih: +5 kg) atau (= 10000 gram)
+  const bracketMatch = catatan.match(/\((?:[^)]*?(?:Selisih:|[=,]|Batch\s*#\d+)[^)]*?)?([+-]?\s*[\d,.]+)\s*([a-zA-Z]+)\)/i)
+  if (bracketMatch && KNOWN_UNITS.includes(bracketMatch[2].toLowerCase())) {
+    return bracketMatch[2].toLowerCase()
+  }
+
+  // 3. Pola tindakan operasional: "Terpakai 0.5 kg", "Masuk 5 kg", "diverifikasi: 10 kg", "stok dikembalikan 2 kg", "Pemusnahan ... 5 kg"
+  const actionMatch = catatan.match(/(?:Terpakai|Masuk|keluar|Pemusnahan|Pengurangan|stok dikembalikan|diverifikasi:?)\s*([+-]?\s*[\d,.]+)\s*([a-zA-Z]+)/i)
+  if (actionMatch && KNOWN_UNITS.includes(actionMatch[2].toLowerCase())) {
+    return actionMatch[2].toLowerCase()
+  }
+
+  // 4. Pola kata satuan yang terkandung dalam catatan
+  for (const u of KNOWN_UNITS) {
+    const reg = new RegExp(`(?:^|[^a-zA-Z0-9])${u}(?:$|[^a-zA-Z0-9])`, 'i')
+    if (reg.test(catatan)) return u
+  }
+
+  return fallbackUnit
+}
+
 function formatDate(isoStr: string): string {
   try {
     const d = new Date(isoStr)
@@ -89,21 +152,25 @@ export const stokLogService = {
       throw new Error(error.message || 'Gagal mengambil riwayat mutasi stok.')
     }
 
-    return (data as RawLogDB[] || []).map(row => ({
-      id: row.id,
-      userId: row.user_id,
-      bahanId: row.bahan_id,
-      namaBahan: row.bahan?.nama || 'Bahan Dihapus',
-      satuan: row.bahan?.satuan || 'item',
-      perubahan: Number(row.perubahan) || 0,
-      stokSebelum: Number(row.stok_sebelum) || 0,
-      stokSesudah: Number(row.stok_sesudah) || 0,
-      sumber: row.sumber,
-      referenceId: row.reference_id,
-      catatan: row.catatan,
-      createdAt: row.created_at,
-      tanggalFormatted: formatDate(row.created_at),
-    }))
+    return (data as RawLogDB[] || []).map(row => {
+      const historicalSatuan = resolveHistoricalUnit(row.catatan, row.bahan?.satuan || 'item')
+
+      return {
+        id: row.id,
+        userId: row.user_id,
+        bahanId: row.bahan_id,
+        namaBahan: row.bahan?.nama || 'Bahan Dihapus',
+        satuan: historicalSatuan,
+        perubahan: Number(row.perubahan) || 0,
+        stokSebelum: Number(row.stok_sebelum) || 0,
+        stokSesudah: Number(row.stok_sesudah) || 0,
+        sumber: row.sumber,
+        referenceId: row.reference_id,
+        catatan: row.catatan,
+        createdAt: row.created_at,
+        tanggalFormatted: formatDate(row.created_at),
+      }
+    })
   },
 
   // Input Mutasi Manual (Masuk / Keluar) dengan sinkronisasi ke tabel bahan
@@ -146,6 +213,9 @@ export const stokLogService = {
     }
 
     // 3. Catat di tabel stok_logs
+    const baseCatatan = input.catatan?.trim() || (input.tipe === 'masuk' ? 'Penambahan manual' : 'Pengurangan/rusak manual')
+    const finalCatatan = `${baseCatatan} (${delta > 0 ? '+' : ''}${delta} ${bahan.satuan})`
+
     const { data: logData, error: logErr } = await supabase
       .from('stok_logs')
       .insert({
@@ -155,7 +225,7 @@ export const stokLogService = {
         stok_sebelum: currentStok,
         stok_sesudah: newStok,
         sumber: 'Manual',
-        catatan: input.catatan?.trim() || (input.tipe === 'masuk' ? 'Penambahan manual' : 'Pengurangan/rusak manual'),
+        catatan: finalCatatan,
       })
       .select('*, bahan(id, nama, satuan, code)')
       .single()
@@ -171,7 +241,7 @@ export const stokLogService = {
       userId: row.user_id,
       bahanId: row.bahan_id,
       namaBahan: row.bahan?.nama || bahan.nama,
-      satuan: row.bahan?.satuan || bahan.satuan,
+      satuan: resolveHistoricalUnit(row.catatan, bahan.satuan),
       perubahan: Number(row.perubahan) || 0,
       stokSebelum: Number(row.stok_sebelum) || 0,
       stokSesudah: Number(row.stok_sesudah) || 0,
