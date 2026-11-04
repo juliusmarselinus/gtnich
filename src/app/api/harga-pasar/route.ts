@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
 
     const routerUrl = process.env.NEXT_9ROUTER_URL || 'https://router.hitungmin.my.id/v1'
     const routerKey = process.env.NEXT_9ROUTER_KEY || 'sk-c294c01527d313cd-aaa9eu-c656a5e8'
-    // Prioritaskan opencode-code atau gemini-3.1-flash-lite yang responsif
-    const routerModel = process.env.NEXT_9ROUTER_MODEL || 'opencode-code'
+    // Prioritaskan model gemini-3.5-flash-lite yang terbukti cepat (< 4 detik) dan stabil di router
+    const routerModel = process.env.NEXT_9ROUTER_MODEL || 'gemini/gemini-3.5-flash-lite'
 
     let endpoint = routerUrl.trim().replace(/\/+$/, '')
     if (!endpoint.includes('/chat/completions')) {
@@ -51,21 +51,17 @@ export async function POST(req: NextRequest) {
     }
 
     const satuanClean = satuan?.trim() || 'satuan'
-    const systemPrompt = `Anda adalah analis estimasi harga pasar bahan baku kuliner dan sembako di Indonesia. Tugas Anda memberikan estimasi harga wajar pasaran eceran/grosir (Rupiah) per satuan yang diminta. Output Anda WAJIB HANYA berupa JSON valid tanpa teks pengantar, penjelasan, atau markdown formatting.`
-
-    const userPrompt = `Berapa perkiraan harga pasaran rata-rata di Indonesia saat ini untuk bahan baku: "${nama.trim()}" dengan satuan "${satuanClean}"?
-Jika satuan adalah gram atau ml, hitung proporsional harga untuk ukuran tersebut (misal jika per kg Rp 15.000, maka 1 gram = Rp 15).
-
-Format JSON yang wajib Anda kembalikan:
+    const prompt = `Berapa perkiraan harga pasaran grosir/eceran di Indonesia saat ini untuk bahan baku: "${nama.trim()}" per "${satuanClean}"?
+Jawab HANYA JSON valid:
 {
   "harga": 15000,
   "rentang": "Rp 13.000 - Rp 17.000",
-  "catatan": "Estimasi harga pasaran rata-rata"
+  "catatan": "Harga pasar rata-rata"
 }`
 
-    // 25s timeout controller
+    // 15 detik timeout controller
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 25000)
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
 
     try {
       const response = await fetch(endpoint, {
@@ -77,10 +73,9 @@ Format JSON yang wajib Anda kembalikan:
         body: JSON.stringify({
           model: routerModel,
           stream: false,
-          temperature: 0.2,
+          temperature: 0.1,
           messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
+            { role: 'user', content: prompt },
           ],
         }),
         signal: controller.signal,
