@@ -1,5 +1,6 @@
 import {
   ShoppingCart,
+  CookingPot,
   ChefHat,
   ClipboardList,
   Truck,
@@ -42,6 +43,7 @@ export const navSections: NavSection[] = [
     icon: ShoppingCart,
     items: [
       { href: '/dashboard/penjualan', label: 'Input Penjualan', desc: 'Kasir POS cepat & auto potong stok', icon: ShoppingCart },
+      { href: '/dashboard/proses-pesanan', label: 'Proses Pesanan', desc: 'Kelola pre-order & antrean dapur', icon: CookingPot },
       { href: '/dashboard/purchase-order', label: 'Pembelian Stok', desc: 'Pemesanan bahan & verifikasi barang', icon: ClipboardList },
       { href: '/dashboard/tagihan', label: 'Tagihan Supplier', desc: 'Monitoring invoice tempo & pembayaran', icon: Receipt },
     ],
