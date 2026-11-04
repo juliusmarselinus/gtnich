@@ -131,10 +131,10 @@ export default function POTable({
                             onClick={() => handleAction(po, cfg.nextStatus!)}
                             disabled={isProcessing}
                             className={clsx(
-                              'h-10 px-4 rounded-full font-bold text-xs transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap shadow-[0_6px_14px_rgba(43,34,28,0.15)] hover:-translate-y-0.5',
+                              'h-10 px-4 rounded-full font-bold text-xs transition-all duration-150 disabled:opacity-50 cursor-pointer whitespace-nowrap shadow-[0_6px_14px_rgba(43,34,28,0.15)] hover:-translate-y-0.5 active:scale-95',
                               cfg.nextStatus === 'diterima'
-                                ? 'bg-[#C2502F] text-white'
-                                : 'bg-kopi text-white'
+                                ? 'bg-[#C2502F] text-white hover:bg-[#a63f22]'
+                                : 'bg-kopi text-white hover:bg-black'
                             )}
                           >
                             {isProcessing ? 'Memproses...' : cfg.nextLabel}
@@ -149,12 +149,14 @@ export default function POTable({
                           type="button"
                           onClick={() => setExpandedId(exp ? null : po.id)}
                           className={clsx(
-                            'h-10 w-10 rounded-full cursor-pointer inline-flex items-center justify-center transition-colors',
+                            'h-10 w-10 rounded-full cursor-pointer inline-flex items-center justify-center transition-all duration-200 active:scale-90',
                             exp ? 'bg-kuning text-kopi' : 'bg-white text-kopi-muted hover:text-kopi shadow-[0_3px_10px_rgba(120,80,30,0.08)]'
                           )}
                           title={exp ? 'Tutup rincian' : 'Lihat rincian bahan'}
                         >
-                          {exp ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          <div className={clsx('transition-transform duration-200', exp && 'rotate-180')}>
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
                         </button>
                       </div>
                     </td>
@@ -162,9 +164,9 @@ export default function POTable({
 
                   {/* Detail expand */}
                   {exp && (
-                    <tr key={`${po.id}-detail`}>
+                    <tr key={`${po.id}-detail`} className="animate-in fade-in-0 duration-200">
                       <td colSpan={5} className="px-4 pb-4 pt-1 bg-kuning-pucat rounded-b-3xl border-2 border-t-0 border-kuning-batang">
-                        <div className="rounded-2xl bg-white p-4">
+                        <div className="rounded-2xl bg-white p-4 shadow-2xs">
                           <div className="flex items-center justify-between mb-3">
                             <p className="text-[11px] font-bold text-kopi-muted uppercase tracking-wider">
                               Detail Item Bahan Yang Dipesan
@@ -179,7 +181,7 @@ export default function POTable({
                             {po.items.map((item, i) => (
                               <div
                                 key={i}
-                                className="flex items-center justify-between rounded-2xl bg-[#FAF7F2] px-4 py-3"
+                                className="flex items-center justify-between rounded-2xl bg-[#FAF7F2] px-4 py-3 transition-all duration-150 hover:translate-x-1"
                               >
                                 <div>
                                   <p className="text-sm font-bold text-kopi">{item.namaBahan}</p>

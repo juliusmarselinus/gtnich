@@ -148,7 +148,7 @@ export default function TagihanPage() {
             <div className="mt-2 flex flex-wrap gap-2.5">
               <Link
                 href="/dashboard/purchase-order"
-                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
+                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer whitespace-nowrap"
               >
                 <ReceiptText className="w-4 h-4 flex-shrink-0" /> Halaman Purchase Order
               </Link>
@@ -196,16 +196,16 @@ export default function TagihanPage() {
                 type="button"
                 onClick={() => setStatusBayarFilter(st.key)}
                 className={clsx(
-                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col justify-between min-h-[145px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col justify-between min-h-[145px] transition-all duration-200 cursor-pointer hover:-translate-y-1 active:scale-95 group',
                   active
-                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
-                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
+                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)] scale-[1.02]')
+                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)] hover:shadow-md')
                 )}
               >
                 <span
                   aria-hidden
                   className={clsx(
-                    'absolute -right-10 -bottom-12 h-36 w-36 rounded-full',
+                    'absolute -right-10 -bottom-12 h-36 w-36 rounded-full transition-transform duration-300 group-hover:scale-110',
                     active ? 'bg-white/20' : 'bg-white/55'
                   )}
                 />
@@ -213,8 +213,8 @@ export default function TagihanPage() {
                   <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
                   <span
                     className={clsx(
-                      'h-9 w-9 rounded-full flex items-center justify-center',
-                      active ? 'bg-white/30' : 'bg-white/60'
+                      'h-9 w-9 rounded-full flex items-center justify-center transition-transform duration-200',
+                      active ? 'bg-white/30 scale-105' : 'bg-white/60 group-hover:scale-105'
                     )}
                   >
                     <st.Icon className="w-4 h-4" />
@@ -269,9 +269,9 @@ export default function TagihanPage() {
                   type="button"
                   onClick={() => setStatusBayarFilter(f.key)}
                   className={clsx(
-                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
+                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer flex items-center gap-2 active:scale-95',
                     isActive
-                      ? clsx(f.on, 'shadow-[0_8px_16px_rgba(43,34,28,0.18)]')
+                      ? clsx(f.on, 'shadow-[0_8px_16px_rgba(43,34,28,0.18)] scale-105')
                       : 'bg-white text-kopi shadow-[0_3px_10px_rgba(120,80,30,0.08)] hover:-translate-y-0.5'
                   )}
                 >

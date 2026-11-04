@@ -134,7 +134,7 @@ export default function TagihanTable({
                       <button
                         type="button"
                         onClick={() => onSelectDetail(po)}
-                        className="h-9 px-3.5 rounded-full bg-white border border-[#EBE6DC] text-xs font-bold text-kopi hover:bg-krim transition-all cursor-pointer flex items-center gap-1 shadow-[0_3px_10px_rgba(120,80,30,0.06)] hover:-translate-y-0.5"
+                        className="h-9 px-3.5 rounded-full bg-white border border-[#EBE6DC] text-xs font-bold text-kopi hover:bg-krim active:scale-95 transition-all duration-150 cursor-pointer flex items-center gap-1 shadow-[0_3px_10px_rgba(120,80,30,0.06)] hover:-translate-y-0.5"
                       >
                         <span>Rincian</span>
                         <ChevronRight className="w-3.5 h-3.5 text-kopi-muted" />
@@ -144,7 +144,7 @@ export default function TagihanTable({
                         <button
                           type="button"
                           onClick={() => onBayar(po)}
-                          className="h-9 px-4 rounded-full bg-[#C2502F] hover:bg-[#a63f22] text-white text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-[0_6px_14px_rgba(194,80,47,0.25)] transition-all hover:-translate-y-0.5"
+                          className="h-9 px-4 rounded-full bg-[#C2502F] hover:bg-[#a63f22] active:scale-95 text-white text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-[0_6px_14px_rgba(194,80,47,0.25)] transition-all duration-150 hover:-translate-y-0.5"
                         >
                           <CreditCard className="w-3.5 h-3.5" />
                           <span>Bayar</span>

@@ -215,25 +215,25 @@ export default function PurchaseOrderPage() {
             <div className="mt-2 flex flex-wrap gap-2.5">
               <button
                 onClick={handleOpenManualWizard}
-                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
+                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer whitespace-nowrap"
               >
                 <Plus className="w-4 h-4 flex-shrink-0" /> Buat Pembelian Stok Baru
               </button>
               <button
                 onClick={handleFetchAIRekomendasi}
-                className="h-11 px-5 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(255,107,0,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
+                className="h-11 px-5 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(255,107,0,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer whitespace-nowrap"
               >
                 <Bot className="w-4 h-4 flex-shrink-0" /> Rekomendasi Restock AI
               </button>
               <Link
                 href="/dashboard/tagihan"
-                className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 hover:bg-white/80 transition-colors whitespace-nowrap"
+                className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 hover:bg-white/80 active:scale-95 transition-all duration-150 whitespace-nowrap"
               >
                 <ReceiptText className="w-4 h-4" /> Halaman Tagihan ({counts.tagihan})
               </Link>
               <Link
                 href="/dashboard/ocr-nota"
-                className="h-11 px-5 rounded-full border-2 border-kopi text-kopi text-sm font-bold flex items-center gap-2 hover:bg-kopi/5 transition-colors whitespace-nowrap"
+                className="h-11 px-5 rounded-full border-2 border-kopi text-kopi text-sm font-bold flex items-center gap-2 hover:bg-kopi/5 active:scale-95 transition-all duration-150 whitespace-nowrap"
               >
                 <ScanLine className="w-4 h-4" /> Foto Nota
               </Link>
@@ -265,22 +265,22 @@ export default function PurchaseOrderPage() {
                 type="button"
                 onClick={() => setStatusFilter(statusFilter === st.key ? 'all' : st.key)}
                 className={clsx(
-                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col gap-4 min-h-[140px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col gap-4 min-h-[140px] transition-all duration-200 cursor-pointer hover:-translate-y-1 active:scale-95 group',
                   active
-                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
-                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
+                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)] scale-[1.02]')
+                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)] hover:shadow-md')
                 )}
               >
-                <span aria-hidden className={clsx('absolute -right-10 -bottom-12 h-36 w-36 rounded-full', active ? 'bg-white/20' : 'bg-white/55')} />
+                <span aria-hidden className={clsx('absolute -right-10 -bottom-12 h-36 w-36 rounded-full transition-transform duration-300 group-hover:scale-110', active ? 'bg-white/20' : 'bg-white/55')} />
                 <div className="relative flex items-center justify-between">
                   <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
-                  <span className={clsx('h-9 w-9 rounded-full flex items-center justify-center', active ? 'bg-white/30' : 'bg-white/60')}>
+                  <span className={clsx('h-9 w-9 rounded-full flex items-center justify-center transition-transform duration-200', active ? 'bg-white/30 scale-105' : 'bg-white/60 group-hover:scale-105')}>
                     <st.Icon className="w-4 h-4" />
                   </span>
                 </div>
                 <div className="relative">
-                  <p className="text-4xl sm:text-5xl font-black tracking-tighter leading-none">{count}</p>
-                  <p className={clsx('text-xs mt-1.5', active ? 'opacity-80' : 'text-kopi-muted')}>{st.hint}</p>
+                  <p className="text-4xl sm:text-5xl font-black tracking-tighter leading-none font-mono">{count}</p>
+                  <p className={clsx('text-xs mt-1.5', active ? 'opacity-85' : 'text-kopi-muted')}>{st.hint}</p>
                 </div>
               </button>
             )
@@ -317,9 +317,9 @@ export default function PurchaseOrderPage() {
                   type="button"
                   onClick={() => setStatusFilter(f.key)}
                   className={clsx(
-                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
+                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer flex items-center gap-2 active:scale-95',
                     isActive
-                      ? clsx(f.on, 'shadow-[0_8px_16px_rgba(43,34,28,0.18)]')
+                      ? clsx(f.on, 'shadow-[0_8px_16px_rgba(43,34,28,0.18)] scale-105')
                       : 'bg-white text-kopi shadow-[0_3px_10px_rgba(120,80,30,0.08)] hover:-translate-y-0.5'
                   )}
                 >

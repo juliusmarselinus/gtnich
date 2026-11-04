@@ -2,7 +2,6 @@
 
 import {
   Bell,
-  Search,
   Package,
   ShoppingCart,
   Receipt,
@@ -25,12 +24,11 @@ import clsx from 'clsx'
 interface TopbarProps {
   title: string
   subtitle?: string
-  onSearch?: (term: string) => void
-  /** elemen tambahan di kanan, sebelum kolom cari (mis. status kasir, tombol segarkan) */
+  /** elemen tambahan di kanan (mis. status kasir, tombol segarkan) */
   actions?: ReactNode
 }
 
-export default function Topbar({ title, subtitle, onSearch, actions }: TopbarProps) {
+export default function Topbar({ title, subtitle, actions }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [updatingPriceId, setUpdatingPriceId] = useState<string | null>(null)
   const { notifications, unreadCount, markAllRead, dismissNotification, clearAll, applyPriceUpdate } = useNotifications()
@@ -102,18 +100,6 @@ export default function Topbar({ title, subtitle, onSearch, actions }: TopbarPro
       </div>
 
       {actions}
-
-      {/* Cari */}
-      <label className="relative hidden w-full max-w-[260px] md:block">
-        <span className="sr-only">Cari</span>
-        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8A7B6E]" />
-        <input
-          type="search"
-          placeholder="Cari bahan, menu, invoice"
-          onChange={e => onSearch && onSearch(e.target.value)}
-          className="h-11 w-full rounded-full bg-white pl-10 pr-4 text-sm text-kopi placeholder:text-[#8A7B6E] outline-none focus:ring-2 focus:ring-kuning"
-        />
-      </label>
 
       {/* Notifikasi */}
       <div className="relative" ref={dropdownRef}>
