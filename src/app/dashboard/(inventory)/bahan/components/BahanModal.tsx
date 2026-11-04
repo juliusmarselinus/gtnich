@@ -435,10 +435,9 @@ export default function BahanModal({
               className={`${INPUT_STYLE} font-mono font-bold text-slate-900`}
             />
             {priceNote && (
-              <p className="text-[10px] text-slate-500 font-medium mt-1 px-1 flex items-center gap-1">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#228B5B]" />
-                {priceNote}
-              </p>
+              <div className="mt-1.5 px-2.5 py-1 rounded-xl bg-[#F7F5F0] border border-[#EBE3D7] text-[11px] text-slate-600 font-medium">
+                <span className="text-[#8A5A00] font-bold">Pasaran:</span> {priceNote}
+              </div>
             )}
           </div>
 

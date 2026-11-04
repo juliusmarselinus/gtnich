@@ -84,6 +84,8 @@ const statusConfig: Record<
   },
 }
 
+import ConfirmUpdateHargaModal from './ConfirmUpdateHargaModal'
+
 interface BahanCardProps {
   list: Bahan[]
   getStockCondition: (b: Bahan) => StockCondition
@@ -105,6 +107,13 @@ export default function BahanCard({
 }: BahanCardProps) {
   const [checkingPriceId, setCheckingPriceId] = useState<string | null>(null)
   const [priceNotes, setPriceNotes] = useState<Record<string, string>>({})
+  const [pendingConfirm, setPendingConfirm] = useState<{
+    bahan: Bahan
+    hargaBaru: number
+    rentang?: string
+    catatan?: string
+  } | null>(null)
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false)
   const toast = useToast()
 
   const handleCariHargaPasarBox = async (b: Bahan) => {
@@ -128,18 +137,34 @@ export default function BahanCard({
       const note = rentang ? `${rentang}` : catatan || 'Harga pasaran wajar'
       setPriceNotes(prev => ({ ...prev, [b.id]: note }))
 
-      if (onUpdateHarga) {
-        await onUpdateHarga(b, harga)
-      }
-
-      toast.success(
-        'Harga Pasar Diperbarui',
-        `${b.nama}: Rp ${harga.toLocaleString('id-ID')} / ${b.satuan} (${note})`
-      )
+      // Buka modal konfirmasi terlebih dahulu sebelum mengupdate
+      setPendingConfirm({
+        bahan: b,
+        hargaBaru: harga,
+        rentang,
+        catatan,
+      })
     } catch (err: any) {
       toast.error('Gagal Cek Harga Pasar', err.message || 'Terjadi kesalahan sistem')
     } finally {
       setCheckingPriceId(null)
+    }
+  }
+
+  const handleConfirmUpdateHarga = async () => {
+    if (!pendingConfirm || !onUpdateHarga) return
+    setIsUpdatingPrice(true)
+    try {
+      await onUpdateHarga(pendingConfirm.bahan, pendingConfirm.hargaBaru)
+      toast.success(
+        'Harga Bahan Diperbarui',
+        `${pendingConfirm.bahan.nama}: Rp ${pendingConfirm.hargaBaru.toLocaleString('id-ID')} / ${pendingConfirm.bahan.satuan} berhasil disimpan ke database.`
+      )
+      setPendingConfirm(null)
+    } catch (err: any) {
+      toast.error('Gagal Menyimpan Harga', err.message || 'Terjadi kesalahan sistem')
+    } finally {
+      setIsUpdatingPrice(false)
     }
   }
   if (list.length === 0) {
@@ -242,7 +267,7 @@ export default function BahanCard({
               </div>
 
               {/* Harga & Nilai Gudang */}
-              <div className="pt-1 border-t border-[#F7F2E9] space-y-1">
+              <div className="pt-1 border-t border-[#F7F2E9] space-y-1.5">
                 <div className="flex items-baseline justify-between text-xs">
                   <span className="text-[11px] text-slate-500 font-medium">Harga Beli</span>
                   <div className="flex items-center gap-1.5">
@@ -254,23 +279,28 @@ export default function BahanCard({
                       type="button"
                       onClick={() => handleCariHargaPasarBox(b)}
                       disabled={checkingPriceId === b.id}
-                      title="Cek harga pasaran wajar untuk bahan ini"
-                      aria-label="Cek harga pasar"
-                      className="p-1 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[#8A5A00] transition-colors cursor-pointer disabled:opacity-50"
+                      title="Cari harga pasaran untuk bahan ini"
+                      aria-label="Cari harga pasaran"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[#8A5A00] text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
                     >
                       {checkingPriceId === b.id ? (
-                        <Loader2 className="w-3 h-3 animate-spin text-[#8A5A00]" />
+                        <>
+                          <Loader2 className="w-2.5 h-2.5 animate-spin text-[#8A5A00]" />
+                          <span>Mencari...</span>
+                        </>
                       ) : (
-                        <Search className="w-3 h-3" />
+                        <>
+                          <Search className="w-2.5 h-2.5" />
+                          <span>Cari Pasaran</span>
+                        </>
                       )}
                     </button>
                   </div>
                 </div>
                 {priceNotes[b.id] && (
-                  <p className="text-[10px] text-slate-500 font-medium truncate flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#228B5B] flex-shrink-0" />
-                    Pasaran: {priceNotes[b.id]}
-                  </p>
+                  <div className="text-[10px] text-slate-600 bg-[#F7F5F0] border border-[#EBE3D7] rounded-lg px-2 py-1 font-medium">
+                    <span className="text-[#8A5A00] font-bold">Pasaran:</span> {priceNotes[b.id]}
+                  </div>
                 )}
                 <div className="flex items-baseline justify-between text-xs">
                   <span className="text-[10px] text-slate-400">Nilai Total Stok</span>
@@ -337,6 +367,18 @@ export default function BahanCard({
           </div>
         )
       })}
+
+      {/* Modal Konfirmasi Penerapan Harga Baru */}
+      <ConfirmUpdateHargaModal
+        isOpen={Boolean(pendingConfirm)}
+        bahan={pendingConfirm?.bahan || null}
+        hargaBaru={pendingConfirm?.hargaBaru || 0}
+        rentang={pendingConfirm?.rentang}
+        catatan={pendingConfirm?.catatan}
+        onClose={() => setPendingConfirm(null)}
+        onConfirm={handleConfirmUpdateHarga}
+        isUpdating={isUpdatingPrice}
+      />
     </div>
   )
 }

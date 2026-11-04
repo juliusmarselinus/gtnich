@@ -25,12 +25,12 @@ export const tagihanService = {
       year: 'numeric',
     })
 
-    const notePayment = `[LUNAS ${nowStr}] Metode: ${input.metodePembayaran} • Nominal: Rp ${input.nominalBayar.toLocaleString('id-ID')}${input.catatan ? ' • ' + input.catatan : ''}`
+    const notePayment = `[LUNAS ${nowStr}] Metode: ${input.metodePembayaran} • Nominal: Rp ${input.nominalBayar.toLocaleString('id-ID')}${input.catatan ? ' • Bukti/Ket: ' + input.catatan : ''}`
 
     // Ambil catatan PO eksisting
     const { data: currentPO } = await supabase
       .from('purchase_orders')
-      .select('catatan')
+      .select('catatan, status')
       .eq('id', input.poId)
       .single()
 
@@ -38,12 +38,18 @@ export const tagihanService = {
       ? `${currentPO.catatan} | ${notePayment}`
       : notePayment
 
+    const updatePayload: Record<string, any> = {
+      catatan: newCatatan,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (input.buktiFoto) {
+      updatePayload.foto_struk = input.buktiFoto
+    }
+
     const { error } = await supabase
       .from('purchase_orders')
-      .update({
-        catatan: newCatatan,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', input.poId)
 
     if (error) {

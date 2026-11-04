@@ -11,10 +11,8 @@ import {
   Clock,
   ChevronRight,
   CreditCard,
-  X,
   Package,
 } from 'lucide-react'
-import clsx from 'clsx'
 
 interface TagihanTableProps {
   list: PurchaseOrder[]
@@ -29,7 +27,8 @@ export default function TagihanTable({
 }: TagihanTableProps) {
   return (
     <div className="clay-card overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* 1. TAMPILAN DESKTOP (Tabel Lebar Lengkap) */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-xs min-w-[780px]">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/70 whitespace-nowrap">
@@ -116,7 +115,7 @@ export default function TagihanTable({
                         onClick={() => onSelectDetail(po)}
                         className="px-3 py-1.5 rounded-xl clay-btn text-xs font-bold text-slate-700 hover:text-slate-900 cursor-pointer flex items-center gap-1"
                       >
-                        <span>Lihat Rincian</span>
+                        <span>Rincian</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </button>
 
@@ -136,6 +135,94 @@ export default function TagihanTable({
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* 2. TAMPILAN MOBILE: Kolom Terpadu & Multi-Informasi Efisien */}
+      <div className="block md:hidden divide-y divide-slate-100">
+        {list.map(po => {
+          const amount = po.totalAktual > 0 ? po.totalAktual : po.totalEstimasi
+          const isLunas = po.catatan?.includes('[LUNAS') || false
+          const tglTerimaStr = po.tanggalTerima
+            ? new Date(po.tanggalTerima).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })
+            : po.tanggalBuat
+
+          return (
+            <div key={po.id} className="p-4 space-y-3 hover:bg-slate-50/60 transition-colors">
+              {/* Baris 1: No PO + Status Tagihan */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="font-mono font-black text-slate-900 text-sm flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[#FF8F2B]" />
+                    {po.noPO}
+                  </span>
+                  <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span className="flex items-center gap-1 text-slate-700 font-semibold truncate max-w-[140px]">
+                      <Building2 className="w-3 h-3 text-slate-400" />
+                      {po.namaSupplier}
+                    </span>
+                    <span>•</span>
+                    <span className="font-mono">{po.items.length} item</span>
+                  </div>
+                </div>
+
+                <div>
+                  {isLunas ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]">
+                      <CheckCircle2 className="w-2.5 h-2.5 text-[#FF8F2B]" /> Lunas
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      <Clock className="w-2.5 h-2.5 text-amber-600" /> Menunggu
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Baris 2: Tanggal Diterima & Total Nominal Tagihan */}
+              <div className="flex items-end justify-between pt-1 border-t border-slate-100/80">
+                <div className="text-[11px] text-slate-400 font-medium">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-slate-400" />
+                    Terima: {tglTerimaStr}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-400 font-medium block">Total Tagihan</span>
+                  <span className="font-mono font-black text-slate-900 text-sm">
+                    {formatRupiah(amount)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Baris 3: Tombol Aksi */}
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => onSelectDetail(po)}
+                  className="flex-1 py-2 rounded-xl clay-btn text-xs font-bold text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <span>Lihat Rincian</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+
+                {!isLunas && (
+                  <button
+                    type="button"
+                    onClick={() => onBayar(po)}
+                    className="flex-1 py-2 rounded-xl clay-btn-primary text-xs font-bold cursor-pointer flex items-center justify-center gap-1.5 shadow-sm text-white"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Bayar Sekarang</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {list.length === 0 && (

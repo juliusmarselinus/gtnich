@@ -15,4 +15,5 @@ export interface PelunasanInput {
   nominalBayar: number
   metodePembayaran: string
   catatan?: string
+  buktiFoto?: string | null
 }

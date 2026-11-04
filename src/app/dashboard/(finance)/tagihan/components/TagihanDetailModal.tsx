@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { PurchaseOrder, PelunasanInput } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import {
@@ -13,6 +13,9 @@ import {
   Package,
   Receipt,
   Loader2,
+  Upload,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react'
 import CustomSelect from '@/components/ui/CustomSelect'
 
@@ -20,6 +23,7 @@ interface TagihanDetailModalProps {
   isOpen: boolean
   onClose: () => void
   po: PurchaseOrder | null
+  initialMode?: 'detail' | 'bayar'
   onBayarSuccess?: (input: PelunasanInput) => Promise<void>
 }
 
@@ -27,13 +31,24 @@ export default function TagihanDetailModal({
   isOpen,
   onClose,
   po,
+  initialMode = 'detail',
   onBayarSuccess,
 }: TagihanDetailModalProps) {
-  const [showBayarForm, setShowBayarForm] = useState(false)
   const [metode, setMetode] = useState('Transfer Bank BCA')
   const [catatanBayar, setCatatanBayar] = useState('')
+  const [buktiFoto, setBuktiFoto] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Inisialisasi state saat modal dibuka
+  useEffect(() => {
+    if (isOpen) {
+      setErrorMsg(null)
+      setCatatanBayar('')
+      setBuktiFoto(null)
+    }
+  }, [isOpen, po])
 
   if (!isOpen || !po) return null
 
@@ -47,8 +62,28 @@ export default function TagihanDetailModal({
       })
     : '-'
 
-  const handleProsesBayar = async () => {
+  const handleFotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('File bukti bayar harus berupa gambar (JPG, PNG, WebP).')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = ev => {
+      const dataUrl = ev.target?.result as string
+      setBuktiFoto(dataUrl)
+      setErrorMsg(null)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleProsesBayar = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!onBayarSuccess) return
+
     setIsSubmitting(true)
     setErrorMsg(null)
     try {
@@ -58,236 +93,269 @@ export default function TagihanDetailModal({
         nominalBayar: totalTagihan,
         metodePembayaran: metode,
         catatan: catatanBayar.trim() || undefined,
+        buktiFoto: buktiFoto || undefined,
       })
-      setShowBayarForm(false)
       onClose()
     } catch (err: unknown) {
       const e = err as Error
-      setErrorMsg(e.message || 'Gagal menyimpan pelunasan tagihan')
+      setErrorMsg(e.message || 'Gagal menyimpan pelunasan tagihan.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="clay-card p-6 w-full max-w-2xl max-h-[92vh] overflow-y-auto space-y-5 animate-in fade-in-0 zoom-in-95">
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={e => {
+        if (e.target === e.currentTarget && !isSubmitting) onClose()
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B1D00]/50 backdrop-blur-sm p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150"
+    >
+      <div className="relative w-full max-w-xl max-h-[92vh] flex flex-col rounded-[28px] bg-[#FFFBF2] border border-[#E8DCC8] shadow-[0_24px_60px_rgba(43,29,0,0.28)] overflow-hidden my-auto animate-in zoom-in-95 duration-150">
         {/* Header Modal */}
-        <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E8DCC8] bg-[#FFF4DC]">
           <div className="flex items-center gap-3">
-            <span className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <span className="w-10 h-10 rounded-2xl bg-[#FFB800] text-[#2B1D00] flex items-center justify-center font-bold shadow-xs">
               <Receipt className="w-5 h-5" />
             </span>
             <div>
-              <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
-                Detail Tagihan Faktur
+              <h3 className="text-base font-black text-[#2B1D00] flex items-center gap-2">
+                {isLunas ? 'Rincian Tagihan Selesai' : 'Pembayaran Tagihan Supplier'}
                 {isLunas ? (
                   <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#FFF6EC] text-[#FF8F2B] border border-[#FFE2C2]">
                     Lunas
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                    Belum Lunas
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                    Menunggu Pembayaran
                   </span>
                 )}
               </h3>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">
-                No. PO: <span className="text-slate-700 font-bold">{po.noPO}</span>
+              <p className="text-xs text-[#8A6A40] font-mono mt-0.5">
+                No. PO: <span className="text-[#2B1D00] font-bold">{po.noPO}</span>
               </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl clay-btn text-slate-400 hover:text-slate-700 cursor-pointer"
+            disabled={isSubmitting}
+            aria-label="Tutup modal"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#8A6A40] hover:text-[#2B1D00] hover:bg-white/80 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Informasi Pemasok & Penerimaan */}
-        <div className="grid grid-cols-2 gap-3 p-4 clay-inset rounded-2xl text-xs">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              Supplier / Pemasok
-            </span>
-            <p className="font-extrabold text-slate-800 flex items-center gap-1.5 text-sm">
-              <Building2 className="w-4 h-4 text-[#FF8F2B]" />
-              {po.namaSupplier}
+        {/* Modal Scrollable Content */}
+        <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
+          {errorMsg && (
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
+              {errorMsg}
+            </div>
+          )}
+
+          {/* Info Supplier & Total */}
+          <div className="p-4 rounded-2xl bg-white border border-[#EDE0C4] space-y-2.5 shadow-2xs">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8A6A40] flex items-center gap-1 font-medium">
+                <Building2 className="w-3.5 h-3.5 text-[#FF8F2B]" />
+                Distributor / Supplier:
+              </span>
+              <span className="font-extrabold text-[#2B1D00]">{po.namaSupplier}</span>
+            </div>
+
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8A6A40] flex items-center gap-1 font-medium">
+                <Calendar className="w-3.5 h-3.5 text-[#FF8F2B]" />
+                Tanggal Terima:
+              </span>
+              <span className="font-mono font-bold text-slate-800">{tglTerimaStr}</span>
+            </div>
+
+            <div className="pt-2 border-t border-[#F2E5D0] flex items-center justify-between">
+              <span className="text-xs font-bold text-[#8A6A40]">Total Kewajiban Pembayaran:</span>
+              <span className="text-lg font-black font-mono text-[#D8431F]">
+                {formatRupiah(totalTagihan)}
+              </span>
+            </div>
+          </div>
+
+          {/* Item Barang yang Dipesan */}
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-[#5A3A00] flex items-center gap-1.5 px-1">
+              <Package className="w-3.5 h-3.5 text-[#FF8F2B]" />
+              Daftar Barang Masuk ({po.items.length} item)
             </p>
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              Tanggal Penerimaan Barang
-            </span>
-            <p className="font-bold text-slate-700 flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-slate-400" />
-              {tglTerimaStr}
-            </p>
-          </div>
-        </div>
+            <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+              {po.items.map((item, idx) => {
+                const itemPrice = item.hargaAktual > 0 ? item.hargaAktual : item.hargaEstimasi
+                const subtotal = item.qty * itemPrice
 
-        {/* Catatan / Log */}
-        {po.catatan && (
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              Catatan Order & Pembayaran:
-            </span>
-            <p className="text-slate-700 font-medium leading-relaxed">{po.catatan}</p>
-          </div>
-        )}
-
-        {/* Rincian Item Bahan Tagihan */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
-            Rincian Item Bahan Baku Yang Diterima ({po.items.length} Macam)
-          </p>
-
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-            {po.items.map((item, idx) => {
-              const itemPrice = item.hargaAktual > 0 ? item.hargaAktual : item.hargaEstimasi
-              const subtotal = item.qty * itemPrice
-
-              return (
-                <div
-                  key={item.id || idx}
-                  className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 font-bold">
-                      <Package className="w-4 h-4" />
-                    </div>
+                return (
+                  <div
+                    key={item.id || idx}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#EDE0C4] text-xs"
+                  >
                     <div>
-                      <p className="text-xs font-bold text-slate-800">{item.namaBahan}</p>
-                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                      <p className="font-bold text-[#2B1D00]">{item.namaBahan}</p>
+                      <p className="text-[10px] text-[#8A6A40] font-mono">
                         {item.qty} {item.satuan} × {formatRupiah(itemPrice)}
                       </p>
                     </div>
+                    <p className="font-mono font-bold text-[#2B1D00]">{formatRupiah(subtotal)}</p>
                   </div>
+                )
+              })}
+            </div>
+          </div>
 
-                  <div className="text-right">
-                    <p className="text-xs font-mono font-black text-slate-800">
-                      {formatRupiah(subtotal)}
-                    </p>
-                    <span className="text-[10px] text-[#FF8F2B] font-bold">✓ Diterima</span>
-                  </div>
+          {/* Form Pembayaran Langsung (Jika Belum Lunas) */}
+          {!isLunas && (
+            <form id="form-bayar-tagihan" onSubmit={handleProsesBayar} className="p-4 rounded-2xl bg-[#FFF6E0] border border-[#EDD9B0] space-y-3.5 shadow-2xs">
+              <div className="flex items-center gap-2 pb-2 border-b border-[#EDD9B0]">
+                <CreditCard className="w-4 h-4 text-[#D8431F]" />
+                <span className="text-xs font-black text-[#2B1D00]">
+                  Form Pembayaran &amp; Bukti Transfer
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-[#5A3A00] block mb-1">
+                    Metode Pembayaran
+                  </label>
+                  <CustomSelect
+                    value={metode}
+                    onChange={val => setMetode(val)}
+                    options={[
+                      'Transfer Bank BCA',
+                      'Transfer Bank Mandiri',
+                      'Transfer Bank BRI',
+                      'Transfer Bank BNI',
+                      'QRIS',
+                      'Tunai / Cash',
+                      'Giro / Cek',
+                    ]}
+                  />
                 </div>
-              )
-            })}
-          </div>
-        </div>
 
-        {/* Ringkasan Total Tagihan */}
-        <div className="p-4 rounded-2xl bg-[#FFF6EC] border border-[#FFE2C2] space-y-2">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-[#C86400] font-medium">Nilai Total Tagihan Aktual:</span>
-            <span className="text-lg font-black font-mono text-slate-900">
-              {formatRupiah(totalTagihan)}
-            </span>
-          </div>
-        </div>
+                <div>
+                  <label className="text-[11px] font-bold text-[#5A3A00] block mb-1">
+                    Nominal Dibayarkan
+                  </label>
+                  <input
+                    type="text"
+                    disabled
+                    readOnly
+                    value={formatRupiah(totalTagihan)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#EDD9B0] bg-white text-xs font-mono font-bold text-slate-800"
+                  />
+                </div>
+              </div>
 
-        {/* Form Pelunasan Tagihan (Expandable) */}
-        {!isLunas && showBayarForm && (
-          <div className="p-4 clay-inset rounded-2xl space-y-3 pt-3 border-t border-slate-200">
-            <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <CreditCard className="w-4 h-4 text-[#FF8F2B]" />
-              Konfirmasi Pelunasan Tagihan
-            </p>
-
-            {errorMsg && (
-              <p className="text-xs text-rose-600 bg-rose-50 p-2 rounded-xl">{errorMsg}</p>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
+              {/* Upload Foto Bukti Pembayaran Langsung */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 block mb-1">
-                  Metode Pembayaran
+                <label className="text-[11px] font-bold text-[#5A3A00] block mb-1">
+                  Bukti Pembayaran / Resi Struk (Opsional)
                 </label>
-                <CustomSelect
-                  value={metode}
-                  onChange={val => setMetode(val)}
-                  options={[
-                    'Transfer Bank BCA',
-                    'Transfer Bank Mandiri',
-                    'Transfer Bank BRI',
-                    'Transfer Bank BNI',
-                    'QRIS',
-                    'Tunai / Kasir',
-                    'Giro / Cek',
-                  ]}
+
+                {buktiFoto ? (
+                  <div className="relative aspect-video max-h-36 rounded-xl overflow-hidden border border-[#EDD9B0] bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={buktiFoto}
+                      alt="Bukti Transfer"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setBuktiFoto(null)}
+                      className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-slate-900/80 text-white text-[10px] font-bold flex items-center gap-1 hover:bg-slate-900"
+                    >
+                      <X className="w-3 h-3" /> Hapus
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full py-3 px-3 rounded-xl border-2 border-dashed border-[#EDD9B0] hover:border-[#FFB800] bg-white flex items-center justify-center gap-2 text-xs font-bold text-[#8A6A40] hover:text-[#2B1D00] transition-colors cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4 text-[#FF8F2B]" />
+                    <span>Lampirkan Foto Bukti Transfer / Resi Struk</span>
+                  </button>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFotoUpload}
                 />
               </div>
+
+              {/* Catatan / Keterangan Pembayaran */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 block mb-1">
-                  Nominal Bayar (Rp)
+                <label className="text-[11px] font-bold text-[#5A3A00] block mb-1">
+                  Keterangan / Nomor Referensi Transfer
                 </label>
                 <input
                   type="text"
-                  disabled
-                  value={formatRupiah(totalTagihan)}
-                  className="w-full px-3.5 py-2.5 clay-inset text-xs font-mono font-bold text-slate-700 bg-slate-100"
+                  placeholder="Contoh: No. Ref BCA 991283838 a/n Toko"
+                  value={catatanBayar}
+                  onChange={e => setCatatanBayar(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#EDD9B0] bg-white text-xs text-[#2B1D00] focus:outline-none focus:ring-2 focus:ring-[#FFB800]/50"
                 />
               </div>
-            </div>
+            </form>
+          )}
 
-            <div>
-              <label className="text-[10px] font-bold text-slate-500 block mb-1">
-                Catatan / Bukti Transfer (Opsional)
-              </label>
-              <input
-                type="text"
-                placeholder="Contoh: No. Ref BCA 991283838 a/n Toko"
-                value={catatanBayar}
-                onChange={e => setCatatanBayar(e.target.value)}
-                className="w-full px-3.5 py-2 clay-inset text-xs text-slate-800"
-              />
+          {/* Riwayat Catatan Jika Sudah Lunas */}
+          {isLunas && po.catatan && (
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-1">
+              <span className="font-bold text-emerald-800 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                Catatan Pelunasan:
+              </span>
+              <p className="text-[11px] text-emerald-700 font-mono break-words">{po.catatan}</p>
             </div>
-
-            <div className="flex gap-2 pt-1">
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => setShowBayarForm(false)}
-                className="px-4 py-2 clay-btn text-xs font-bold text-slate-600 cursor-pointer"
-              >
-                Batal Bayar
-              </button>
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleProsesBayar}
-                className="flex-1 py-2 clay-btn-primary text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                )}
-                <span>Simpan Bukti & Tandai Lunas</span>
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Footer Actions */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-[#E8DCC8] bg-[#FFFBF2]">
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={onClose}
-            className="flex-1 py-2.5 clay-btn text-xs font-bold text-slate-600 cursor-pointer"
+            className="h-10 px-4 rounded-xl border border-[#EDD9B0] bg-white hover:bg-[#FFF6E0] text-[#5A3A00] text-xs font-bold transition-colors cursor-pointer"
           >
             Tutup
           </button>
 
-          {!isLunas && !showBayarForm && (
+          {!isLunas && (
             <button
-              type="button"
-              onClick={() => setShowBayarForm(true)}
-              className="flex-1 py-2.5 clay-btn-primary text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+              type="submit"
+              form="form-bayar-tagihan"
+              disabled={isSubmitting}
+              className="h-10 px-5 rounded-xl bg-[#D8431F] hover:bg-[#BF3818] text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
-              <CreditCard className="w-4 h-4" />
-              <span>Bayar Tagihan Sekarang</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Menyimpan Pelunasan...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Konfirmasi Pembayaran Lunas</span>
+                </>
+              )}
             </button>
           )}
         </div>
