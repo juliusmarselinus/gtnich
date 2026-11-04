@@ -4,8 +4,8 @@ import { DAPURTWIN_LOGO_BASE64 } from './logoBase64'
 const resendApiKey = process.env.RESEND_API_KEY || ''
 const resend = resendApiKey ? new Resend(resendApiKey) : null
 
-// Default sender untuk Resend domain testing: 'DapurTwin <onboarding@resend.dev>'
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'DapurTwin <onboarding@resend.dev>'
+// Default sender resmi DapurTwin domain produksi sakia.id
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'DapurTwin <dapurtwin@sakia.id>'
 // Email akun pendaftar Resend gratis (default testing destination)
 const RESEND_TEST_RECIPIENT = process.env.RESEND_TEST_RECIPIENT || 'isfestival2026@gmail.com'
 
