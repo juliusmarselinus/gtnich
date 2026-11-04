@@ -12,21 +12,39 @@ export function useLaporan() {
 
   const fetchData = useCallback(async (r: TimeRangeFilter) => {
     try {
-      setIsLoading(true)
       setError(null)
       const res = await laporanService.getLaporan(r)
       setData(res)
-    } catch (err: any) {
-      console.error('Error fetching laporan data:', err)
-      setError(err?.message || 'Gagal memuat data laporan statistik')
+    } catch (err: unknown) {
+      const e = err as Error
+      console.error('Error fetching laporan data:', e)
+      setError(e?.message || 'Gagal memuat data laporan statistik')
     } finally {
       setIsLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    fetchData(range)
-  }, [fetchData, range])
+    let ignore = false
+    laporanService.getLaporan(range)
+      .then(res => {
+        if (!ignore) {
+          setData(res)
+          setIsLoading(false)
+        }
+      })
+      .catch((err: unknown) => {
+        if (!ignore) {
+          const e = err as Error
+          console.error('Error fetching laporan data:', e)
+          setError(e?.message || 'Gagal memuat data laporan statistik')
+          setIsLoading(false)
+        }
+      })
+    return () => {
+      ignore = true
+    }
+  }, [range])
 
   const handleRangeChange = (newRange: TimeRangeFilter) => {
     setRange(newRange)

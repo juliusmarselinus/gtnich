@@ -1,22 +1,30 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { sendDailySalesReportEmail } from '@/lib/resend'
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { userId, email, manualTrigger } = body
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!userId || !email) {
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: 'userId dan email diperlukan' },
-        { status: 400 }
+        { success: false, error: 'Unauthorized: Harap login untuk mengakses layanan ini' },
+        { status: 401 }
       )
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const body = await request.json()
+    const { email } = body
+    const userId = user.id
+    const targetEmail = email || user.email
+
+    if (!targetEmail) {
+      return NextResponse.json(
+        { success: false, error: 'Email tujuan diperlukan' },
+        { status: 400 }
+      )
+    }
 
     // Ambil tanggal hari ini (00:00:00 sampai 23:59:59)
     const today = new Date()
@@ -31,7 +39,7 @@ export async function POST(request: Request) {
       .maybeSingle()
 
     const storeName = profile?.store_name || 'DapurTwin'
-    const ownerName = profile?.full_name || email.split('@')[0] || 'Chef / Owner'
+    const ownerName = profile?.full_name || targetEmail.split('@')[0] || 'Chef / Owner'
 
     // 2. Ambil seluruh transaksi orders hari ini
     const { data: orders, error: ordersErr } = await supabase
@@ -73,7 +81,7 @@ export async function POST(request: Request) {
 
     // 3. Kirim Email Laporan Harian
     const emailResult = await sendDailySalesReportEmail({
-      email,
+      email: targetEmail,
       ownerName,
       storeName,
       date: today,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { notificationService, NotificationItem } from '@/services/notificationService'
 import { getNotificationPreferences } from '@/lib/notificationSettings'
 import { createClient } from '@/lib/supabase/client'
@@ -8,19 +8,15 @@ import { createClient } from '@/lib/supabase/client'
 export function useNotifications() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [dismissedIds, setDismissedIds] = useState<string[]>([])
-
-  // Load ID notifikasi yang disembunyikan/dihapus dari localStorage
-  useEffect(() => {
+  const [dismissedIds, setDismissedIds] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
     try {
       const stored = localStorage.getItem('dapur_dismissed_notifications')
-      if (stored) {
-        setDismissedIds(JSON.parse(stored))
-      }
+      return stored ? JSON.parse(stored) : []
     } catch {
-      // ignore
+      return []
     }
-  }, [])
+  })
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -158,11 +154,30 @@ export function useNotifications() {
   }, [])
 
   useEffect(() => {
-    fetchNotifications()
-    // Poll notifikasi setiap 30 detik
-    const interval = setInterval(fetchNotifications, 30000)
-    return () => clearInterval(interval)
-  }, [fetchNotifications])
+    let ignore = false
+    const poll = async () => {
+      try {
+        const data = await notificationService.getNotifications()
+        if (!ignore) {
+          let dismissed: string[] = []
+          try {
+            const stored = localStorage.getItem('dapur_dismissed_notifications')
+            if (stored) dismissed = JSON.parse(stored)
+          } catch {}
+          setNotifications(data.filter(n => !dismissed.includes(n.id)))
+        }
+      } catch (err) {
+        console.warn('Failed to fetch notifications:', err)
+      }
+    }
+
+    poll()
+    const interval = setInterval(poll, 30000)
+    return () => {
+      ignore = true
+      clearInterval(interval)
+    }
+  }, [])
 
   const dismissNotification = async (id: string) => {
     // Optimistic UI update

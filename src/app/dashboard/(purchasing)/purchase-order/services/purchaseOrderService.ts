@@ -486,19 +486,28 @@ export const purchaseOrderService = {
       const hasPriceChange = newPricePerBaseUnit > 0 && newPricePerBaseUnit !== currentPrice
       const shouldAutoUpdate = !!input.autoUpdateHargaMaster && hasPriceChange
 
-      // Update stok fisik (dan harga master jika opsi auto-update dipilih) di tabel bahan
-      const bahanUpdatePayload: Record<string, unknown> = {
-        stok: newStock,
-        updated_at: todayIso,
-      }
-      if (shouldAutoUpdate) {
-        bahanUpdatePayload.harga_per_satuan = newPricePerBaseUnit
-      }
+      // 1. Coba eksekusi atomic via RPC mutate_stok_bahan
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('mutate_stok_bahan', {
+        p_bahan_id: vItem.bahanId,
+        p_delta: addedStock,
+        p_new_price: shouldAutoUpdate ? newPricePerBaseUnit : null,
+      })
 
-      await supabase
-        .from('bahan')
-        .update(bahanUpdatePayload)
-        .eq('id', vItem.bahanId)
+      if (rpcErr || !rpcRes?.success) {
+        // Fallback update langsung jika RPC belum terpasang di database
+        const bahanUpdatePayload: Record<string, unknown> = {
+          stok: newStock,
+          updated_at: todayIso,
+        }
+        if (shouldAutoUpdate) {
+          bahanUpdatePayload.harga_per_satuan = newPricePerBaseUnit
+        }
+
+        await supabase
+          .from('bahan')
+          .update(bahanUpdatePayload)
+          .eq('id', vItem.bahanId)
+      }
 
       // Jika ada perubahan harga, catat notifikasi dengan opsi update HPP/harga master
       if (hasPriceChange) {

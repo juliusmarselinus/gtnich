@@ -20,7 +20,7 @@ export type CommonSatuan = typeof DEFAULT_SATUAN_LIST[number] | string
 
 // Konversi unit takaran resep / order ke satuan master bahan baku
 // Mengembalikan faktor pengali kuantitas terhadap harga dan stok master
-const BASE_TO_GRAM: Record<string, number> = { kg: 1000, gram: 1, gr: 1, g: 1 }
+const BASE_TO_GRAM: Record<string, number> = { kg: 1000, gram: 1, gr: 1, g: 1, mg: 0.001 }
 const BASE_TO_ML: Record<string, number> = { liter: 1000, l: 1000, ml: 1 }
 
 function toGram(u: string): number | null {

@@ -300,8 +300,9 @@ export const penjualanService = {
     const profit = totalPrice - totalHPP
 
     const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    const timeSnippet = Date.now().toString(36).slice(-4).toUpperCase()
     const randCode = Math.floor(100 + Math.random() * 900)
-    const invoiceNumber = `INV/${todayStr}/${randCode}`
+    const invoiceNumber = `INV/${todayStr}/${timeSnippet}-${randCode}`
 
     const customerName = form.customerName?.trim() || 'Pelanggan Umum'
     const customerPhone = form.customerPhone?.trim() || null
@@ -385,32 +386,57 @@ export const penjualanService = {
     }
 
     for (const [bahanId, { qtyToDeduct }] of form.isPreOrder ? [] : Array.from(bahanDeductionMap.entries())) {
-      const { data: bhn } = await supabase
-        .from('bahan')
-        .select('stok, satuan')
-        .eq('id', bahanId)
-        .single()
+      const roundedDeduct = Number(qtyToDeduct.toFixed(3))
 
-      if (bhn) {
-        const currentStock = Number(bhn.stok) || 0
-        const roundedDeduct = Number(qtyToDeduct.toFixed(3))
-        const newStock = Number((currentStock - roundedDeduct).toFixed(3))
+      // 1. Coba eksekusi atomic via RPC mutate_stok_bahan jika tersedia di database
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('mutate_stok_bahan', {
+        p_bahan_id: bahanId,
+        p_delta: -roundedDeduct,
+      })
 
-        await supabase
-          .from('bahan')
-          .update({ stok: newStock, updated_at: new Date().toISOString() })
-          .eq('id', bahanId)
+      if (!rpcErr && rpcRes && rpcRes.success) {
+        const stokSebelum = Number(rpcRes.stok_sebelum) || 0
+        const stokSesudah = Number(rpcRes.stok_sesudah) || 0
+        const satuanBahan = rpcRes.satuan || ''
 
         await supabase.from('stok_logs').insert({
           user_id: userId,
           bahan_id: bahanId,
           perubahan: -roundedDeduct,
-          stok_sebelum: currentStock,
-          stok_sesudah: newStock,
+          stok_sebelum: stokSebelum,
+          stok_sesudah: stokSesudah,
           sumber: 'Penjualan',
           reference_id: orderId,
-          catatan: `Penjualan ${invoiceNumber}: Terpakai ${roundedDeduct} ${bhn.satuan}`,
+          catatan: `Penjualan ${invoiceNumber}: Terpakai ${roundedDeduct} ${satuanBahan}`,
         })
+      } else {
+        // Fallback langsung ke query jika RPC belum dimigrasi di Postgres
+        const { data: bhn } = await supabase
+          .from('bahan')
+          .select('stok, satuan')
+          .eq('id', bahanId)
+          .single()
+
+        if (bhn) {
+          const currentStock = Number(bhn.stok) || 0
+          const newStock = Number((currentStock - roundedDeduct).toFixed(3))
+
+          await supabase
+            .from('bahan')
+            .update({ stok: newStock, updated_at: new Date().toISOString() })
+            .eq('id', bahanId)
+
+          await supabase.from('stok_logs').insert({
+            user_id: userId,
+            bahan_id: bahanId,
+            perubahan: -roundedDeduct,
+            stok_sebelum: currentStock,
+            stok_sesudah: newStock,
+            sumber: 'Penjualan',
+            reference_id: orderId,
+            catatan: `Penjualan ${invoiceNumber}: Terpakai ${roundedDeduct} ${bhn.satuan}`,
+          })
+        }
       }
     }
 

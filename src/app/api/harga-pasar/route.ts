@@ -41,9 +41,16 @@ export async function POST(req: NextRequest) {
     }
 
     const routerUrl = process.env.NEXT_9ROUTER_URL || 'https://router.hitungmin.my.id/v1'
-    const routerKey = process.env.NEXT_9ROUTER_KEY || 'sk-c294c01527d313cd-aaa9eu-c656a5e8'
+    const routerKey = process.env.NEXT_9ROUTER_KEY || ''
     // Prioritaskan model gemini-3.5-flash-lite yang terbukti cepat (< 4 detik) dan stabil di router
     const routerModel = process.env.NEXT_9ROUTER_MODEL || 'gemini/gemini-3.5-flash-lite'
+
+    if (!routerKey) {
+      return NextResponse.json(
+        { success: false, error: 'NEXT_9ROUTER_KEY belum dikonfigurasi di environment server.' },
+        { status: 500 }
+      )
+    }
 
     let endpoint = routerUrl.trim().replace(/\/+$/, '')
     if (!endpoint.includes('/chat/completions')) {

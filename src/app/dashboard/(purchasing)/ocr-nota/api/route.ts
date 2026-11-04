@@ -12,8 +12,15 @@ export async function POST(req: NextRequest) {
 
     // Gunakan konfigurasi 9Router dengan model opencode-code (didukung gemini-3.1-flash-lite)
     const routerUrl = process.env.NEXT_9ROUTER_URL || 'https://router.hitungmin.my.id/v1'
-    const routerKey = process.env.NEXT_9ROUTER_KEY || 'sk-c294c01527d313cd-aaa9eu-c656a5e8'
+    const routerKey = process.env.NEXT_9ROUTER_KEY || ''
     const routerModel = process.env.NEXT_9ROUTER_MODEL || 'opencode-code'
+
+    if (!routerKey) {
+      return NextResponse.json(
+        { success: false, error: 'NEXT_9ROUTER_KEY belum dikonfigurasi di environment server.' },
+        { status: 500 }
+      )
+    }
 
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer()

@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { sendPurchaseOrderNotificationEmail } from '@/lib/resend'
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Harap login untuk mengirim notifikasi PO' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const {
       email,
