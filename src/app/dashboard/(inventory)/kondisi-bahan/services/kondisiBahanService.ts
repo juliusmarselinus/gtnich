@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import { BahanKondisi, BatchMasukItem } from '../types'
+import { BahanKondisi, BatchMasukItem, FreshnessStatus } from '../types'
 import { analyzeShelfLife } from './expiryAIService'
 
 interface RawBahanDB {
@@ -68,16 +68,26 @@ export const kondisiBahanService = {
 
     const allLogs = logsData || []
     const incomingLogs = allLogs.filter(l => Number(l.perubahan) > 0)
-    const kadaluarsaLogs = allLogs.filter(l => l.sumber === 'Kadaluarsa' || Number(l.perubahan) < 0)
+    // Filter log pemusnahan/kadaluarsa baik yang bertipe 'Kadaluarsa' maupun 'Manual' dengan catatan pemusnahan/kadaluarsa
+    const kadaluarsaLogs = allLogs.filter(l => {
+      const isNeg = Number(l.perubahan) < 0
+      const s = String(l.sumber || '').toLowerCase()
+      const c = String(l.catatan || '').toLowerCase()
+      return (
+        s === 'kadaluarsa' ||
+        (isNeg && (c.includes('kadaluarsa') || c.includes('pemusnahan') || c.includes('rusak') || c.includes('buang')))
+      )
+    })
 
     // 3. Bangun daftar bahan terkonsolidasi dengan rincian batch barang masuk
     const enrichedList: BahanKondisi[] = await Promise.all(
       rows.map(async b => {
         const bahanLogs = incomingLogs.filter(l => l.bahan_id === b.id)
         const bahanKadaluarsaLogs = kadaluarsaLogs.filter(l => l.bahan_id === b.id)
-        const totalDibuangKadaluarsa = bahanKadaluarsaLogs
-          .filter(l => l.sumber === 'Kadaluarsa')
-          .reduce((sum, l) => sum + Math.abs(Number(l.perubahan) || 0), 0)
+        const totalDibuangKadaluarsa = bahanKadaluarsaLogs.reduce(
+          (sum, l) => sum + Math.abs(Number(l.perubahan) || 0),
+          0
+        )
 
         // Dapatkan analisis dasar umur simpan untuk jenis bahan ini
         const baseDate = b.tanggal_masuk || b.created_at || new Date().toISOString()
@@ -86,29 +96,37 @@ export const kondisiBahanService = {
         let batches: BatchMasukItem[] = []
 
         if (bahanLogs.length > 0) {
-          // Buat rincian per batch masuk dengan penomoran urut
+          // Urutkan bahanLogs secara kronologis (dari batch terlama/tertua ke terbaru)
+          // agar pengurangan/pemusnahan FIFO memotong batch kadaluarsa tertua terlebih dahulu
+          const sortedIncomingLogs = [...bahanLogs].sort(
+            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          )
+
           let sisaDibuangPool = totalDibuangKadaluarsa
 
           batches = await Promise.all(
-            bahanLogs.map(async (l, idx) => {
-              const batchNo = bahanLogs.length - idx // Nomor batch (#1 batch paling awal, #2 berikutnya, dst)
+            sortedIncomingLogs.map(async (l, idx) => {
+              const batchNo = idx + 1 // Nomor batch (#1 batch paling awal masuk)
               const sumberLabel = l.sumber === 'PO' ? 'Pesanan Belanja (PO)' : l.sumber === 'Manual' ? 'Stok Masuk Manual' : `Masuk (${l.sumber})`
               const batchAi = await analyzeShelfLife(b.nama, l.created_at, apiKey)
               const rawExpired = batchAi.aiStatusFreshness === 'kadaluarsa' || (batchAi.aiSisaHari !== null && batchAi.aiSisaHari <= 0)
 
-              // Cek apakah batch ini sudah tercatat dibuang di log stok_logs
+              // Cek apakah batch ini secara spesifik dicatat dimusnahkan di log
               const isSpecificBatchDibuang = bahanKadaluarsaLogs.some(
                 kl => kl.catatan && kl.catatan.includes(`Batch #${batchNo}`)
               )
 
-              // Jika stok bahan saat ini sudah 0, atau batch ini kadaluarsa dan ada pengurangan kadaluarsa yang mencakup jumlahnya
+              // KONDISI SUDAH DIMUSNAHKAN:
+              // 1. Catatan mutasi eksplisit menyebutkan nomor batch ini, ATAU
+              // 2. Ada pool pengurangan kadaluarsa/pemusnahan yang pernah dilakukan untuk bahan ini, ATAU
+              // 3. Stok bahan saat ini sudah 0 / habis
               let isDibuang = false
               if (rawExpired) {
                 if (isSpecificBatchDibuang) {
                   isDibuang = true
-                } else if (sisaDibuangPool >= (Number(l.perubahan) || 0) && sisaDibuangPool > 0) {
+                } else if (sisaDibuangPool > 0) {
                   isDibuang = true
-                  sisaDibuangPool -= (Number(l.perubahan) || 0)
+                  sisaDibuangPool = Math.max(0, sisaDibuangPool - (Number(l.perubahan) || 0))
                 } else if (Number(b.stok) <= 0) {
                   isDibuang = true
                 }
@@ -116,6 +134,9 @@ export const kondisiBahanService = {
 
               // Jika sudah dibuang, maka isExpired aktif tidak lagi memicu status bahaya
               const isExpired = rawExpired && !isDibuang
+              const batchFreshness: FreshnessStatus = isDibuang
+                ? 'sudah_dimusnahkan'
+                : batchAi.aiStatusFreshness
 
               return {
                 batchId: l.id,
@@ -125,8 +146,8 @@ export const kondisiBahanService = {
                 sumberMasuk: sumberLabel,
                 nomorReferensi: l.reference_id || l.catatan || null,
                 aiEstimasiExpire: batchAi.aiEstimasiExpire,
-                aiSisaHari: batchAi.aiSisaHari,
-                aiStatusFreshness: isDibuang ? 'segar' : batchAi.aiStatusFreshness,
+                aiSisaHari: isDibuang ? null : batchAi.aiSisaHari,
+                aiStatusFreshness: batchFreshness,
                 isExpired,
                 isDibuang,
               }
@@ -135,7 +156,8 @@ export const kondisiBahanService = {
         } else {
           // Fallback: Jika belum ada transaksi log mutasi tercatat, tampilkan batch stok awal
           const rawExpired = baseAiResult.aiStatusFreshness === 'kadaluarsa' || (baseAiResult.aiSisaHari !== null && baseAiResult.aiSisaHari <= 0)
-          const isDibuang = rawExpired && (Number(b.stok) <= 0 || totalDibuangKadaluarsa > 0)
+          // Jika ada catatan mutasi kadaluarsa untuk bahan ini ATAU stok bahan <= 0, tandai sudah dibuang
+          const isDibuang = rawExpired && (Number(b.stok) <= 0 || totalDibuangKadaluarsa > 0 || bahanKadaluarsaLogs.length > 0)
           const isExpired = rawExpired && !isDibuang
 
           batches = [
@@ -147,8 +169,8 @@ export const kondisiBahanService = {
               sumberMasuk: 'Stok Awal Terdaftar',
               nomorReferensi: b.code || null,
               aiEstimasiExpire: baseAiResult.aiEstimasiExpire,
-              aiSisaHari: baseAiResult.aiSisaHari,
-              aiStatusFreshness: isDibuang ? 'segar' : baseAiResult.aiStatusFreshness,
+              aiSisaHari: isDibuang ? null : baseAiResult.aiSisaHari,
+              aiStatusFreshness: isDibuang ? 'sudah_dimusnahkan' : baseAiResult.aiStatusFreshness,
               isExpired,
               isDibuang,
             },
@@ -158,12 +180,19 @@ export const kondisiBahanService = {
         // Hitung batch yang kadaluarsa AKTIF (yang belum dimusnahkan/dibuang)
         // Jika total stok di database sudah 0, bahan tersebut sudah tidak bersisa sehingga tidak ada batch kadaluarsa aktif
         const isBahanHabis = Number(b.stok) <= 0
-        const expiredBatchesCount = isBahanHabis ? 0 : batches.filter(bt => bt.isExpired).length
+        const expiredBatchesCount = isBahanHabis ? 0 : batches.filter(bt => bt.isExpired && !bt.isDibuang).length
 
         // Tentukan status freshness agregat
-        let overallFreshness: BahanKondisi['aiStatusFreshness'] = 'segar'
+        let overallFreshness: FreshnessStatus = 'segar'
         if (expiredBatchesCount > 0) {
           overallFreshness = 'kadaluarsa'
+        } else if (batches.some(bt => bt.isDibuang) && (isBahanHabis || batches.every(bt => bt.isDibuang || !bt.isExpired))) {
+          // Jika ada batch yang kadaluarsa dan sudah dimusnahkan, dan tidak ada batch kadaluarsa aktif lain
+          overallFreshness = batches.some(bt => !bt.isDibuang && bt.aiStatusFreshness === 'mendekati_expire')
+            ? 'mendekati_expire'
+            : (isBahanHabis || batches.every(bt => bt.isDibuang))
+            ? 'sudah_dimusnahkan'
+            : 'segar'
         } else if (!isBahanHabis && batches.some(bt => !bt.isDibuang && bt.aiStatusFreshness === 'mendekati_expire')) {
           overallFreshness = 'mendekati_expire'
         }

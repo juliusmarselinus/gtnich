@@ -47,6 +47,11 @@ const FRESHNESS_BADGE = {
     cls: 'bg-rose-50 text-rose-700 border-rose-200/50',
     icon: ShieldAlert,
   },
+  sudah_dimusnahkan: {
+    label: 'Sudah Dimusnahkan',
+    cls: 'bg-slate-100 text-slate-600 border-slate-200',
+    icon: ShieldCheck,
+  },
   tidak_diketahui: {
     label: 'Belum Dianalisis',
     cls: 'bg-slate-100 text-slate-600',
@@ -85,8 +90,11 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
       [`bahan-${bahanId}`]: true,
       ...(batchNo ? { [`batch-${bahanId}-${batchNo}`]: true } : {}),
     }))
+    // Otomatis refresh data terbaru dari backend
     if (onRefresh) {
-      onRefresh()
+      setTimeout(() => {
+        onRefresh()
+      }, 300)
     }
   }
 
@@ -101,8 +109,11 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
         const pct = b.stokMinimum > 0 ? Math.min(100, (b.totalStok / (b.stokMinimum * 3)) * 100) : 100
         const isExpanded = !!expandedCards[b.id]
 
-        const rawFreshnessKey = isLocallyDimusnahkan || isBahanEmpty || effectiveExpiredCount === 0
-          ? (b.aiStatusFreshness === 'kadaluarsa' ? 'segar' : b.aiStatusFreshness)
+        const hasDestroyedBatches = b.batches.some(bt => bt.isDibuang) || isLocallyDimusnahkan
+        const rawFreshnessKey = isLocallyDimusnahkan || (isBahanEmpty && (b.aiStatusFreshness === 'kadaluarsa' || hasDestroyedBatches))
+          ? 'sudah_dimusnahkan'
+          : effectiveExpiredCount === 0 && (b.aiStatusFreshness === 'kadaluarsa' || hasDestroyedBatches)
+          ? (hasDestroyedBatches && (isBahanEmpty || b.batches.every(bt => bt.isDibuang)) ? 'sudah_dimusnahkan' : 'segar')
           : b.aiStatusFreshness
 
         const freshness = rawFreshnessKey ? FRESHNESS_BADGE[rawFreshnessKey] : FRESHNESS_BADGE.tidak_diketahui

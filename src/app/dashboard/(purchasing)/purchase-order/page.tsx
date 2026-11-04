@@ -6,9 +6,10 @@ import Topbar from '@/components/Topbar'
 import POTable from './components/POTable'
 import POWizardModal from './components/POWizardModal'
 import VerifyPenerimaanModal from './components/VerifyPenerimaanModal'
+import AIRekomendasiModal from './components/AIRekomendasiModal'
 import { usePurchaseOrder } from './hooks/usePurchaseOrder'
-import { PurchaseOrder } from './types'
-import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn, ReceiptText, SlidersHorizontal, ScanLine, PencilLine, Truck, PackageCheck, Wallet } from 'lucide-react'
+import { PurchaseOrder, AIPORekomendasiItem, CreatePOInput } from './types'
+import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn, ReceiptText, SlidersHorizontal, ScanLine, PencilLine, Truck, PackageCheck, Wallet, Bot } from 'lucide-react'
 import clsx from 'clsx'
 import DapiHead from '@/components/ui/DapiHead'
 
@@ -40,6 +41,73 @@ export default function PurchaseOrderPage() {
 
   const [showWizard, setShowWizard] = useState(false)
   const [verifyingPO, setVerifyingPO] = useState<PurchaseOrder | null>(null)
+
+  // State Rekomendasi Cerdas AI
+  const [showAIModal, setShowAIModal] = useState(false)
+  const [loadingAI, setLoadingAI] = useState(false)
+  const [aiSummary, setAiSummary] = useState('')
+  const [aiItems, setAiItems] = useState<AIPORekomendasiItem[]>([])
+
+  // State untuk mengisi form PO otomatis dari rekomendasi
+  const [wizardPreload, setWizardPreload] = useState<{
+    items: CreatePOInput['items']
+    catatan: string
+    supplierId: string
+  } | null>(null)
+
+  const handleFetchAIRekomendasi = async () => {
+    setShowAIModal(true)
+    setLoadingAI(true)
+    try {
+      const res = await fetch('/dashboard/purchase-order/api/ai-rekomendasi', {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (data.success && data.data) {
+        setAiSummary(data.data.summary || '')
+        setAiItems(data.data.items || [])
+      } else {
+        setAiSummary('Gagal mendapatkan rekomendasi: ' + (data.error || 'Terjadi kesalahan'))
+        setAiItems([])
+      }
+    } catch (e: any) {
+      setAiSummary('Gagal memuat rekomendasi AI: ' + (e.message || 'Koneksi terputus'))
+      setAiItems([])
+    } finally {
+      setLoadingAI(false)
+    }
+  }
+
+  const handleApplyAIRekomendasi = (selectedItems: CreatePOInput['items'], notes: string) => {
+    // Cari supplier dominan jika ada
+    const matchedSuppliers = selectedItems
+      .map(item => {
+        const found = bahanList.find(b => b.id === item.bahanId)
+        return found
+      })
+      .filter(Boolean)
+
+    // Tentukan supplier yang cocok jika mayoritas sama
+    let dominantSupplierId = ''
+    if (suppliers.length > 0) {
+      // Prioritaskan supplier pertama yang relevan jika ada
+      dominantSupplierId = suppliers[0]?.id || ''
+    }
+
+    setWizardPreload({
+      items: selectedItems,
+      catatan: notes,
+      supplierId: dominantSupplierId,
+    })
+
+    setShowAIModal(false)
+    setShowWizard(true)
+  }
+
+  const handleOpenManualWizard = () => {
+    setWizardPreload(null)
+    setShowWizard(true)
+  }
 
   return (
     <div className="flex-1 pb-16">
@@ -99,10 +167,16 @@ export default function PurchaseOrderPage() {
             </p>
             <div className="mt-2 flex flex-wrap gap-2.5">
               <button
-                onClick={() => setShowWizard(true)}
+                onClick={handleOpenManualWizard}
                 className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
               >
                 <Plus className="w-4 h-4 flex-shrink-0" /> Buat Pembelian Stok Baru
+              </button>
+              <button
+                onClick={handleFetchAIRekomendasi}
+                className="h-11 px-5 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(255,107,0,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
+              >
+                <Bot className="w-4 h-4 flex-shrink-0" /> Rekomendasi Restock AI
               </button>
               <Link
                 href="/dashboard/tagihan"
@@ -235,12 +309,30 @@ export default function PurchaseOrderPage() {
       {/* Wizard Modal */}
       <POWizardModal
         isOpen={showWizard}
-        onClose={() => setShowWizard(false)}
+        onClose={() => {
+          setShowWizard(false)
+          setWizardPreload(null)
+        }}
         onSave={createPO}
         suppliers={suppliers}
         bahanList={bahanList}
+        initialItems={wizardPreload?.items}
+        initialCatatan={wizardPreload?.catatan}
+        initialSupplierId={wizardPreload?.supplierId}
+        initialStep={wizardPreload && wizardPreload.items.length > 0 ? 2 : 1}
         onSupplierCreated={() => refresh()}
         onBahanCreated={() => refresh()}
+      />
+
+      {/* Modal Rekomendasi Restock AI */}
+      <AIRekomendasiModal
+        isOpen={showAIModal}
+        onClose={() => setShowAIModal(false)}
+        loading={loadingAI}
+        summary={aiSummary}
+        items={aiItems}
+        onApplyRecommendation={handleApplyAIRekomendasi}
+        onRefreshRecommendation={handleFetchAIRekomendasi}
       />
 
       {/* Modal Verifikasi Penerimaan Barang */}

@@ -233,10 +233,34 @@ export default function MenuModal({
   }
 
   const updateResepUnit = (index: number, newUnit: string) => {
-    setForm(prev => ({
-      ...prev,
-      resep: prev.resep.map((r, i) => (i === index ? { ...r, satuan: newUnit } : r)),
-    }))
+    setForm(prev => {
+      const target = prev.resep[index]
+      if (!target) return prev
+
+      const masterBahan = currentBahanList.find(b => b.id === target.bahanId)
+      const baseUnit = masterBahan?.satuan || 'item'
+      const currentUnit = target.satuan || baseUnit
+      if (currentUnit === newUnit) return prev
+
+      // Hitung faktor konversi dari satuan lama ke satuan baru
+      const factorOld = getUnitConversionFactor(currentUnit, baseUnit)
+      const factorNew = getUnitConversionFactor(newUnit, baseUnit)
+
+      let convertedQty = target.qty
+      if (factorNew > 0) {
+        // Contoh: 1 kg (factorOld=1) diubah ke gram (factorNew=0.001) => 1 * (1 / 0.001) = 1000 gram
+        // Contoh: 500 gram (factorOld=0.001) diubah ke kg (factorNew=1) => 500 * (0.001 / 1) = 0.5 kg
+        const ratio = factorOld / factorNew
+        convertedQty = Number((target.qty * ratio).toFixed(4))
+      }
+
+      return {
+        ...prev,
+        resep: prev.resep.map((r, i) =>
+          i === index ? { ...r, satuan: newUnit, qty: convertedQty } : r
+        ),
+      }
+    })
   }
 
   const updateResepQty = (index: number, newQty: number) => {
@@ -394,16 +418,16 @@ export default function MenuModal({
 
           {/* Banner Bantuan AI Asisten Dapur */}
           {form.nama.trim().length > 1 && (
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#FFFBF2] to-[#FFF4E0] border border-[#FFE49A] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="p-3.5 rounded-2xl bg-[#FFF6EC] border border-[#FFE2C2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-[#FFB800] text-[#2B1D00] flex items-center justify-center flex-shrink-0 shadow-xs">
-                  <Sparkles className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-white border border-[#FFD9B3] text-[#FF8F2B] flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <Bot className="w-4 h-4 text-[#FF8F2B]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-black text-[#2B1D00] truncate">
+                  <p className="text-xs font-black text-slate-800 truncate">
                     Asisten AI Resep Dapur
                   </p>
-                  <p className="text-[10px] text-slate-600 truncate">
+                  <p className="text-[10px] text-slate-500 truncate">
                     Otomatis racik takaran bahan untuk &ldquo;{form.nama.trim()}&rdquo;
                   </p>
                 </div>
@@ -412,16 +436,16 @@ export default function MenuModal({
                 type="button"
                 onClick={handleSearchKomposisiAI}
                 disabled={isSearchingAI || isSubmitting}
-                className="px-4 py-2 rounded-xl bg-[#2B1D00] hover:bg-[#422D00] text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-sm flex-shrink-0 active:scale-95"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] hover:from-[#FF7A10] hover:to-[#E55F00] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-sm shadow-[#FF8F2B]/20 flex-shrink-0 active:scale-95"
               >
                 {isSearchingAI ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFB800]" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                     <span>Mencari takaran resep...</span>
                   </>
                 ) : (
                   <>
-                    <Bot className="w-3.5 h-3.5 text-[#FFB800]" />
+                    <Bot className="w-3.5 h-3.5 text-white" />
                     <span>Cari Komposisi AI</span>
                   </>
                 )}
@@ -589,7 +613,24 @@ export default function MenuModal({
                 <div className="w-24">
                   <CustomSelect
                     value={newIngredient.satuan}
-                    onChange={val => setNewIngredient(p => ({ ...p, satuan: val }))}
+                    onChange={val => {
+                      const oldUnit = newIngredient.satuan
+                      const newUnit = val
+                      if (oldUnit === newUnit) return
+
+                      const masterBahan = selectedBahanForNew
+                      const baseUnit = masterBahan?.satuan || 'item'
+                      const factorOld = getUnitConversionFactor(oldUnit, baseUnit)
+                      const factorNew = getUnitConversionFactor(newUnit, baseUnit)
+
+                      let convertedQty = newIngredient.qty
+                      if (newIngredient.qty > 0 && factorNew > 0) {
+                        const ratio = factorOld / factorNew
+                        convertedQty = Number((newIngredient.qty * ratio).toFixed(4))
+                      }
+
+                      setNewIngredient(p => ({ ...p, satuan: val, qty: convertedQty }))
+                    }}
                     options={[...availableUnitsForNew]}
                     size="sm"
                   />

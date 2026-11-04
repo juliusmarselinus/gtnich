@@ -211,10 +211,12 @@ export const bahanService = {
     }
 
     // Jika terjadi konversi satuan stok, catat jejak audit penyesuaian ke stok_logs
-    if (oldSatuan !== newSatuan && currentStok !== updatedStok) {
+    // serta sesuaikan kuantitas pemakaian bahan di seluruh resep_items menu
+    if (oldSatuan !== newSatuan) {
       const { data: sessionData } = await supabase.auth.getSession()
       const userId = sessionData?.session?.user?.id
-      if (userId) {
+
+      if (userId && currentStok !== updatedStok) {
         try {
           await supabase.from('stok_logs').insert({
             user_id: userId,
@@ -227,6 +229,34 @@ export const bahanService = {
           })
         } catch (err: unknown) {
           console.warn('Gagal catat audit konversi satuan:', err)
+        }
+      }
+
+      // SINKRONISASI RESEP: Jika satuan bahan berubah (misal gram -> kg atau sebaliknya),
+      // update kuantitas di resep_items agar nilainya tetap ekuivalen (misal 200 gram -> 0.2 kg).
+      const { getUnitConversionFactor } = await import('@/lib/satuan')
+      const factor = getUnitConversionFactor(oldSatuan, newSatuan)
+
+      if (factor > 0 && factor !== 1) {
+        try {
+          const { data: existingResepItems, error: fetchResepErr } = await supabase
+            .from('resep_items')
+            .select('id, qty, menu_id')
+            .eq('bahan_id', id)
+
+          if (!fetchResepErr && existingResepItems && existingResepItems.length > 0) {
+            for (const rItem of existingResepItems) {
+              const oldQty = Number(rItem.qty) || 0
+              const newQty = Number((oldQty * factor).toFixed(5))
+
+              await supabase
+                .from('resep_items')
+                .update({ qty: newQty })
+                .eq('id', rItem.id)
+            }
+          }
+        } catch (err: unknown) {
+          console.warn('Gagal sinkronisasi konversi resep_items:', err)
         }
       }
     }

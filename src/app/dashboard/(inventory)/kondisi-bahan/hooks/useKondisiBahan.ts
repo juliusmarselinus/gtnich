@@ -95,6 +95,7 @@ export function useKondisiBahan() {
     const segar = list.filter(b => b.aiStatusFreshness === 'segar').length
     const mendekati = list.filter(b => b.aiStatusFreshness === 'mendekati_expire').length
     const expired = list.filter(b => b.aiStatusFreshness === 'kadaluarsa' || b.expiredBatchesCount > 0).length
+    const dimusnahkan = list.filter(b => b.aiStatusFreshness === 'sudah_dimusnahkan' || (b.expiredBatchesCount === 0 && b.batches.some(bt => bt.isDibuang))).length
     const lowStock = list.filter(b => b.totalStok <= b.stokMinimum).length
 
     return {
@@ -102,6 +103,7 @@ export function useKondisiBahan() {
       segar,
       mendekati,
       expired,
+      dimusnahkan,
       lowStock,
     }
   }, [list])

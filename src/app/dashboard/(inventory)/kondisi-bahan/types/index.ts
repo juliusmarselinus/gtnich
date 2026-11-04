@@ -1,4 +1,4 @@
-export type FreshnessStatus = 'segar' | 'mendekati_expire' | 'kadaluarsa' | 'tidak_diketahui'
+export type FreshnessStatus = 'segar' | 'mendekati_expire' | 'kadaluarsa' | 'sudah_dimusnahkan' | 'tidak_diketahui'
 
 export interface AIExpiryAnalysis {
   perkiraanUmurHari: number

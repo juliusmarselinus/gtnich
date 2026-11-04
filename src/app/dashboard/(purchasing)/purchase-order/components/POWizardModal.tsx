@@ -17,6 +17,10 @@ interface POWizardModalProps {
   onSave: (input: CreatePOInput) => Promise<void>
   suppliers: SupplierOption[]
   bahanList: BahanOption[]
+  initialSupplierId?: string
+  initialItems?: CreatePOInput['items']
+  initialCatatan?: string
+  initialStep?: number
   onSupplierCreated?: (newSupplier: SupplierOption) => void
   onBahanCreated?: (newBahan: BahanOption) => void
 }
@@ -27,10 +31,14 @@ export default function POWizardModal({
   onSave,
   suppliers: initialSuppliers,
   bahanList: initialBahanList,
+  initialSupplierId,
+  initialItems,
+  initialCatatan,
+  initialStep,
   onSupplierCreated,
   onBahanCreated,
 }: POWizardModalProps) {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(initialStep || 1)
   const [suppliers, setSuppliers] = useState<SupplierOption[]>(() => initialSuppliers || [])
   const [bahanList, setBahanList] = useState<BahanOption[]>(() => initialBahanList || [])
 
@@ -47,9 +55,19 @@ export default function POWizardModal({
     }
   }, [initialBahanList])
 
-  const [supplierId, setSupplierId] = useState('')
-  const [catatan, setCatatan] = useState('')
-  const [items, setItems] = useState<CreatePOInput['items']>([])
+  const [supplierId, setSupplierId] = useState(initialSupplierId || '')
+  const [catatan, setCatatan] = useState(initialCatatan || '')
+  const [items, setItems] = useState<CreatePOInput['items']>(initialItems || [])
+
+  // Update jika initialItems atau initialSupplierId berubah saat modal dibuka
+  useEffect(() => {
+    if (isOpen) {
+      if (initialSupplierId !== undefined) setSupplierId(initialSupplierId)
+      if (initialCatatan !== undefined) setCatatan(initialCatatan)
+      if (initialItems !== undefined) setItems(initialItems)
+      if (initialStep !== undefined) setStep(initialStep)
+    }
+  }, [isOpen, initialSupplierId, initialCatatan, initialItems, initialStep])
   const [newItem, setNewItem] = useState({
     bahanId: '',
     qty: 0,

@@ -115,6 +115,7 @@ export default function KondisiBahanPage() {
               { key: 'segar', label: `Segar (${counts.segar})` },
               { key: 'mendekati_expire', label: `Mendekati Expire (${counts.mendekati})` },
               { key: 'kadaluarsa', label: `Kadaluarsa (${counts.expired})` },
+              { key: 'sudah_dimusnahkan', label: `Sudah Dimusnahkan (${counts.dimusnahkan})` },
             ].map(tab => (
               <button
                 key={tab.key}

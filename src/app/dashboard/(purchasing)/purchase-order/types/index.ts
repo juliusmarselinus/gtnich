@@ -80,3 +80,27 @@ export interface VerifyPenerimaanInput {
   catatanPenerimaan?: string
   autoUpdateHargaMaster?: boolean
 }
+
+export interface AIPORekomendasiItem {
+  bahanId: string
+  namaBahan: string
+  satuan: string
+  stokSekarang: number
+  stokMinimum: number
+  rekomendasiQty: number
+  estimasiHarga: number
+  alasan: string
+  kecepatanHabis: 'Tinggi' | 'Sedang' | 'Rendah'
+  kemasanPasar?: string
+  isiKemasan?: number
+  satuanKemasan?: string
+  hargaPasarKemasan?: number
+  rentangHargaPasar?: string
+  supplierId?: string | null
+  namaSupplier?: string | null
+}
+
+export interface AIPORekomendasiResponse {
+  summary: string
+  items: AIPORekomendasiItem[]
+}

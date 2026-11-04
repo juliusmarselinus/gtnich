@@ -44,7 +44,7 @@ export default function StokLogTable({
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          {['all', 'PO', 'Penjualan', 'Manual', 'Opname', 'Kadaluarsa'].map(src => (
+          {['all', 'PO', 'Penjualan', 'Manual', 'Opname', 'Penyesuaian', 'Kadaluarsa'].map(src => (
             <button
               key={src}
               onClick={() => onFilterSourceChange(src)}

@@ -35,7 +35,7 @@ const CARD = 'bg-white rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)]'
 // Urutan harus dari sisa terkecil ke terbesar.
 const STOCK_LEVELS = [
   { max: 0, ring: 'ring-2 ring-[#D8431F]', chip: 'bg-[#D8431F] text-white', dot: 'bg-white' },
-  { max: 3, ring: 'ring-2 ring-[#F0592B]', chip: 'bg-[#FDE8E4] text-[#D8431F]', dot: 'bg-[#D8431F] animate-pulse' },
+  { max: 3, ring: 'ring-2 ring-[#F0592B]', chip: 'bg-[#FDE8E4] text-[#D8431F]', dot: 'bg-[#D8431F]' },
   { max: 6, ring: 'ring-2 ring-[#FF9A1F]', chip: 'bg-[#FFE2C2] text-[#B35A00]', dot: 'bg-[#FF9A1F]' },
   { max: 10, ring: 'ring-2 ring-[#FFC933]', chip: 'bg-[#FFF3C4] text-[#8A5A00]', dot: 'bg-[#FFC933]' },
 ]

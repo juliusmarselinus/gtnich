@@ -92,11 +92,17 @@ export function useStokLog() {
     })
   }, [logs, search, filterSource])
 
-  // Hitung total masuk & keluar
+  // Hitung total masuk & keluar riil
+  // CATATAN: Log dengan sumber 'Penyesuaian' (misalnya perubahan satuan dari kg ke gram atau sebaliknya)
+  // adalah konversi unit/format tanpa ada barang fisik yang benar-benar masuk/hilang dari dapur,
+  // sehingga tidak dihitung ke Total Mutasi Masuk/Keluar riil.
   const summary = useMemo(() => {
     let masukCount = 0
     let keluarCount = 0
     logs.forEach(l => {
+      // Abaikan penyesuaian konversi satuan
+      if (l.sumber === 'Penyesuaian') return
+
       if (l.perubahan > 0) masukCount += l.perubahan
       else keluarCount += Math.abs(l.perubahan)
     })
