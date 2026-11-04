@@ -217,9 +217,9 @@ export default function PenjualanPage() {
                   type="button"
                   onClick={() => setActiveTab(t.key as 'katalog' | 'riwayat')}
                   className={clsx(
-                    'px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer',
+                    'px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer active:scale-95',
                     active
-                      ? 'bg-[#FFB800] text-[#2B1D00]'
+                      ? 'bg-[#FFB800] text-[#2B1D00] shadow-sm'
                       : 'bg-white text-slate-600 hover:bg-[#FFF6D6] hover:text-slate-900'
                   )}
                 >
@@ -233,7 +233,7 @@ export default function PenjualanPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard/menu"
-              className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-slate-700 hover:bg-[#FFF6D6] flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-slate-700 hover:bg-[#FFF6D6] flex items-center gap-1.5 transition-all duration-150 active:scale-95 shadow-2xs"
               title="Buka daftar katalog menu lengkap dan resep"
             >
               <UtensilsCrossed className="w-3.5 h-3.5 text-slate-500" />
@@ -241,7 +241,7 @@ export default function PenjualanPage() {
             </Link>
             <Link
               href="/dashboard/menu?tambah=1"
-              className="px-5 py-2.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+              className="px-5 py-2.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 transition-all duration-150 shadow-sm hover:shadow-md"
               title="Buka formulir tambah menu baru"
             >
               <Plus className="w-4 h-4" />
@@ -300,9 +300,9 @@ export default function PenjualanPage() {
                         type="button"
                         onClick={() => setSelectedKategori(kat)}
                         className={clsx(
-                          'px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer flex-shrink-0',
+                          'px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex-shrink-0 active:scale-95',
                           selectedKategori === kat
-                            ? 'bg-[#FFB800] text-[#2B1D00]'
+                            ? 'bg-[#FFB800] text-[#2B1D00] shadow-xs scale-105'
                             : 'bg-[#FFF6D6] text-[#7A5A10] hover:bg-[#FFEBB0]'
                         )}
                       >

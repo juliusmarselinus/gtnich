@@ -193,10 +193,12 @@ export default function MenuKatalogGrid({
             <div
               key={menu.id}
               onClick={() => handleCardClick(menu)}
-              className={`relative rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] ${bgClass} ${ringClass} p-4 text-left transition-all group flex flex-col justify-between ${
+              className={`relative rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] ${bgClass} ${ringClass} p-4 text-left transition-all duration-200 group flex flex-col justify-between ${
+                isJustAdded ? 'anim-item-bump' : ''
+              } ${
                 habis
                   ? 'cursor-not-allowed'
-                  : 'cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(140,100,30,0.12)] active:scale-[0.98]'
+                  : 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(140,100,30,0.14)] active:scale-[0.97]'
               }`}
             >
               {/* Tooltip peringatan */}
@@ -228,7 +230,7 @@ export default function MenuKatalogGrid({
                     </span>
                   ) : null}
                   {inCartCount > 0 && (
-                    <span className="inline-flex items-center gap-1 bg-[#FFF6D6] text-[#8A5A00] text-[11px] font-extrabold px-3 py-1 rounded-full">
+                    <span className="inline-flex items-center gap-1 bg-[#FFF6D6] text-[#8A5A00] text-[11px] font-extrabold px-3 py-1 rounded-full anim-badge-pop transition-transform">
                       <ShoppingCart className="w-3 h-3" />
                       {inCartCount} porsi
                     </span>
@@ -239,7 +241,7 @@ export default function MenuKatalogGrid({
               <div className="min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <span
-                    className={`w-11 h-11 rounded-2xl bg-[#FFF6D6] flex items-center justify-center text-xl flex-shrink-0 transition-colors ${
+                    className={`w-11 h-11 rounded-2xl bg-[#FFF6D6] flex items-center justify-center text-xl flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${
                       habis ? 'grayscale opacity-60' : 'group-hover:bg-[#FFB800]'
                     }`}
                   >
@@ -285,14 +287,14 @@ export default function MenuKatalogGrid({
                   disabled={habis}
                   onClick={e => handleQuickAdd(e, menu)}
                   title={isExpired ? `Bahan ${info?.expiredBahanNama || 'resep'} kadaluarsa` : habis ? 'Stok habis' : 'Tambah 1 porsi langsung'}
-                  className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all ${
+                  className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 active:scale-90 ${
                     isExpired
                       ? 'bg-rose-100 text-rose-500 cursor-not-allowed'
                       : habis
                       ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                       : isJustAdded
-                      ? 'bg-[#D8431F] text-white cursor-pointer'
-                      : 'bg-[#FFB800] text-[#2B1D00] hover:bg-[#D8431F] hover:text-white cursor-pointer'
+                      ? 'bg-[#D8431F] text-white cursor-pointer scale-105'
+                      : 'bg-[#FFB800] text-[#2B1D00] hover:bg-[#D8431F] hover:text-white hover:scale-105 cursor-pointer shadow-sm hover:shadow-md'
                   }`}
                 >
                   {isExpired || habis ? (
@@ -311,11 +313,11 @@ export default function MenuKatalogGrid({
 
       {/* Modal pilih porsi */}
       {selectedMenu && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2B1D00]/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-[32px] shadow-2xl p-6 w-full max-w-sm space-y-5 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2B1D00]/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[32px] shadow-2xl p-6 w-full max-w-sm space-y-5 animate-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <span className="w-14 h-14 rounded-2xl bg-[#FFF6D6] flex items-center justify-center text-2xl">
+                <span className="w-14 h-14 rounded-2xl bg-[#FFF6D6] flex items-center justify-center text-2xl shadow-2xs">
                   {selectedMenu.emoji || '🍽️'}
                 </span>
                 <div>
@@ -328,7 +330,7 @@ export default function MenuKatalogGrid({
               <button
                 type="button"
                 onClick={() => setSelectedMenu(null)}
-                className="w-9 h-9 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+                className="w-9 h-9 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-slate-600 flex items-center justify-center cursor-pointer transition-colors active:scale-90"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -343,7 +345,7 @@ export default function MenuKatalogGrid({
                 <button
                   type="button"
                   onClick={() => setOrderQty(prev => Math.max(1, prev - 1))}
-                  className="w-12 h-12 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] flex items-center justify-center text-slate-700 cursor-pointer transition-colors"
+                  className="w-12 h-12 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] flex items-center justify-center text-slate-700 cursor-pointer transition-all active:scale-90 shadow-2xs"
                 >
                   <Minus className="w-5 h-5" />
                 </button>
@@ -354,14 +356,14 @@ export default function MenuKatalogGrid({
                   max={maxQty}
                   value={orderQty}
                   onChange={e => setOrderQty(Math.min(maxQty, Math.max(1, Number(e.target.value) || 1)))}
-                  className="w-24 text-center py-2.5 rounded-full bg-[#FFF9EC] text-2xl font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-[#FFB800]/60"
+                  className="w-24 text-center py-2.5 rounded-full bg-[#FFF9EC] text-2xl font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-[#FFB800]/60 font-mono"
                 />
 
                 <button
                   type="button"
                   disabled={orderQty >= maxQty}
                   onClick={() => setOrderQty(prev => Math.min(maxQty, prev + 1))}
-                  className="w-12 h-12 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] flex items-center justify-center text-[#2B1D00] cursor-pointer transition-colors disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  className="w-12 h-12 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] flex items-center justify-center text-[#2B1D00] cursor-pointer transition-all active:scale-90 shadow-2xs disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
@@ -375,9 +377,9 @@ export default function MenuKatalogGrid({
                       key={val}
                       type="button"
                       onClick={() => setOrderQty(val)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer ${
                         orderQty === val
-                          ? 'bg-[#FFB800] text-[#2B1D00]'
+                          ? 'bg-[#FFB800] text-[#2B1D00] shadow-xs scale-105'
                           : 'bg-[#FFF6D6] text-[#7A5A10] hover:bg-[#FFEBB0]'
                       }`}
                     >
@@ -399,7 +401,7 @@ export default function MenuKatalogGrid({
 
             <div className="px-5 py-4 rounded-[20px] bg-[#FFF6D6] flex items-center justify-between">
               <span className="text-xs text-[#7A5A10] font-semibold">Total harga</span>
-              <span className="text-xl font-extrabold text-slate-900">
+              <span className="text-xl font-extrabold text-slate-900 font-mono">
                 {formatRupiah(selectedMenu.hargaJual * orderQty)}
               </span>
             </div>
@@ -408,14 +410,14 @@ export default function MenuKatalogGrid({
               <button
                 type="button"
                 onClick={() => setSelectedMenu(null)}
-                className="flex-1 py-3 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-xs font-bold text-slate-700 cursor-pointer transition-colors"
+                className="flex-1 py-3 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-xs font-bold text-slate-700 cursor-pointer transition-all active:scale-95"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleConfirmAdd}
-                className="flex-[2] py-3 rounded-full bg-[#D8431F] hover:bg-[#BF3818] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                className="flex-[2] py-3 rounded-full bg-[#D8431F] hover:bg-[#BF3818] active:scale-95 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-[0_4px_14px_rgba(216,67,31,0.25)] hover:shadow-[0_6px_18px_rgba(216,67,31,0.35)]"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambahkan ({orderQty} porsi)</span>

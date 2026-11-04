@@ -216,11 +216,11 @@ export default function CartPOS({
     return (
       <div
         key={item.menuId}
-        className="flex items-center justify-between p-3 rounded-[20px] bg-[#FFF9EC] gap-2"
+        className="anim-cart-row flex items-center justify-between p-3 rounded-[20px] bg-[#FFF9EC] gap-2 transition-all hover:bg-[#FFF4D6]/70 duration-150"
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {size === 'md' && (
-            <span className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-lg flex-shrink-0">
+            <span className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-lg flex-shrink-0 shadow-2xs">
               {item.emoji || '🍽️'}
             </span>
           )}
@@ -232,22 +232,28 @@ export default function CartPOS({
         </div>
 
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <button type="button" onClick={() => onUpdateQty(item.menuId, -1)} className={`${btn} ${STEP_BTN}`}>
+          <button
+            type="button"
+            onClick={() => onUpdateQty(item.menuId, -1)}
+            className={`${btn} ${STEP_BTN} active:scale-90 transition-transform`}
+          >
             <Minus className={ic} />
           </button>
-          <span className="w-6 text-center font-extrabold text-xs text-slate-900">{item.cartQty}</span>
+          <span className="w-6 text-center font-extrabold text-xs text-slate-900 font-mono transition-all">
+            {item.cartQty}
+          </span>
           <button
             type="button"
             disabled={noMoreStock}
             onClick={() => onUpdateQty(item.menuId, 1)}
-            className={`${btn} ${STEP_BTN}`}
+            className={`${btn} ${STEP_BTN} active:scale-90 transition-transform`}
           >
             <Plus className={ic} />
           </button>
           <button
             type="button"
             onClick={() => onRemove(item.menuId)}
-            className={`${btn} rounded-full text-slate-400 hover:text-[#D8431F] hover:bg-[#FDE8E4] flex items-center justify-center cursor-pointer transition-colors`}
+            className={`${btn} rounded-full text-slate-400 hover:text-[#D8431F] hover:bg-[#FDE8E4] flex items-center justify-center cursor-pointer transition-colors active:scale-90`}
           >
             <Trash2 className={ic} />
           </button>
@@ -318,7 +324,7 @@ export default function CartPOS({
           type="button"
           disabled={cart.length === 0 || isSubmitting}
           onClick={openCheckout}
-          className="w-full py-3.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] text-white text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+          className="w-full py-3.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] active:scale-[0.98] text-white text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all shadow-[0_4px_14px_rgba(216,67,31,0.25)] hover:shadow-[0_6px_20px_rgba(216,67,31,0.35)]"
         >
           <CreditCard className="w-4 h-4" />
           <span>Proses Penjualan ({formatRupiah(totals.subtotal)})</span>
@@ -510,13 +516,13 @@ export default function CartPOS({
                               setQr({ status: 'idle' })
                             }
                           }}
-                          className={`py-3.5 rounded-[20px] flex flex-col items-center gap-1 text-xs font-bold transition-all cursor-pointer ${
+                          className={`py-3.5 rounded-[20px] flex flex-col items-center gap-1 text-xs font-bold transition-all duration-150 cursor-pointer active:scale-95 ${
                             active
-                              ? 'bg-[#FFB800] text-[#2B1D00] ring-2 ring-[#2B1D00]/10 shadow-xs'
+                              ? 'bg-[#FFB800] text-[#2B1D00] ring-2 ring-[#2B1D00]/10 shadow-xs scale-[1.02]'
                               : 'bg-[#FFF9EC] text-slate-600 hover:bg-[#FFF1D0]'
                           }`}
                         >
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
                           {m.label}
                         </button>
                       )
@@ -716,7 +722,7 @@ export default function CartPOS({
                     type="button"
                     disabled={isSubmitting}
                     onClick={() => setShowCheckoutModal(false)}
-                    className="flex-1 py-3 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-xs font-bold text-slate-700 cursor-pointer transition-colors disabled:opacity-50"
+                    className="flex-1 py-3 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-xs font-bold text-slate-700 cursor-pointer transition-all duration-150 active:scale-95 disabled:opacity-50"
                   >
                     Kembali
                   </button>
@@ -724,7 +730,7 @@ export default function CartPOS({
                     type="button"
                     disabled={isSubmitting || !canSubmit}
                     onClick={handleFinishSale}
-                    className="flex-[2] py-3 rounded-full bg-[#D8431F] hover:bg-[#BF3818] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex-[2] py-3 rounded-full bg-[#D8431F] hover:bg-[#BF3818] active:scale-95 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-150 shadow-[0_4px_14px_rgba(216,67,31,0.25)] hover:shadow-[0_6px_18px_rgba(216,67,31,0.35)] disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     <span>Selesaikan Transaksi</span>

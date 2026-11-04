@@ -5,6 +5,7 @@ import { formatRupiah } from '@/lib/mock-data'
 import { ShoppingBag, ChevronDown, ChevronUp, ReceiptText } from 'lucide-react'
 import { useState, Fragment } from 'react'
 import { ReceiptModal, orderToReceipt } from './Receipt'
+import clsx from 'clsx'
 
 interface RecentOrdersTableProps {
   orders: OrderRecord[]
@@ -126,7 +127,7 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
                               type="button"
                               disabled={busyId === o.id}
                               onClick={() => changeStatus(o, NEXT_STEP[o.status]!.to)}
-                              className="px-3 h-8 rounded-full bg-[#2B221C] text-white text-[11px] font-bold disabled:opacity-50 cursor-pointer"
+                              className="px-3 h-8 rounded-full bg-[#2B221C] text-white text-[11px] font-bold disabled:opacity-50 cursor-pointer transition-all duration-150 active:scale-95 hover:bg-black"
                             >
                               {busyId === o.id ? '...' : NEXT_STEP[o.status]!.label}
                             </button>
@@ -136,7 +137,7 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
                               type="button"
                               disabled={busyId === o.id}
                               onClick={() => changeStatus(o, 'batal')}
-                              className="px-3 h-8 rounded-full bg-[#FDE7E1] text-[#B8391E] text-[11px] font-bold disabled:opacity-50 cursor-pointer"
+                              className="px-3 h-8 rounded-full bg-[#FDE7E1] text-[#B8391E] text-[11px] font-bold disabled:opacity-50 cursor-pointer transition-all duration-150 active:scale-95 hover:bg-[#FAD3CB]"
                             >
                               Batal
                             </button>
@@ -144,24 +145,26 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
                           <button
                             type="button"
                             onClick={() => setReceiptOrder(o)}
-                            className="px-3 h-8 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] text-[#2B1D00] text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                            className="px-3 h-8 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] text-[#2B1D00] text-[11px] font-bold inline-flex items-center gap-1.5 cursor-pointer transition-all duration-150 active:scale-95 shadow-2xs hover:shadow-xs"
                           >
                             <ReceiptText className="w-3.5 h-3.5" /> Struk
                           </button>
                           <button
                             type="button"
                             onClick={() => setExpandedId(exp ? null : o.id)}
-                            className="w-8 h-8 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-slate-600 cursor-pointer inline-flex items-center justify-center transition-colors"
+                            className="w-8 h-8 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-slate-600 cursor-pointer inline-flex items-center justify-center transition-all duration-200 active:scale-90"
                             title={exp ? 'Tutup rincian' : 'Lihat rincian item'}
                           >
-                            {exp ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            <div className={clsx('transition-transform duration-200', exp && 'rotate-180')}>
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </div>
                           </button>
                         </div>
                       </td>
                     </tr>
 
                     {exp && (
-                      <tr className="bg-[#FFFBEF]">
+                      <tr className="bg-[#FFFBEF] animate-in fade-in-0 duration-200">
                         <td colSpan={7} className="px-6 py-5">
                           <div className="flex items-center justify-between mb-3">
                             <p className="text-[11px] font-bold text-[#9A7B3A] uppercase tracking-wider flex items-center gap-1.5">
@@ -182,7 +185,7 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
                               {o.items.map((item, idx) => (
                                 <div
                                   key={item.id || idx}
-                                  className="flex justify-between items-center bg-white rounded-[20px] px-5 py-3 text-xs"
+                                  className="flex justify-between items-center bg-white rounded-[20px] px-5 py-3 text-xs shadow-2xs transition-all hover:translate-x-1 duration-150"
                                 >
                                   <div>
                                     <span className="font-bold text-slate-900">{item.namaMenu}</span>
@@ -191,11 +194,11 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
                                     </span>
                                   </div>
                                   <div className="text-right">
-                                    <span className="text-slate-900 font-extrabold">
+                                    <span className="text-slate-900 font-extrabold font-mono">
                                       {formatRupiah(item.subtotal || item.hargaJual * item.qty)}
                                     </span>
                                     {item.hpp > 0 && (
-                                      <span className="block text-[10px] text-slate-400">
+                                      <span className="block text-[10px] text-slate-400 font-mono">
                                         HPP {formatRupiah(item.hpp * item.qty)}
                                       </span>
                                     )}
@@ -206,7 +209,7 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
                           )}
 
                           {o.notes && (
-                            <div className="mt-3 px-4 py-3 rounded-[20px] bg-[#FDE8E4] text-[11px] text-[#B3361B]">
+                            <div className="mt-3 px-4 py-3 rounded-[20px] bg-[#FDE8E4] text-[11px] text-[#B3361B] animate-in fade-in-0 duration-150">
                               <strong className="font-bold">Catatan:</strong> {o.notes}
                             </div>
                           )}

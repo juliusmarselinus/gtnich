@@ -224,6 +224,37 @@ body {
   40%,80% { transform: translateX(8px); }
 }
 .dapi-shake { animation: dapi-shake 400ms ease; }
+
+/* Micro-interaction & Keyframe Animations untuk Penjualan POS */
+@keyframes item-added-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.04) translateY(-2px); }
+  100% { transform: scale(1); }
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes cart-row-in {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.anim-item-bump {
+  animation: item-added-bump 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.anim-badge-pop {
+  animation: badge-pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.anim-cart-row {
+  animation: cart-row-in 220ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .dapi-label, .dapi-brand, .dapi-shake { animation: none; }
+  .dapi-label, .dapi-brand, .dapi-shake, .anim-item-bump, .anim-badge-pop, .anim-cart-row { animation: none; }
 }
