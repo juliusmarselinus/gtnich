@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Topbar from '@/components/Topbar'
-import DapiMascot from '@/components/ui/DapiMascot'
+import DapiHead from '@/components/ui/DapiHead'
 import KondisiCardGrid from './components/KondisiCardGrid'
 import { useKondisiBahan } from './hooks/useKondisiBahan'
 import {
@@ -16,9 +16,44 @@ import {
   LogIn,
   Package2,
   Clock,
-  Sparkles,
+  Trash2,
 } from 'lucide-react'
 import clsx from 'clsx'
+
+const STATUS_CARDS = [
+  {
+    key: 'segar',
+    label: 'Kondisi Segar',
+    hint: 'Masa simpan aman & prima',
+    Icon: CheckCircle,
+    tint: 'bg-[#E2EBC0]',
+    on: 'bg-[#7F9A2E] text-white',
+  },
+  {
+    key: 'mendekati_expire',
+    label: 'Segera Olah',
+    hint: 'Exp < 3 hari lagi',
+    Icon: AlertTriangle,
+    tint: 'bg-[#FFEDB3]',
+    on: 'bg-kuning text-kopi',
+  },
+  {
+    key: 'kadaluarsa',
+    label: 'Kadaluarsa',
+    hint: 'Perlu pemusnahan stok',
+    Icon: XCircle,
+    tint: 'bg-[#FDE8E4]',
+    on: 'bg-[#D8431F] text-white',
+  },
+  {
+    key: 'low_stock',
+    label: 'Stok Kritis',
+    hint: 'Stok ≤ batas minimum',
+    Icon: Package2,
+    tint: 'bg-[#F2D9CC]',
+    on: 'bg-[#C2502F] text-white',
+  },
+] as const
 
 export default function KondisiBahanPage() {
   const {
@@ -52,49 +87,6 @@ export default function KondisiBahanPage() {
       : 'Sistem memantau shelf-life dan estimasi tanggal kedaluwarsa secara otomatis untuk setiap batch masuk.',
   }
 
-  const STAT_CARDS = [
-    {
-      key: 'segar',
-      label: 'Kondisi Segar',
-      value: counts.segar,
-      unit: 'bahan',
-      hint: 'Masa simpan aman & prima',
-      icon: CheckCircle,
-      iconBg: 'bg-[#E8F5E4] text-[#2D7A1F]',
-      activeRing: 'ring-2 ring-[#228B5B] bg-[#F4FAF2]',
-    },
-    {
-      key: 'mendekati_expire',
-      label: 'Segera Olah',
-      value: counts.mendekati,
-      unit: 'bahan',
-      hint: 'Exp < 3 hari lagi',
-      icon: AlertTriangle,
-      iconBg: 'bg-[#FFF6D6] text-[#8A5A00]',
-      activeRing: 'ring-2 ring-[#FFB800] bg-[#FFFBF2]',
-    },
-    {
-      key: 'kadaluarsa',
-      label: 'Kadaluarsa',
-      value: counts.expired,
-      unit: 'batch',
-      hint: 'Perlu pemusnahan stok',
-      icon: XCircle,
-      iconBg: 'bg-[#FDE8E4] text-[#D8431F]',
-      activeRing: 'ring-2 ring-[#D8431F] bg-[#FEF4F2]',
-    },
-    {
-      key: 'low_stock',
-      label: 'Stok Minimum',
-      value: counts.lowStock,
-      unit: 'item',
-      hint: 'Stok <= batas minimum',
-      icon: Package2,
-      iconBg: 'bg-[#FFF0E6] text-[#FF6B00]',
-      activeRing: 'ring-2 ring-[#FF6B00] bg-[#FFF9F5]',
-    },
-  ]
-
   const FILTER_TABS = [
     { key: 'all', label: `Semua (${counts.total})` },
     { key: 'segar', label: `Segar (${counts.segar})` },
@@ -104,13 +96,13 @@ export default function KondisiBahanPage() {
   ]
 
   return (
-    <div className="flex-1 pb-24 lg:pb-16">
+    <div className="flex-1 pb-16">
       <Topbar
         title="Kondisi Bahan & Inventory"
         subtitle="Analisis masa simpan (shelf-life), prediksi tanggal kedaluwarsa AI sejak barang masuk, dan monitoring level stok gudang"
       />
 
-      <main className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">
         {/* Banner Akun / Sesi Belum Login */}
         {!userEmail && !loading && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-amber-800 text-xs">
@@ -145,95 +137,110 @@ export default function KondisiBahanPage() {
           </div>
         )}
 
-        {/* Hero Section dengan Maskot Dapi */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#FFB800] px-6 py-6 sm:px-8 sm:py-7 min-h-[180px] shadow-xs">
-          <div className="absolute right-48 top-5 w-16 h-16 rounded-full bg-[#FF7A59] hidden md:block opacity-80" />
-          <div className="absolute right-36 top-16 w-28 h-8 rounded-full bg-white/90 hidden md:block" />
-
-          {/* Maskot Dapi */}
-          <div className="absolute right-4 sm:right-8 bottom-0 pointer-events-none">
-            <DapiMascot
-              width={150}
-              mood={heroStatus.mood}
-              className="translate-y-6 drop-shadow-xs"
-            />
+        {/* Banner utama: Dapi keluar dari kotak */}
+        <section className="relative mt-10 sm:mt-12 rounded-[36px] bg-gradient-to-br from-[#FFC93C] via-kuning to-[#FF9A1F] shadow-[0_22px_40px_rgba(220,130,0,0.28),inset_0_-10px_0_rgba(170,90,0,0.12)]">
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
+            <span className="absolute right-[18%] -top-24 h-80 w-80 rounded-full bg-white/20" />
+            <span className="absolute -right-14 -bottom-28 h-72 w-72 rounded-full bg-koral/25" />
+            <span className="absolute left-[46%] bottom-6 h-4 w-4 rounded-full bg-white/70" />
+            <span className="absolute left-[52%] top-8 h-2.5 w-2.5 rounded-full bg-koral/60" />
           </div>
 
-          <div className="relative space-y-3 pr-28 sm:pr-48">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-lg bg-[#2B1D00]/10 flex items-center justify-center text-[#2B1D00]">
-                <Clock className="w-3.5 h-3.5" />
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#5C3D00]">
-                Monitoring Shelf-Life & Mutu Bahan
-              </p>
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2B1D00] tracking-tight leading-tight">
+          <div className="relative flex flex-col gap-3 p-6 sm:p-10 md:max-w-[58%]">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none text-kopi">
               {heroStatus.title}
             </h2>
-
-            <p className="text-xs sm:text-sm text-[#4D3300] font-medium max-w-xl">
+            <p className="text-sm sm:text-base text-[#5A3A00] leading-snug">
               {heroStatus.subtitle}
             </p>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-[#2B1D00] shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-[#228B5B]" />
-                {counts.segar} bahan segar
-              </span>
-
+            <div className="mt-2 flex flex-wrap gap-2.5">
+              <div className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                <span>Stok Segar:</span>
+                <span className="font-mono font-black text-[#7F9A2E]">{counts.segar}</span>
+              </div>
               {counts.mendekati > 0 && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFF6D6] px-3.5 py-1.5 text-xs font-bold text-[#8A5A00] border border-[#FFE49A]/80 shadow-xs">
-                  <span className="w-2 h-2 rounded-full bg-[#FFB800]" />
-                  {counts.mendekati} mendekati expire
-                </span>
+                <div className="h-11 px-5 rounded-full bg-[#FFF6D6] text-kopi text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap border border-[#FFE49A]/80">
+                  <span>Mendekati Expire:</span>
+                  <span className="font-mono font-black text-[#8A5A00]">{counts.mendekati}</span>
+                </div>
               )}
-
               {counts.expired > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#D8431F] text-white px-3.5 py-1.5 text-xs font-bold shadow-xs">
-                  <XCircle className="w-3.5 h-3.5" />
-                  {counts.expired} batch kadaluarsa
-                </span>
+                <div className="h-11 px-5 rounded-full bg-[#D8431F] text-white text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                  <span>Kadaluarsa:</span>
+                  <span className="font-mono font-black text-white">{counts.expired} batch</span>
+                </div>
               )}
             </div>
+          </div>
+
+          {/* Kartu status miring (dekorasi) */}
+          <div aria-hidden className="hidden lg:flex absolute right-[300px] -top-8 w-36 -rotate-[8deg] flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_18px_30px_rgba(120,60,0,0.25)]">
+            <span className="text-[11px] font-black text-koral-gelap tracking-wider">MUTU</span>
+            <span className="h-2 rounded bg-krim-garis" />
+            <span className="h-2 w-[70%] rounded bg-krim-garis" />
+            <span className="h-2 w-[85%] rounded bg-krim-garis" />
+          </div>
+
+          {/* Dapi menyembul keluar dari atas kotak */}
+          <div aria-hidden className="hidden md:block absolute right-8 lg:right-14 bottom-0 leading-[0] drop-shadow-[0_18px_22px_rgba(120,50,0,0.35)]">
+            <DapiHead size={220} />
           </div>
         </section>
 
-        {/* Summary Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {STAT_CARDS.map(card => {
-            const Icon = card.icon
-            const isSelected = filterFreshness === card.key
+        {/* Status Flow Stats Card Identik PO */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {STATUS_CARDS.map(st => {
+            const active = filterFreshness === st.key
+            const val =
+              st.key === 'segar'
+                ? counts.segar
+                : st.key === 'mendekati_expire'
+                ? counts.mendekati
+                : st.key === 'kadaluarsa'
+                ? counts.expired
+                : counts.lowStock
 
             return (
               <button
-                key={card.key}
+                key={st.key}
                 type="button"
                 onClick={() => {
-                  if (card.key === 'low_stock') return
-                  setFilterFreshness(filterFreshness === card.key ? 'all' : card.key)
+                  if (st.key === 'low_stock') return
+                  setFilterFreshness(filterFreshness === st.key ? 'all' : st.key)
                 }}
                 className={clsx(
-                  'text-left p-4 sm:p-5 rounded-[22px] bg-white border border-[#EBE6DC] shadow-xs transition-all hover:shadow-md cursor-pointer',
-                  isSelected && card.activeRing
+                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col gap-4 min-h-[140px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  active
+                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
+                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
                 )}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#7A7062]">
-                    {card.label}
-                  </span>
-                  <span className={clsx('w-8 h-8 rounded-xl flex items-center justify-center', card.iconBg)}>
-                    <Icon className="w-4 h-4" />
+                <span
+                  aria-hidden
+                  className={clsx(
+                    'absolute -right-10 -bottom-12 h-36 w-36 rounded-full',
+                    active ? 'bg-white/20' : 'bg-white/55'
+                  )}
+                />
+                <div className="relative flex items-center justify-between">
+                  <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
+                  <span
+                    className={clsx(
+                      'h-9 w-9 rounded-full flex items-center justify-center',
+                      active ? 'bg-white/30' : 'bg-white/60'
+                    )}
+                  >
+                    <st.Icon className="w-4 h-4" />
                   </span>
                 </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-[#2B261F] tracking-tight">
-                    {card.value}
-                  </span>
-                  <span className="text-xs font-semibold text-[#8C8275]">{card.unit}</span>
+                <div className="relative">
+                  <p className="text-3xl sm:text-4xl font-black font-mono tracking-tight leading-none">
+                    {val}
+                  </p>
+                  <p className={clsx('text-xs mt-1.5 truncate', active ? 'opacity-85' : 'text-kopi-muted')}>
+                    {st.hint}
+                  </p>
                 </div>
-                <p className="text-[11px] text-[#A69C8E] mt-1.5 font-medium">{card.hint}</p>
               </button>
             )
           })}

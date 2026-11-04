@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Topbar from '@/components/Topbar'
-import DapiMascot from '@/components/ui/DapiMascot'
+import DapiHead from '@/components/ui/DapiHead'
 import SupplierFilterBar from './components/SupplierFilterBar'
 import SupplierTable from './components/SupplierTable'
 import SupplierModal from './components/SupplierModal'
@@ -18,8 +18,37 @@ import {
   Building2,
   CheckCircle2,
   Tags,
+  Plus,
 } from 'lucide-react'
+import clsx from 'clsx'
 import { useToast } from '@/context/ToastContext'
+
+const STATUS_CARDS = [
+  {
+    key: 'all' as const,
+    label: 'Total Supplier',
+    hint: 'Semua rekanan distributor',
+    Icon: Building2,
+    tint: 'bg-[#FFEDB3]',
+    on: 'bg-kuning text-kopi',
+  },
+  {
+    key: 'with_orders' as const,
+    label: 'Aktif Memasok',
+    hint: 'Ada riwayat pengiriman PO',
+    Icon: CheckCircle2,
+    tint: 'bg-[#E2EBC0]',
+    on: 'bg-[#7F9A2E] text-white',
+  },
+  {
+    key: 'categories' as const,
+    label: 'Kategori Bahan',
+    hint: 'Spesialisasi pengadaan',
+    Icon: Tags,
+    tint: 'bg-[#F2D9CC]',
+    on: 'bg-[#C2502F] text-white',
+  },
+] as const
 
 export default function SuppliersPage() {
   const {
@@ -101,47 +130,14 @@ export default function SuppliersPage() {
         : 'Mulai daftarkan rekanan supplier dan pedagang pasar agar pencatatan Purchase Order lebih tertib.',
   }
 
-  const STAT_CARDS = [
-    {
-      key: 'all' as const,
-      label: 'Total Supplier',
-      value: totalCount,
-      unit: 'mitra',
-      hint: 'Semua rekanan distributor',
-      icon: Building2,
-      iconBg: 'bg-[#FFF6D6] text-[#8A5A00]',
-      activeRing: 'ring-2 ring-[#FFB800] bg-[#FFFBF2]',
-    },
-    {
-      key: 'with_orders' as const,
-      label: 'Aktif Memasok',
-      value: supplierWithOrders,
-      unit: 'mitra',
-      hint: 'Ada riwayat pengiriman PO',
-      icon: CheckCircle2,
-      iconBg: 'bg-[#E8F5E4] text-[#2D7A1F]',
-      activeRing: 'ring-2 ring-[#228B5B] bg-[#F4FAF2]',
-    },
-    {
-      key: 'categories' as const,
-      label: 'Kategori Bahan',
-      value: totalCategories,
-      unit: 'kategori',
-      hint: 'Spesialisasi pengadaan',
-      icon: Tags,
-      iconBg: 'bg-[#FFF0E6] text-[#FF6B00]',
-      activeRing: 'ring-2 ring-[#FF6B00] bg-[#FFF9F5]',
-    },
-  ]
-
   return (
-    <div className="flex-1 pb-24 lg:pb-16">
+    <div className="flex-1 pb-16">
       <Topbar
         title="Manajemen Supplier"
         subtitle="Kelola kemitraan distributor, kategori pasokan terpusat, dan riwayat pasokan bahan baku secara langsung di PostgreSQL Supabase"
       />
 
-      <main className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">
         {/* Banner Akun / Sesi Belum Login */}
         {!userEmail && !loading && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-amber-800 text-xs">
@@ -176,94 +172,112 @@ export default function SuppliersPage() {
           </div>
         )}
 
-        {/* Hero Section dengan Maskot Dapi */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#FFB800] px-6 py-6 sm:px-8 sm:py-7 min-h-[180px] shadow-xs">
-          <div className="absolute right-48 top-5 w-16 h-16 rounded-full bg-[#FF7A59] hidden md:block opacity-80" />
-          <div className="absolute right-36 top-16 w-28 h-8 rounded-full bg-white/90 hidden md:block" />
-
-          {/* Maskot Dapi */}
-          <div className="absolute right-4 sm:right-8 bottom-0 pointer-events-none">
-            <DapiMascot
-              width={150}
-              mood={heroStatus.mood}
-              className="translate-y-6 drop-shadow-xs"
-            />
+        {/* Banner utama: Dapi keluar dari kotak */}
+        <section className="relative mt-10 sm:mt-12 rounded-[36px] bg-gradient-to-br from-[#FFC93C] via-kuning to-[#FF9A1F] shadow-[0_22px_40px_rgba(220,130,0,0.28),inset_0_-10px_0_rgba(170,90,0,0.12)]">
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
+            <span className="absolute right-[18%] -top-24 h-80 w-80 rounded-full bg-white/20" />
+            <span className="absolute -right-14 -bottom-28 h-72 w-72 rounded-full bg-koral/25" />
+            <span className="absolute left-[46%] bottom-6 h-4 w-4 rounded-full bg-white/70" />
+            <span className="absolute left-[52%] top-8 h-2.5 w-2.5 rounded-full bg-koral/60" />
           </div>
 
-          <div className="relative space-y-3 pr-28 sm:pr-48">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-lg bg-[#2B1D00]/10 flex items-center justify-center text-[#2B1D00]">
-                <Truck className="w-3.5 h-3.5" />
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#5C3D00]">
-                Rantai Pasok & Distributor
-              </p>
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2B1D00] tracking-tight leading-tight">
+          <div className="relative flex flex-col gap-3 p-6 sm:p-10 md:max-w-[58%]">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none text-kopi">
               {heroStatus.title}
             </h2>
-
-            <p className="text-xs sm:text-sm text-[#4D3300] font-medium max-w-xl">
+            <p className="text-sm sm:text-base text-[#5A3A00] leading-snug">
               {heroStatus.subtitle}
             </p>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-[#2B1D00] shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-[#228B5B]" />
-                {totalCount} mitra terdaftar
-              </span>
-
-              <span className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xs px-3.5 py-1.5 text-xs font-bold text-[#2B1D00]">
-                {supplierWithOrders} mitra aktif PO
-              </span>
-
-              <span className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xs px-3.5 py-1.5 text-xs font-bold text-[#2B1D00]">
-                {totalCategories} ragam kategori pasokan
-              </span>
+            <div className="mt-2 flex flex-wrap gap-2.5">
+              <button
+                onClick={openAdd}
+                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4 flex-shrink-0" /> Tambah Supplier Baru
+              </button>
+              <div className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                <span>Mitra Terdaftar:</span>
+                <span className="font-mono font-black text-kopi">{totalCount}</span>
+              </div>
+              <div className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 backdrop-blur-xs whitespace-nowrap">
+                <span>Aktif Pasok:</span>
+                <span className="font-mono font-black text-[#7F9A2E]">{supplierWithOrders}</span>
+              </div>
             </div>
+          </div>
+
+          {/* Kartu mitra miring (dekorasi) */}
+          <div aria-hidden className="hidden lg:flex absolute right-[300px] -top-8 w-36 -rotate-[8deg] flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_18px_30px_rgba(120,60,0,0.25)]">
+            <span className="text-[11px] font-black text-koral-gelap tracking-wider">MITRA</span>
+            <span className="h-2 rounded bg-krim-garis" />
+            <span className="h-2 w-[70%] rounded bg-krim-garis" />
+            <span className="h-2 w-[85%] rounded bg-krim-garis" />
+          </div>
+
+          {/* Dapi menyembul keluar dari atas kotak */}
+          <div aria-hidden className="hidden md:block absolute right-8 lg:right-14 bottom-0 leading-[0] drop-shadow-[0_18px_22px_rgba(120,50,0,0.35)]">
+            <DapiHead size={220} />
           </div>
         </section>
 
-        {/* Stat Cards Ringkasan Interaktif */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          {STAT_CARDS.map(card => {
-            const Icon = card.icon
-            const isSelected =
-              card.key === 'all'
+        {/* Status Flow Stats Card Identik PO */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {STATUS_CARDS.map(st => {
+            const active =
+              st.key === 'all'
                 ? filterCategory === 'all'
-                : card.key === 'with_orders'
+                : st.key === 'with_orders'
                 ? filterCategory === 'with_orders'
                 : false
+            const val =
+              st.key === 'all'
+                ? totalCount
+                : st.key === 'with_orders'
+                ? supplierWithOrders
+                : totalCategories
 
             return (
               <button
-                key={card.key}
+                key={st.key}
                 type="button"
                 onClick={() => {
-                  if (card.key === 'all') setFilterCategory('all')
-                  else if (card.key === 'with_orders')
+                  if (st.key === 'all') setFilterCategory('all')
+                  else if (st.key === 'with_orders')
                     setFilterCategory(filterCategory === 'with_orders' ? 'all' : 'with_orders')
                 }}
-                className={`text-left p-4 sm:p-5 rounded-[22px] bg-white border border-[#EBE6DC] shadow-xs transition-all hover:shadow-md cursor-pointer ${
-                  isSelected ? card.activeRing : ''
-                }`}
+                className={clsx(
+                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col gap-4 min-h-[140px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  active
+                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
+                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
+                )}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#7A7062]">
-                    {card.label}
-                  </span>
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center ${card.iconBg}`}>
-                    <Icon className="w-4 h-4" />
+                <span
+                  aria-hidden
+                  className={clsx(
+                    'absolute -right-10 -bottom-12 h-36 w-36 rounded-full',
+                    active ? 'bg-white/20' : 'bg-white/55'
+                  )}
+                />
+                <div className="relative flex items-center justify-between">
+                  <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
+                  <span
+                    className={clsx(
+                      'h-9 w-9 rounded-full flex items-center justify-center',
+                      active ? 'bg-white/30' : 'bg-white/60'
+                    )}
+                  >
+                    <st.Icon className="w-4 h-4" />
                   </span>
                 </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-[#2B261F] tracking-tight">
-                    {card.value}
-                  </span>
-                  <span className="text-xs font-semibold text-[#8C8275]">{card.unit}</span>
+                <div className="relative">
+                  <p className="text-3xl sm:text-4xl font-black font-mono tracking-tight leading-none">
+                    {val}
+                  </p>
+                  <p className={clsx('text-xs mt-1.5 truncate', active ? 'opacity-85' : 'text-kopi-muted')}>
+                    {st.hint}
+                  </p>
                 </div>
-                <p className="text-[11px] text-[#A69C8E] mt-1.5 font-medium">{card.hint}</p>
               </button>
             )
           })}

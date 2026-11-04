@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Topbar from '@/components/Topbar'
-import DapiMascot from '@/components/ui/DapiMascot'
+import DapiHead from '@/components/ui/DapiHead'
 import BahanFilterBar from './components/BahanFilterBar'
 import BahanCard from './components/BahanCard'
 import BahanModal from './components/BahanModal'
@@ -22,8 +22,46 @@ import {
   AlertTriangle,
   XCircle,
   Boxes,
+  Plus,
+  ShoppingCart,
+  ScanLine,
 } from 'lucide-react'
 import clsx from 'clsx'
+
+const STATUS_CARDS = [
+  {
+    key: 'all' as FilterStatus,
+    label: 'Total Bahan',
+    hint: 'Semua jenis bahan aktif',
+    Icon: Package,
+    tint: 'bg-[#FFEDB3]',
+    on: 'bg-kuning text-kopi',
+  },
+  {
+    key: 'ok' as FilterStatus,
+    label: 'Stok Aman',
+    hint: 'Persediaan mencukupi',
+    Icon: CheckCircle2,
+    tint: 'bg-[#E2EBC0]',
+    on: 'bg-[#7F9A2E] text-white',
+  },
+  {
+    key: 'rendah' as FilterStatus,
+    label: 'Perlu Restock',
+    hint: 'Mendekati batas minimum',
+    Icon: AlertTriangle,
+    tint: 'bg-[#F2D9CC]',
+    on: 'bg-[#C2502F] text-white',
+  },
+  {
+    key: 'habis' as FilterStatus,
+    label: 'Stok Habis',
+    hint: 'Kritis segera belanja',
+    Icon: XCircle,
+    tint: 'bg-[#FDE8E4]',
+    on: 'bg-[#D8431F] text-white',
+  },
+] as const
 
 export default function BahanPage() {
   const {
@@ -68,10 +106,8 @@ export default function BahanPage() {
   async function openDeleteConfirm(b: Bahan) {
     setCheckingId(b.id)
     try {
-      // 1. Cek keterkaitan resep menu masakan TERLEBIH DAHULU sebelum modal dibuka
       const usage = await checkBahanUsage(b.id)
       setUsedInMenus(usage.menuNames)
-      // 2. Buka modal SETELAH data keterkaitan sudah pasti terisi
       setDeleteTarget(b)
     } catch {
       setUsedInMenus([])
@@ -131,68 +167,6 @@ export default function BahanPage() {
     return list.reduce((sum, b) => sum + (b.stok || 0) * (b.hargaPerSatuan || 0), 0)
   }, [list])
 
-  // Headline dinamis berdasarkan stok
-  const heroStatus = useMemo(() => {
-    if (allCount.habis > 0) {
-      return {
-        title: `${allCount.habis} bahan habis perlu belanja`,
-        subtitle: 'Segera lakukan restock agar menu masakan tidak terhambat.',
-        mood: 'khawatir' as const,
-      }
-    }
-    if (allCount.rendah > 0) {
-      return {
-        title: `${allCount.rendah} bahan menipis mendekati batas aman`,
-        subtitle: 'Periksa daftar bahan bertanda peringatan di bawah.',
-        mood: 'khawatir' as const,
-      }
-    }
-    return {
-      title: 'Semua persediaan bahan dapur aman',
-      subtitle: 'Stok bahan baku terpantau mencukupi untuk operasional masak.',
-      mood: 'senang' as const,
-    }
-  }, [allCount])
-
-  const STAT_CARDS = [
-    {
-      key: 'all' as FilterStatus,
-      label: 'Total Bahan',
-      count: allCount.all,
-      unit: 'item',
-      icon: Package,
-      iconBg: 'bg-[#FFF6D6] text-[#8A5A00]',
-      activeRing: 'ring-2 ring-[#FFB800] bg-[#FFFBF2]',
-    },
-    {
-      key: 'ok' as FilterStatus,
-      label: 'Stok Aman',
-      count: allCount.ok,
-      unit: 'bahan',
-      icon: CheckCircle2,
-      iconBg: 'bg-[#E8F5E4] text-[#2D7A1F]',
-      activeRing: 'ring-2 ring-[#228B5B] bg-[#F4FAF2]',
-    },
-    {
-      key: 'rendah' as FilterStatus,
-      label: 'Perlu Restock',
-      count: allCount.rendah,
-      unit: 'bahan',
-      icon: AlertTriangle,
-      iconBg: 'bg-[#FFF6D6] text-[#8A5A00]',
-      activeRing: 'ring-2 ring-[#FF9A1F] bg-[#FFF9EC]',
-    },
-    {
-      key: 'habis' as FilterStatus,
-      label: 'Stok Habis',
-      count: allCount.habis,
-      unit: 'bahan',
-      icon: XCircle,
-      iconBg: 'bg-[#FDE8E4] text-[#D8431F]',
-      activeRing: 'ring-2 ring-[#D8431F] bg-[#FEF4F2]',
-    },
-  ]
-
   return (
     <div className="flex-1 pb-24 lg:pb-16">
       <Topbar
@@ -200,59 +174,7 @@ export default function BahanPage() {
         subtitle="Kelola persediaan bahan, satuan, harga beli, dan batas aman stok dapur secara real-time"
       />
 
-      <main className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-        {/* Hero Section dengan Maskot Dapi */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#FFB800] px-6 py-6 sm:px-8 sm:py-7 min-h-[180px] shadow-xs">
-          <div className="absolute right-48 top-5 w-16 h-16 rounded-full bg-[#FF7A59] hidden md:block opacity-80" />
-          <div className="absolute right-36 top-16 w-28 h-8 rounded-full bg-white/90 hidden md:block" />
-
-          {/* Maskot Dapi */}
-          <div className="absolute right-4 sm:right-8 bottom-0 pointer-events-none">
-            <DapiMascot
-              width={150}
-              mood={heroStatus.mood}
-              className="translate-y-6 drop-shadow-xs"
-            />
-          </div>
-
-          <div className="relative space-y-3 pr-28 sm:pr-48">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-lg bg-[#2B1D00]/10 flex items-center justify-center text-[#2B1D00]">
-                <Boxes className="w-3.5 h-3.5" />
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#5C3D00]">
-                Gudang & Persediaan
-              </p>
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2B1D00] tracking-tight leading-tight">
-              {heroStatus.title}
-            </h2>
-
-            <p className="text-xs sm:text-sm text-[#4D3300] font-medium max-w-xl">
-              {heroStatus.subtitle}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-[#2B1D00] shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-[#228B5B]" />
-                {allCount.all} bahan aktif
-              </span>
-
-              <span className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xs px-3.5 py-1.5 text-xs font-bold text-[#2B1D00]">
-                Nilai stok {formatRupiah(totalNilaiInventaris)}
-              </span>
-
-              {allCount.rendah + allCount.habis > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#D8431F] text-white px-3 py-1.5 text-xs font-bold shadow-xs">
-                  <AlertTriangle className="w-3 h-3" />
-                  {allCount.rendah + allCount.habis} perlu tindakan
-                </span>
-              )}
-            </div>
-          </div>
-        </section>
-
+      <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">
         {/* Notifikasi Belum Login */}
         {!userEmail && !loading && (
           <div className="p-4 rounded-[24px] bg-[#FFF6D6] flex flex-wrap items-center justify-between gap-3 text-[#6B4A00] text-xs">
@@ -288,40 +210,111 @@ export default function BahanPage() {
           </div>
         )}
 
-        {/* 4 Kartu Metrik Persediaan (Bisa Diklik Sebagai Filter) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {STAT_CARDS.map(card => {
-            const Icon = card.icon
-            const isSelected = filterStatus === card.key
+        {/* Hero Banner DapurTwin identik Purchase Order & Tagihan */}
+        <section className="relative mt-10 sm:mt-12 rounded-[36px] bg-gradient-to-br from-[#FFC93C] via-kuning to-[#FF9A1F] shadow-[0_22px_40px_rgba(220,130,0,0.28),inset_0_-10px_0_rgba(170,90,0,0.12)]">
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
+            <span className="absolute right-[18%] -top-24 h-80 w-80 rounded-full bg-white/20" />
+            <span className="absolute -right-14 -bottom-28 h-72 w-72 rounded-full bg-koral/25" />
+            <span className="absolute left-[46%] bottom-6 h-4 w-4 rounded-full bg-white/70" />
+            <span className="absolute left-[52%] top-8 h-2.5 w-2.5 rounded-full bg-koral/60" />
+          </div>
+
+          <div className="relative flex flex-col gap-3 p-6 sm:p-10 md:max-w-[58%]">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none text-kopi">
+              Inventaris Bahan
+            </h2>
+            <p className="text-sm sm:text-base text-[#5A3A00] leading-snug">
+              Kelola stok bahan baku, batas aman pemesanan, pergerakan gudang, dan sinkronisasi harga pasar.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2.5">
+              <button
+                type="button"
+                onClick={openAdd}
+                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4 flex-shrink-0" /> Tambah Bahan Baru
+              </button>
+              <Link
+                href="/dashboard/purchase-order"
+                className="h-11 px-5 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(255,107,0,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
+              >
+                <ShoppingCart className="w-4 h-4 flex-shrink-0" /> Buat Pembelian PO
+              </Link>
+              <Link
+                href="/dashboard/ocr-nota"
+                className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 hover:bg-white/80 transition-colors whitespace-nowrap"
+              >
+                <ScanLine className="w-4 h-4" /> Scan Nota Belanja
+              </Link>
+              <span className="h-11 px-5 rounded-full bg-white/80 text-kopi text-sm font-bold flex items-center gap-2 whitespace-nowrap shadow-xs">
+                <Boxes className="w-4 h-4 text-[#8A5A00]" />
+                Nilai Stok: {formatRupiah(totalNilaiInventaris)}
+              </span>
+            </div>
+          </div>
+
+          {/* Kartu bahan miring (dekorasi) */}
+          <div aria-hidden className="hidden lg:flex absolute right-[300px] -top-8 w-36 -rotate-[8deg] flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_18px_30px_rgba(120,60,0,0.25)]">
+            <span className="text-[11px] font-black text-koral-gelap tracking-wider">GUDANG</span>
+            <span className="h-2 rounded bg-krim-garis" />
+            <span className="h-2 w-[70%] rounded bg-krim-garis" />
+            <span className="h-2 w-[85%] rounded bg-krim-garis" />
+          </div>
+
+          {/* Dapi menyembul keluar */}
+          <div aria-hidden className="hidden md:block absolute right-8 lg:right-14 bottom-0 leading-[0] drop-shadow-[0_18px_22px_rgba(120,50,0,0.35)]">
+            <DapiHead size={220} />
+          </div>
+        </section>
+
+        {/* 4 Status Flow Stats Card (Identik Desain Card PO & Tagihan) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {STATUS_CARDS.map(st => {
+            const active = filterStatus === st.key
+            const count = allCount[st.key]
 
             return (
               <button
-                key={card.key}
+                key={st.key}
                 type="button"
-                onClick={() => setFilterStatus(card.key)}
+                onClick={() => setFilterStatus(st.key)}
                 className={clsx(
-                  'p-4 rounded-[24px] bg-white border border-[#EBE3D7]/80 text-left transition-all duration-200 cursor-pointer shadow-[0_2px_12px_rgba(140,100,30,0.05)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(140,100,30,0.09)] flex items-center justify-between gap-3',
-                  isSelected && card.activeRing
+                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col justify-between min-h-[145px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  active
+                    ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
+                    : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
                 )}
               >
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                    {card.label}
-                  </p>
-                  <p className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mt-0.5">
-                    {card.count}{' '}
-                    <span className="text-xs font-semibold text-slate-400 font-normal">
-                      {card.unit}
-                    </span>
-                  </p>
-                </div>
-                <div
+                <span
+                  aria-hidden
                   className={clsx(
-                    'w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0',
-                    card.iconBg
+                    'absolute -right-10 -bottom-12 h-36 w-36 rounded-full',
+                    active ? 'bg-white/20' : 'bg-white/55'
                   )}
-                >
-                  <Icon className="w-5 h-5" />
+                />
+                <div className="relative flex items-center justify-between">
+                  <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
+                  <span
+                    className={clsx(
+                      'h-9 w-9 rounded-full flex items-center justify-center',
+                      active ? 'bg-white/30' : 'bg-white/60'
+                    )}
+                  >
+                    <st.Icon className="w-4 h-4" />
+                  </span>
+                </div>
+                <div className="relative pt-1 min-w-0">
+                  <p className="text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono">
+                    {count}
+                  </p>
+                  <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-current/10">
+                    <p className={clsx('text-xs font-bold whitespace-nowrap', active ? 'opacity-90' : 'text-kopi-muted')}>
+                      Bahan Masak
+                    </p>
+                    <span className={clsx('text-[11px] truncate', active ? 'opacity-75' : 'text-kopi-muted/80')}>
+                      {st.hint}
+                    </span>
+                  </div>
                 </div>
               </button>
             )
@@ -340,10 +333,10 @@ export default function BahanPage() {
 
         {/* Loading State or Card Grid */}
         {loading ? (
-          <div className="bg-white rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] border border-[#EBE3D7]/80 py-24 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-7 h-7 animate-spin text-[#FFB800]" />
-            <p className="text-xs font-semibold text-slate-600">
-              Memuat data bahan dari database...
+          <div className="rounded-[32px] bg-white shadow-[0_14px_34px_rgba(120,80,30,0.10)] py-24 flex flex-col items-center justify-center gap-3 text-kopi-muted">
+            <Loader2 className="w-7 h-7 animate-spin text-kuning" />
+            <p className="text-xs font-semibold">
+              Memuat data bahan dari database Supabase...
             </p>
           </div>
         ) : (
