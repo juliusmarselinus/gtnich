@@ -111,11 +111,12 @@ export default function ProsesPesananPage() {
             </button>
             <Link
               href="/dashboard/penjualan"
+              title="Input Penjualan / Transaksi Baru"
+              aria-label="Input Penjualan"
               className="flex h-9 sm:h-10 px-2.5 sm:px-4 items-center gap-1.5 rounded-full bg-[#FF8F2B] hover:bg-[#E57A18] text-white text-xs font-bold transition-all shadow-xs active:scale-95 whitespace-nowrap flex-shrink-0"
             >
               <Plus className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden xs:inline">Input Penjualan</span>
-              <span className="xs:hidden">Jual</span>
+              <span className="hidden sm:inline">Input Penjualan</span>
             </Link>
           </div>
         }
