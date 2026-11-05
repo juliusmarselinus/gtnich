@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   }
 
   const orderId = new URL(req.url).searchParams.get('order_id') || ''
-  if (!/^DT-[0-9]+-[0-9]+$/.test(orderId)) {
+  if (!/^[a-zA-Z0-9_-]{5,64}$/.test(orderId)) {
     return NextResponse.json({ error: 'order_id tidak valid.' }, { status: 400 })
   }
 

@@ -1,15 +1,25 @@
 import { NextResponse } from 'next/server'
 import { sendLoginNotificationEmail } from '@/lib/resend'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Harap login terlebih dahulu' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
-    const { email, userName, loginMethod } = body
+    const { userName, loginMethod } = body
+    const email = user.email
 
     if (!email) {
-      return NextResponse.json({ success: false, error: 'Email diperlukan' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Email akun tidak ditemukan' }, { status: 400 })
     }
 
     // Ambil IP address dari request headers jika tersedia
@@ -19,7 +29,7 @@ export async function POST(request: Request) {
     // Kirim email notifikasi secara asynchronous
     const result = await sendLoginNotificationEmail({
       email,
-      userName,
+      userName: userName || user.user_metadata?.full_name || email.split('@')[0],
       loginMethod: loginMethod || 'Email & Kata Sandi',
       loginTime: new Date(),
       ipAddress,

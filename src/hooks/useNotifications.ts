@@ -79,34 +79,8 @@ export function useNotifications() {
         }
       }
 
-      // 2. Pengiriman otomatis laporan harian penjualan pada jam 22:00
-      if (prefs.notifyDailySales) {
-        const now = new Date()
-        // Aktif jika jam sudah mencapai >= 22 (pukul 22:00 WIB ke atas)
-        if (now.getHours() >= 22) {
-          const todayStr = now.toISOString().slice(0, 10)
-          const lastDailySent = localStorage.getItem('dapur_last_daily_sales_email')
-          if (lastDailySent !== todayStr) {
-            const supabase = createClient()
-            const { data: sessionData } = await supabase.auth.getSession()
-            const userEmail = sessionData?.session?.user?.email
-            const userId = sessionData?.session?.user?.id
-
-            if (userEmail && userId) {
-              fetch('/api/notify-daily-sales', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  userId,
-                  email: userEmail,
-                }),
-              }).catch(e => console.warn('Gagal memicu email laporan harian:', e))
-
-              localStorage.setItem('dapur_last_daily_sales_email', todayStr)
-            }
-          }
-        }
-      }
+      // 2. Laporan penjualan harian kini dikelola secara otomatis & tepat waktu via server cron / n8n workflow.
+      // Sesi browser tidak perlu memicu polling manual di localStorage.
 
       // 3. Notifikasi & Email Pantauan Bahan Beku (Freezer)
       if (prefs.notifyFrozenBahan) {

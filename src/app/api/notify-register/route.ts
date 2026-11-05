@@ -1,19 +1,31 @@
 import { NextResponse } from 'next/server'
 import { sendWelcomeRegistrationEmail } from '@/lib/resend'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Pendaftaran belum terverifikasi' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
-    const { email, userName, storeName, registrationMethod } = body
+    const { userName, storeName, registrationMethod } = body
+    const email = user.email
 
     if (!email) {
-      return NextResponse.json({ success: false, error: 'Email diperlukan' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Email akun tidak ditemukan' }, { status: 400 })
     }
 
     const result = await sendWelcomeRegistrationEmail({
       email,
-      userName,
-      storeName,
+      userName: userName || user.user_metadata?.full_name || email.split('@')[0],
+      storeName: storeName || user.user_metadata?.store_name || 'Dapur Anda',
       registrationMethod: registrationMethod || 'Email & Kata Sandi',
     })
 

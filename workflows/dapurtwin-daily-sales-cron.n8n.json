@@ -1,0 +1,91 @@
+{
+  "name": "DapurTwin Daily Sales Cron",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "e6f1a8e2-89b0-4f91-8419-74d1a4914101",
+      "name": "Every Night at 22:00 WIB",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL || 'https://dapurtwin.my.id' }}/api/notify-daily-sales",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.CRON_SECRET || 'your-cron-secret-key' }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"source\": \"n8n_cron\",\n  \"triggeredAt\": \"{{ $now.toISO() }}\"\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "7b8849b2-9214-4a25-99d7-84bc74127aa3",
+      "name": "Trigger Daily Sales API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Every Night at 22:00 WIB": {
+      "main": [
+        [
+          {
+            "node": "Trigger Daily Sales API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Jakarta",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "dapurtwin-n8n-workflow",
+    "description": "Workflow otomatis untuk mengirim email laporan penjualan harian DapurTwin tepat pukul 22:00 WIB tanpa bergantung pada sesi browser user."
+  },
+  "tags": [
+    {
+      "name": "DapurTwin"
+    },
+    {
+      "name": "Cron"
+    }
+  ]
+}
