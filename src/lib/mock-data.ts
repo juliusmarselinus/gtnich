@@ -27,6 +27,10 @@ export interface Order {
   createdAt: string
   cashierName: string
   notes?: string
+  tableNumber?: string | null
+  storeName?: string | null
+  storeAddress?: string | null
+  isTaxIncluded?: boolean
 }
 
 export interface Product {

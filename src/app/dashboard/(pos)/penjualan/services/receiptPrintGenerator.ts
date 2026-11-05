@@ -93,8 +93,9 @@ export function generateReceiptPrintHTML(data: ReceiptData): string {
     </head>
     <body>
       <div class="text-center" style="margin-bottom: 6px;">
-        <div class="brand-title">DAPURTWIN</div>
-        <div class="brand-sub">Struk Pembayaran Kasir</div>
+        <div class="brand-title">${data.storeName || 'DAPURTWIN'}</div>
+        ${data.storeAddress ? `<div style="font-size: 10px; color: #555; margin-top: 2px;">${data.storeAddress}</div>` : ''}
+        <div class="brand-sub" style="margin-top: 2px;">Struk Pembayaran Kasir</div>
         ${data.isPreview ? '<div style="font-size: 10px; font-weight: bold; margin-top: 2px;">*** PRATINJAU TRANSAKSI ***</div>' : ''}
       </div>
 
@@ -104,6 +105,12 @@ export function generateReceiptPrintHTML(data: ReceiptData): string {
         <span class="label">No. Nota</span>
         <span class="font-bold text-right">${data.invoiceNumber || 'Dibuat saat bayar'}</span>
       </div>
+      ${data.tableNumber ? `
+        <div class="row-meta flex-between">
+          <span class="label">No. Meja</span>
+          <span class="font-bold text-right">Meja ${data.tableNumber}</span>
+        </div>
+      ` : ''}
       <div class="row-meta flex-between">
         <span class="label">Waktu</span>
         <span class="text-right">${tgl}</span>
@@ -137,6 +144,13 @@ export function generateReceiptPrintHTML(data: ReceiptData): string {
         <span>TOTAL</span>
         <span>${formatRupiah(data.total)}</span>
       </div>
+
+      ${data.isTaxIncluded ? `
+        <div class="flex-between" style="font-size: 10px; color: #2e7d32; font-weight: bold; margin-top: 2px;">
+          <span>Pajak Resto/PB1 (${data.taxRate ?? 10}%)</span>
+          <span>Sudah termasuk</span>
+        </div>
+      ` : ''}
 
       <div style="font-size: 11px; margin-top: 4px;">
         <div class="flex-between" style="margin-bottom: 2px;">

@@ -45,6 +45,12 @@ interface CartPOSProps {
   }
   isSubmitting: boolean
   onCheckout: (form: CheckoutFormInput) => Promise<unknown>
+  storeProfile?: {
+    storeName: string
+    storeAddress: string
+    isTaxIncluded: boolean
+    taxRate: number
+  }
 }
 
 type PayMethod = 'tunai' | 'qris'
@@ -72,6 +78,7 @@ export default function CartPOS({
   totals,
   isSubmitting,
   onCheckout,
+  storeProfile,
 }: CartPOSProps) {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -79,6 +86,7 @@ export default function CartPOS({
   const [cashInput, setCashInput] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerName, setCustomerName] = useState('')
+  const [tableNumber, setTableNumber] = useState('')
   const [notes, setNotes] = useState('')
   const [isPreOrder, setIsPreOrder] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -97,6 +105,7 @@ export default function CartPOS({
     setCashInput('')
     setCustomerEmail('')
     setCustomerName('')
+    setTableNumber('')
     setNotes('')
     setIsPreOrder(false)
     setQr({ status: 'idle' })
@@ -174,12 +183,14 @@ export default function CartPOS({
         channel: 'Toko Langsung',
         customerName: customerName.trim() || undefined,
         customerEmail: customerEmail.trim() || undefined,
+        tableNumber: tableNumber.trim() || undefined,
         paymentMethod: method === 'tunai' ? 'Tunai / Cash' : 'QRIS',
         cashReceived: method === 'tunai' ? cashReceived : undefined,
         changeAmount: method === 'tunai' ? change : undefined,
         midtransOrderId: method === 'qris' ? qr.orderId : undefined,
         notes: notes.trim() || undefined,
         isPreOrder,
+        isTaxIncluded: storeProfile?.isTaxIncluded,
       })
       setShowCheckoutModal(false)
     } catch (err) {
@@ -192,6 +203,11 @@ export default function CartPOS({
     cashierName: 'Kasir Dapur',
     customerName: customerName.trim() || undefined,
     customerEmail: customerEmail.trim() || undefined,
+    tableNumber: tableNumber.trim() || undefined,
+    storeName: storeProfile?.storeName || 'DapurTwin',
+    storeAddress: storeProfile?.storeAddress || undefined,
+    isTaxIncluded: storeProfile?.isTaxIncluded,
+    taxRate: storeProfile?.taxRate ?? 10,
     items: cart.map(c => ({
       namaMenu: c.namaMenu,
       qty: c.cartQty,
@@ -663,13 +679,22 @@ export default function CartPOS({
                       placeholder="Masukkan email penerima struk (misal: pembeli@gmail.com)"
                       className={`${INPUT} bg-white border border-[#F2E3D0]`}
                     />
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={e => setCustomerName(e.target.value)}
-                      placeholder="Nama pelanggan (opsional, default: Pelanggan Umum)"
-                      className={`${INPUT} bg-white border border-[#F2E3D0]`}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={e => setCustomerName(e.target.value)}
+                        placeholder="Nama pelanggan (opsional)"
+                        className={`${INPUT} bg-white border border-[#F2E3D0]`}
+                      />
+                      <input
+                        type="text"
+                        value={tableNumber}
+                        onChange={e => setTableNumber(e.target.value)}
+                        placeholder="Nomor Meja (opsional, cth: 05)"
+                        className={`${INPUT} bg-white border border-[#F2E3D0]`}
+                      />
+                    </div>
                   </div>
                   <p className="text-[10px] text-slate-500 leading-relaxed px-1">
                     Jika diisi, e-receipt otomatis dikirimkan ke email pelanggan. Salinan transaksi juga otomatis dikirimkan ke email pemilik dapur.

@@ -18,6 +18,7 @@ export interface CheckoutFormInput {
   customerName?: string
   customerPhone?: string
   customerEmail?: string
+  tableNumber?: string
   channel: string
   paymentMethod: string
   cashierName?: string
@@ -27,6 +28,7 @@ export interface CheckoutFormInput {
   changeAmount?: number
   midtransOrderId?: string
   isPreOrder?: boolean
+  isTaxIncluded?: boolean
 }
 
 export interface OrderItemRecord {
@@ -48,6 +50,7 @@ export interface OrderRecord {
   customerName: string
   customerPhone?: string | null
   customerEmail?: string | null
+  tableNumber?: string | null
   channel: string
   status: string
   paymentMethod: string
@@ -63,6 +66,7 @@ export interface OrderRecord {
   cashReceived?: number | null
   changeAmount?: number | null
   midtransOrderId?: string | null
+  isTaxIncluded?: boolean
   createdAt: string
   updatedAt: string
   items?: OrderItemRecord[]

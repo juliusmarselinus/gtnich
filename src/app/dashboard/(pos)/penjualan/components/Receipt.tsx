@@ -14,6 +14,11 @@ export interface ReceiptData {
   cashierName: string
   customerName?: string | null
   customerEmail?: string | null
+  tableNumber?: string | null
+  storeName?: string | null
+  storeAddress?: string | null
+  isTaxIncluded?: boolean
+  taxRate?: number
   items: { namaMenu: string; qty: number; hargaJual: number; subtotal: number }[]
   total: number
   paymentMethod: string
@@ -23,13 +28,18 @@ export interface ReceiptData {
   isPreview?: boolean
 }
 
-export function orderToReceipt(o: OrderRecord): ReceiptData {
+export function orderToReceipt(o: OrderRecord & { storeName?: string; storeAddress?: string; taxRate?: number }): ReceiptData {
   return {
     invoiceNumber: o.invoiceNumber,
     createdAt: o.createdAt,
     cashierName: o.cashierName || '-',
     customerName: o.customerName || null,
     customerEmail: o.customerEmail || null,
+    tableNumber: o.tableNumber || null,
+    storeName: o.storeName || null,
+    storeAddress: o.storeAddress || null,
+    isTaxIncluded: Boolean(o.isTaxIncluded),
+    taxRate: o.taxRate ?? 10,
     items: (o.items || []).map(i => ({
       namaMenu: i.namaMenu,
       qty: i.qty,
@@ -55,6 +65,8 @@ export function Receipt({ data }: { data: ReceiptData }) {
     minute: '2-digit',
   })
   const showCash = data.cashReceived != null && data.cashReceived > 0
+  const displayName = data.storeName || 'DapurTwin'
+  const taxPercent = data.taxRate ?? 10
 
   return (
     <div className="receipt-paper bg-white text-slate-800 font-mono text-[12px] leading-snug p-5 w-full max-w-[340px] mx-auto relative overflow-hidden shadow-xs">
@@ -75,8 +87,11 @@ export function Receipt({ data }: { data: ReceiptData }) {
           <div className="w-10 h-10 rounded-2xl bg-[#FFF6D6] border border-[#FFE49A]/80 flex items-center justify-center mb-1.5 shadow-xs">
             <DapiHead size={30} mood="senang" />
           </div>
-          <p className="text-base font-extrabold tracking-tight text-slate-900">DapurTwin</p>
-          <p className="text-[11px] text-slate-500">Struk Pembayaran</p>
+          <p className="text-base font-extrabold tracking-tight text-slate-900">{displayName}</p>
+          {data.storeAddress && (
+            <p className="text-[10px] text-slate-500 max-w-[240px] leading-tight mt-0.5">{data.storeAddress}</p>
+          )}
+          <p className="text-[11px] text-slate-500 mt-0.5">Struk Pembayaran</p>
           {data.isPreview && (
             <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-[#FFF6D6] text-[#8A5A00] text-[10px] font-bold">
               PREVIEW
@@ -90,6 +105,14 @@ export function Receipt({ data }: { data: ReceiptData }) {
             <span className="text-slate-500">No. Nota</span>
             <span className="font-bold text-right">{data.invoiceNumber || 'dibuat saat bayar'}</span>
           </div>
+          {data.tableNumber && (
+            <div className="flex justify-between gap-3">
+              <span className="text-slate-500">No. Meja</span>
+              <span className="font-bold text-right px-2 py-0.5 rounded bg-slate-100 text-slate-900">
+                Meja {data.tableNumber}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between gap-3">
             <span className="text-slate-500">Waktu</span>
             <span className="text-right">{tgl}</span>
@@ -132,6 +155,13 @@ export function Receipt({ data }: { data: ReceiptData }) {
           <span>TOTAL</span>
           <span>{formatRupiah(data.total)}</span>
         </div>
+
+        {data.isTaxIncluded && (
+          <div className="mt-1 flex justify-between text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold border border-emerald-200/60">
+            <span>Pajak Resto/PB1 ({taxPercent}%)</span>
+            <span>Sudah termasuk</span>
+          </div>
+        )}
 
         <div className="mt-2 space-y-0.5 text-[11px]">
           <div className="flex justify-between">

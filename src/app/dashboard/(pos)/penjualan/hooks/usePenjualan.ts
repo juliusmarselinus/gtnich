@@ -36,6 +36,12 @@ export function usePenjualan() {
   const [expiredBahanIds, setExpiredBahanIds] = useState<string[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [recentOrders, setRecentOrders] = useState<OrderRecord[]>([])
+  const [storeProfile, setStoreProfile] = useState<{ storeName: string; storeAddress: string; isTaxIncluded: boolean; taxRate: number }>({
+    storeName: 'DapurTwin',
+    storeAddress: '',
+    isTaxIncluded: false,
+    taxRate: 10,
+  })
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -69,17 +75,19 @@ export function usePenjualan() {
 
       setUserEmail(session.user.email || null)
 
-      const [menuData, ordersData, stok, expiredIds] = await Promise.all([
+      const [menuData, ordersData, stok, expiredIds, profile] = await Promise.all([
         penjualanService.getKatalogMenu(),
         penjualanService.getRecentOrders(8),
         penjualanService.getStokBahan(),
         penjualanService.getExpiredBahanIds(),
+        penjualanService.getStoreProfile(),
       ])
 
       setMenus(menuData || [])
       setRecentOrders(ordersData || [])
       setStokMap(stok)
       setExpiredBahanIds(expiredIds || [])
+      if (profile) setStoreProfile(profile)
     } catch (err: unknown) {
       const e = err as Error
       console.error('Fetch penjualan data error:', e)
@@ -311,6 +319,7 @@ export function usePenjualan() {
     clearCart,
     totals,
     recentOrders,
+    storeProfile,
     loading,
     isSubmitting,
     error,

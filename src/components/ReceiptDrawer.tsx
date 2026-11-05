@@ -133,9 +133,12 @@ export default function ReceiptDrawer({
           >
             {/* Header Toko */}
             <div className="text-center pb-4 border-b border-dashed border-[#b8ab94] space-y-1">
-              <p className="font-extrabold text-sm tracking-widest text-[#241e17]">ORDERHUB STORE</p>
-              <p className="text-[10px] text-[#6e634e]">Pusat Oleh-Oleh & Pangan Nusantara</p>
-              <p className="text-[10px] text-[#91856e]">Komp. Bisnis UMKM No. 24 • 0812-3456-7890</p>
+              <p className="font-extrabold text-sm tracking-widest text-[#241e17]">{order.storeName || 'DAPURTWIN STORE'}</p>
+              {order.storeAddress ? (
+                <p className="text-[10px] text-[#6e634e] max-w-[260px] mx-auto leading-tight">{order.storeAddress}</p>
+              ) : (
+                <p className="text-[10px] text-[#6e634e]">Pusat Kuliner &amp; Dapur Nusantara</p>
+              )}
             </div>
 
             {/* Info Transaksi */}
@@ -144,6 +147,12 @@ export default function ReceiptDrawer({
                 <span className="text-[#6e634e]">Invoice</span>
                 <span className="font-bold text-[#241e17]">{order.invoiceNumber}</span>
               </div>
+              {order.tableNumber && (
+                <div className="flex justify-between font-bold">
+                  <span className="text-[#6e634e] font-normal">No. Meja</span>
+                  <span className="text-[#241e17] px-2 py-0.5 rounded bg-[#ebd7b2]">Meja {order.tableNumber}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-[#6e634e]">Waktu</span>
                 <span className="text-[#241e17]">{order.createdAt}</span>
@@ -205,6 +214,12 @@ export default function ReceiptDrawer({
                 <span>TOTAL AKHIR</span>
                 <span className="text-[#2D5A34] font-black">{formatRupiah(order.totalPrice)}</span>
               </div>
+              {order.isTaxIncluded && (
+                <div className="flex justify-between text-[10px] text-[#2D5A34] font-semibold pt-1">
+                  <span>Pajak Restoran / PB1 (10%)</span>
+                  <span>Sudah termasuk</span>
+                </div>
+              )}
             </div>
 
             {/* Catatan jika ada */}

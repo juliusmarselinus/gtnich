@@ -69,9 +69,11 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
               <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[#FFF6D6] border border-[#FFE49A] shadow-xs mb-2">
                 <DapiHead size={32} mood="senang" />
               </div>
-              <h4 className="font-extrabold text-stone-800 text-base tracking-tight">DAPURTWIN</h4>
-              <p className="text-[11px] text-stone-400">Jl. Inovasi Digital No. 26, UMKM Hub</p>
-              <p className="text-[11px] text-stone-400">WA: 0812-3456-7890 | Web: orderhub.id</p>
+              <h4 className="font-extrabold text-stone-800 text-base tracking-tight">{order.storeName || 'DAPURTWIN'}</h4>
+              {order.storeAddress && (
+                <p className="text-[11px] text-stone-500 max-w-[260px] mx-auto mt-0.5">{order.storeAddress}</p>
+              )}
+              <p className="text-[11px] text-stone-400 mt-0.5">Struk Transaksi Kasir</p>
             </div>
 
             {/* Invoice Meta */}
@@ -80,6 +82,14 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
                 <span className="text-stone-400">No. Invoice</span>
                 <span className="font-bold text-stone-800">{order.invoiceNumber}</span>
               </div>
+              {order.tableNumber && (
+                <div className="flex justify-between">
+                  <span className="text-stone-400">No. Meja</span>
+                  <span className="font-bold text-stone-800 px-2 py-0.5 rounded bg-amber-100 text-[#8A5A00]">
+                    Meja {order.tableNumber}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-stone-400">Waktu</span>
                 <span>{order.createdAt}</span>
@@ -150,6 +160,12 @@ export default function ReceiptModal({ order, onClose, onUpdateStatus }: Receipt
                 <span>TOTAL AKHIR</span>
                 <span className="text-[#FF8F2B] font-mono">{formatRupiah(order.totalPrice)}</span>
               </div>
+              {order.isTaxIncluded && (
+                <div className="flex justify-between text-[11px] text-emerald-700 font-semibold pt-1">
+                  <span>Pajak Restoran / PB1 (10%)</span>
+                  <span>Sudah termasuk</span>
+                </div>
+              )}
             </div>
 
             {/* Notes if any */}

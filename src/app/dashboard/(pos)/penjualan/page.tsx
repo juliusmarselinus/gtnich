@@ -49,6 +49,7 @@ export default function PenjualanPage() {
     clearCart,
     totals,
     recentOrders,
+    storeProfile,
     loading,
     isSubmitting,
     error,
@@ -345,6 +346,7 @@ export default function PenjualanPage() {
                 totals={totals}
                 isSubmitting={isSubmitting}
                 onCheckout={handleCheckout}
+                storeProfile={storeProfile}
               />
             </div>
           </div>
@@ -362,7 +364,15 @@ export default function PenjualanPage() {
       </main>
 
       {receiptOrder && (
-        <ReceiptModal data={orderToReceipt(receiptOrder)} onClose={() => setReceiptOrder(null)} />
+        <ReceiptModal
+          data={orderToReceipt({
+            ...receiptOrder,
+            storeName: storeProfile.storeName,
+            storeAddress: storeProfile.storeAddress,
+            taxRate: storeProfile.taxRate,
+          })}
+          onClose={() => setReceiptOrder(null)}
+        />
       )}
     </div>
   )

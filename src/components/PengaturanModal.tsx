@@ -22,7 +22,9 @@ import {
   EyeOff,
   X,
   Sliders,
-  Sparkles,
+  MapPin,
+  Receipt,
+  Percent,
 } from 'lucide-react'
 import clsx from 'clsx'
 import DapiHead from '@/components/ui/DapiHead'
@@ -83,12 +85,15 @@ export default function PengaturanModal({
   // State Editable Box 1: Identitas Pemilik & Dapur
   const [fullName, setFullName] = useState<string>('')
   const [storeName, setStoreName] = useState<string>('')
+  const [storeAddress, setStoreAddress] = useState<string>('')
   const [phone, setPhone] = useState<string>('')
 
-  // State Editable Box 2: Jenis Usaha & Kanal
+  // State Editable Box 2: Jenis Usaha & Kanal & Pajak
   const [businessType, setBusinessType] = useState<string>('')
   const [salesChannels, setSalesChannels] = useState<string[]>([])
   const [stockoutFrequency, setStockoutFrequency] = useState<number>(2)
+  const [isTaxIncluded, setIsTaxIncluded] = useState<boolean>(false)
+  const [taxRate, setTaxRate] = useState<number>(10)
 
   // State Editable Box 3: Pengaturan Notifikasi
   const [notifyTagihanOverdue, setNotifyTagihanOverdue] = useState<boolean>(true)
@@ -162,6 +167,7 @@ export default function PengaturanModal({
         setRole(profile?.role || 'owner')
         setFullName(profile?.full_name || '')
         setStoreName(profile?.store_name || '')
+        setStoreAddress(profile?.store_address || '')
         setPhone(profile?.phone || '')
         setBusinessType(profile?.business_type || user.user_metadata?.business_type || '')
         setSalesChannels(
@@ -174,6 +180,8 @@ export default function PengaturanModal({
           user.user_metadata?.stockout_frequency ??
           2
         setStockoutFrequency(Number(stockFreq))
+        setIsTaxIncluded(Boolean(profile?.is_tax_included ?? user.user_metadata?.is_tax_included ?? false))
+        setTaxRate(Number(profile?.tax_rate ?? user.user_metadata?.tax_rate ?? 10))
 
         const prefs = getNotificationPreferences()
         setNotifyTagihanOverdue(
@@ -216,6 +224,7 @@ export default function PengaturanModal({
 
     const cleanName = fullName.trim()
     const cleanStore = storeName.trim()
+    const cleanAddress = storeAddress.trim()
     const cleanPhone = phone.trim()
 
     if (!cleanName) {
@@ -236,6 +245,7 @@ export default function PengaturanModal({
           id: userId,
           full_name: cleanName,
           store_name: cleanStore,
+          store_address: cleanAddress || null,
           phone: cleanPhone || null,
           updated_at: new Date().toISOString(),
         },
@@ -249,6 +259,7 @@ export default function PengaturanModal({
           data: {
             full_name: cleanName,
             store_name: cleanStore,
+            store_address: cleanAddress || null,
           },
         })
       } catch {
@@ -289,6 +300,8 @@ export default function PengaturanModal({
           business_type: businessType,
           sales_channels: salesChannels,
           stockout_frequency: stockoutFrequency,
+          is_tax_included: isTaxIncluded,
+          tax_rate: taxRate,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'id' }
@@ -304,6 +317,8 @@ export default function PengaturanModal({
             business_type: businessType,
             sales_channels: salesChannels,
             stockout_frequency: stockoutFrequency,
+            is_tax_included: isTaxIncluded,
+            tax_rate: taxRate,
           },
         })
       } catch {
@@ -603,6 +618,27 @@ export default function PengaturanModal({
                         </div>
 
                         <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-bold text-[#5A3A00]">
+                              Alamat Usaha / Toko (Opsional)
+                            </label>
+                            <span className="text-[10px] font-semibold text-[#8A6A40] bg-[#FFF0CC] px-2 py-0.5 rounded-full">
+                              Tampil di Struk
+                            </span>
+                          </div>
+                          <div className="relative">
+                            <MapPin className="w-4 h-4 text-[#9A7A55] absolute left-3.5 top-3" />
+                            <textarea
+                              rows={2}
+                              value={storeAddress}
+                              onChange={e => setStoreAddress(e.target.value)}
+                              placeholder="cth. Jl. Anggrek No. 12, Kel. Sukajaya, Bandung (opsional, muncul di struk kasir)"
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBF2] border border-[#EDD9B0] text-xs font-semibold text-[#2B1D00] outline-none focus:ring-2 focus:ring-[#FFB800] resize-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
                           <label className="block text-xs font-bold text-[#5A3A00] mb-1">Nomor WhatsApp Operasional</label>
                           <div className="relative">
                             <Phone className="w-4 h-4 text-[#9A7A55] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -735,6 +771,64 @@ export default function PengaturanModal({
                             </button>
                           ))}
                         </div>
+                      </div>
+
+                      {/* Opsi Pajak di Struk */}
+                      <div className="pt-3 border-t border-[#EDD9B0] space-y-3">
+                        <div>
+                          <h4 className="text-xs font-bold text-[#5A3A00] flex items-center gap-1.5">
+                            <Receipt className="w-3.5 h-3.5 text-[#8A5A00]" />
+                            <span>Pengaturan Pajak pada Struk Pembayaran</span>
+                          </h4>
+                          <p className="text-[11px] text-[#8A6A40] mt-0.5">
+                            Sertakan keterangan apakah harga menu yang dibayar pelanggan sudah termasuk pajak resto (PB1) atau belum.
+                          </p>
+                        </div>
+
+                        <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#FFFBF2] border border-[#EDD9B0] cursor-pointer hover:bg-[#FFF6E0] transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={isTaxIncluded}
+                            onChange={e => setIsTaxIncluded(e.target.checked)}
+                            className="mt-0.5 rounded border-[#EDD9B0] text-[#FFB800] focus:ring-[#FFB800]"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#2B1D00]">
+                                Harga Sudah Termasuk Pajak (PB1 / Resto)
+                              </span>
+                              <span className={clsx(
+                                'text-[10px] font-bold px-2 py-0.5 rounded-full',
+                                isTaxIncluded ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                              )}>
+                                {isTaxIncluded ? 'Aktif (Muncul di Struk)' : 'Nonaktif (Default)'}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-[#8A6A40] block mt-0.5">
+                              Jika dicentang, struk kasir dan cetak nota akan mencantumkan keterangan: &quot;Pajak Restoran / PB1 ({taxRate}%) Sudah Termasuk&quot;.
+                            </span>
+                          </div>
+                        </label>
+
+                        {isTaxIncluded && (
+                          <div className="p-3 rounded-xl bg-[#FFF9EC] border border-[#FFE49A]/80 flex items-center justify-between gap-3 text-xs">
+                            <span className="text-[#5A3A00] font-semibold flex items-center gap-1.5">
+                              <Percent className="w-3.5 h-3.5 text-[#8A5A00]" />
+                              Tarif Pajak Restoran / PB1 (%)
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={taxRate}
+                                onChange={e => setTaxRate(Math.max(0, Number(e.target.value) || 0))}
+                                className="w-16 px-2.5 py-1 rounded-lg border border-[#EDD9B0] bg-white text-xs font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#FFB800]"
+                              />
+                              <span className="font-bold text-slate-600">%</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="pt-2 flex justify-end">

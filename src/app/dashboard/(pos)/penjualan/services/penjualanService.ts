@@ -10,6 +10,7 @@ interface RawOrderDB {
   invoice_number: string
   customer_name: string
   customer_phone?: string | null
+  table_number?: string | null
   channel: string
   status: string
   payment_method: string
@@ -25,6 +26,7 @@ interface RawOrderDB {
   cash_received?: number | string | null
   change_amount?: number | string | null
   midtrans_order_id?: string | null
+  is_tax_included?: boolean | null
   created_at: string
   updated_at: string
   order_items?: RawOrderItemDB[] | null
@@ -79,6 +81,7 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
     invoiceNumber: row.invoice_number,
     customerName: row.customer_name,
     customerPhone: row.customer_phone,
+    tableNumber: row.table_number,
     channel: row.channel,
     status: mappedStatus,
     paymentMethod: row.payment_method,
@@ -94,6 +97,7 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
     cashReceived: row.cash_received == null ? null : Number(row.cash_received),
     changeAmount: row.change_amount == null ? null : Number(row.change_amount),
     midtransOrderId: row.midtrans_order_id ?? null,
+    isTaxIncluded: Boolean(row.is_tax_included),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     items,
@@ -147,6 +151,27 @@ export const penjualanService = {
     }
 
     return ((data as RawOrderDB[]) || []).map(mapOrderFromDB)
+  },
+
+  async getStoreProfile(): Promise<{ storeName: string; storeAddress: string; isTaxIncluded: boolean; taxRate: number }> {
+    const supabase = createClient()
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+    if (!userId) {
+      return { storeName: 'DapurTwin', storeAddress: '', isTaxIncluded: false, taxRate: 10 }
+    }
+    const { data } = await supabase
+      .from('profiles')
+      .select('store_name, store_address, is_tax_included, tax_rate')
+      .eq('id', userId)
+      .maybeSingle()
+
+    return {
+      storeName: data?.store_name || 'DapurTwin',
+      storeAddress: data?.store_address || '',
+      isTaxIncluded: Boolean(data?.is_tax_included),
+      taxRate: Number(data?.tax_rate) || 10,
+    }
   },
 
   // Potong stok untuk pesanan pre-order saat mulai diproses (berdasarkan resep menu saat ini)
@@ -307,6 +332,7 @@ export const penjualanService = {
     const customerName = form.customerName?.trim() || 'Pelanggan Umum'
     const customerPhone = form.customerPhone?.trim() || null
     const customerEmail = form.customerEmail?.trim() || null
+    const tableNumber = form.tableNumber?.trim() || null
     const channel = normalizeOrderChannel(form.channel)
     const paymentMethod = form.paymentMethod || 'Tunai / Cash'
     const cashierName = form.cashierName || 'Kasir Dapur'
@@ -327,6 +353,7 @@ export const penjualanService = {
         invoice_number: invoiceNumber,
         customer_name: customerName,
         customer_phone: customerPhone,
+        table_number: tableNumber,
         channel,
         status: dbStatus,
         payment_method: paymentMethod,
@@ -342,6 +369,7 @@ export const penjualanService = {
         cash_received: form.cashReceived ?? null,
         change_amount: form.changeAmount ?? null,
         midtrans_order_id: form.midtransOrderId ?? null,
+        is_tax_included: Boolean(form.isTaxIncluded),
       })
       .select('*')
       .single()
@@ -445,21 +473,24 @@ export const penjualanService = {
       const ownerEmail = sessionData.session.user.email
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, store_name')
+        .select('full_name, store_name, store_address, is_tax_included, tax_rate')
         .eq('id', userId)
         .single()
 
       const storeName = profile?.store_name || 'DapurTwin'
+      const storeAddress = profile?.store_address || null
       const ownerName = profile?.full_name || ownerEmail?.split('@')[0] || 'Chef / Owner'
 
       const emailPayload = {
         ownerEmail: ownerEmail || null,
         customerEmail: customerEmail || null,
         storeName,
+        storeAddress,
         ownerName,
         invoiceNumber,
         customerName,
         customerPhone,
+        tableNumber,
         paymentMethod,
         paymentStatus: 'Lunas',
         subtotal,
@@ -469,6 +500,7 @@ export const penjualanService = {
         changeAmount: form.changeAmount ?? null,
         cashierName,
         notes,
+        isTaxIncluded: Boolean(form.isTaxIncluded ?? profile?.is_tax_included),
         items: cart.map(c => ({
           namaMenu: c.namaMenu,
           qty: c.cartQty,
