@@ -140,7 +140,7 @@ export default function LaporanPage() {
         </section>
 
         {/* Controls Bar: Filter Periode & Action Buttons */}
-        <section className="bg-white rounded-3xl p-4 sm:p-5 border border-[#EBE6DC] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <section data-tour="laporan-controls" className="bg-white rounded-3xl p-4 sm:p-5 border border-[#EBE6DC] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold text-slate-500 mr-1">Periode:</span>
             {RANGE_OPTIONS.map(opt => (
@@ -188,10 +188,14 @@ export default function LaporanPage() {
           data && (
             <>
               {/* 1. Summary Cards (6 Metrik Utama) */}
-              <SummaryCards summary={data.summary} />
+              <div data-tour="laporan-metrics-cards">
+                <SummaryCards summary={data.summary} />
+              </div>
 
               {/* 2. Tren Omzet & Profit Area Chart */}
-              <TrendChart trend={data.trend} rangeLabel={currentOption.label} />
+              <div data-tour="laporan-trend-chart">
+                <TrendChart trend={data.trend} rangeLabel={currentOption.label} />
+              </div>
 
               {/* 3. Bahan Usage & Menu Terlaris Breakdown */}
               <UsageAndMenuBreakdown

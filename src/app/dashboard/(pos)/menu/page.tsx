@@ -256,7 +256,7 @@ export default function MenuPage() {
         </section>
 
         {/* Status Flow Stats Card Identik PO */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div data-tour="menu-status-cards" className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {STATUS_CARDS.map(st => {
             const active = statusFilter === st.key
             const count =
@@ -327,6 +327,7 @@ export default function MenuPage() {
 
             {/* Tambah Menu Button */}
             <button
+              data-tour="menu-add-btn"
               onClick={openAdd}
               className="px-5 py-2.5 rounded-full bg-[#D8431F] hover:bg-[#c03917] text-white text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer flex-shrink-0"
             >
@@ -369,13 +370,15 @@ export default function MenuPage() {
         {loading ? (
           <CardGridSkeleton count={6} cardHeight="h-80" />
         ) : (
-          <MenuCardGrid
-            list={list}
-            bahanList={bahanList}
-            onEdit={openEdit}
-            onDelete={openDelete}
-            onOpenAdd={openAdd}
-          />
+          <div data-tour="menu-grid">
+            <MenuCardGrid
+              list={list}
+              bahanList={bahanList}
+              onEdit={openEdit}
+              onDelete={openDelete}
+              onOpenAdd={openAdd}
+            />
+          </div>
         )}
       </main>
 

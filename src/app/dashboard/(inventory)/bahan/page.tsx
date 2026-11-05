@@ -230,6 +230,7 @@ export default function BahanPage() {
             <div className="mt-2 flex flex-wrap gap-2.5">
               <button
                 type="button"
+                data-tour="add-ingredient-btn"
                 onClick={openAdd}
                 className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
               >
@@ -269,7 +270,7 @@ export default function BahanPage() {
         </section>
 
         {/* 4 Status Flow Stats Card (Identik Desain Card PO & Tagihan) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div data-tour="bahan-status-cards" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {STATUS_CARDS.map(st => {
             const active = filterStatus === st.key
             const count = allCount[st.key]
@@ -323,28 +324,32 @@ export default function BahanPage() {
         </div>
 
         {/* Filter Bar (Tabs, Search, dan Tombol Tambah Bahan) */}
-        <BahanFilterBar
-          filterStatus={filterStatus}
-          onFilterChange={setFilterStatus}
-          search={search}
-          onSearchChange={setSearch}
-          counts={allCount}
-          onOpenAdd={openAdd}
-        />
+        <div data-tour="bahan-filter-bar">
+          <BahanFilterBar
+            filterStatus={filterStatus}
+            onFilterChange={setFilterStatus}
+            search={search}
+            onSearchChange={setSearch}
+            counts={allCount}
+            onOpenAdd={openAdd}
+          />
+        </div>
 
         {/* Loading State or Card Grid */}
         {loading ? (
           <CardGridSkeleton count={6} cardHeight="h-72" />
         ) : (
-          <BahanCard
-            list={list}
-            getStockCondition={getStockCondition}
-            onEdit={openEdit}
-            onDelete={openDeleteConfirm}
-            onOpenAdd={openAdd}
-            onUpdateHarga={handleUpdateHarga}
-            checkingId={checkingId}
-          />
+          <div data-tour="bahan-card-grid">
+            <BahanCard
+              list={list}
+              getStockCondition={getStockCondition}
+              onEdit={openEdit}
+              onDelete={openDeleteConfirm}
+              onOpenAdd={openAdd}
+              onUpdateHarga={handleUpdateHarga}
+              checkingId={checkingId}
+            />
+          </div>
         )}
       </main>
 

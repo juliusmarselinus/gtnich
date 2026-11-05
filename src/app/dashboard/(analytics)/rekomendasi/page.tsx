@@ -183,7 +183,7 @@ export default function RekomendasiPage() {
         </section>
 
         {/* Status Flow Stats Card Identik PO */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div data-tour="rekomendasi-status-cards" className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {STATUS_CARDS.map(st => {
             const active = filter === st.key
             const val =
@@ -239,7 +239,7 @@ export default function RekomendasiPage() {
         </div>
 
         {/* Action Header: Filter Pills & Refresh */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+        <div data-tour="rekomendasi-filter-bar" className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
             {[
               { key: 'all', label: `Semua (${summary.total})` },
@@ -289,7 +289,7 @@ export default function RekomendasiPage() {
           </div>
         ) : (
           /* Recommendation Cards Grid: 2 Card Per Row di Mobile & Tablet */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 md:gap-5">
+          <div data-tour="rekomendasi-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 md:gap-5">
             {items.map(r => {
               const tipeCfg = TIPE_CONFIG[r.tipe]
               const priCfg = PRIORITY_CONFIG[r.priority] || PRIORITY_CONFIG.sedang

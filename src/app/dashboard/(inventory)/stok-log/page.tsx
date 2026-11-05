@@ -213,7 +213,7 @@ export default function StokLogPage() {
         </section>
 
         {/* Status Flow Stats Card Identik PO */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div data-tour="stok-log-status-cards" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {STATUS_CARDS.map(st => {
             const val =
               st.key === 'total_logs'
@@ -255,7 +255,7 @@ export default function StokLogPage() {
         </div>
 
         {/* Navigasi Tab & Tombol Aksi Manual */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+        <div data-tour="stok-log-tab-bar" className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-2 p-1 rounded-2xl bg-[#FCFAF6] border border-[#F0EBE1]">
             {[
               { key: 'log', label: `Buku Mutasi Stok (${rawLogsCount})`, icon: Database },

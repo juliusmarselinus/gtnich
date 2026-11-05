@@ -316,19 +316,21 @@ export default function PenjualanPage() {
                   <PenjualanKatalogSkeleton count={8} />
                 </div>
               ) : (
-                <MenuKatalogGrid
-                  menus={menus}
-                  cartItemCounts={cartItemCounts}
-                  stockInfo={stockInfo}
-                  onAddToCart={addToCart}
-                  rawMenuCount={rawMenuCount}
-                  hasActiveFilters={hasActiveFilters}
-                  onResetFilters={resetFilters}
-                />
+                <div data-tour="pos-menu-grid">
+                  <MenuKatalogGrid
+                    menus={menus}
+                    cartItemCounts={cartItemCounts}
+                    stockInfo={stockInfo}
+                    onAddToCart={addToCart}
+                    rawMenuCount={rawMenuCount}
+                    hasActiveFilters={hasActiveFilters}
+                    onResetFilters={resetFilters}
+                  />
+                </div>
               )}
             </div>
 
-            <div className="lg:col-span-5 xl:col-span-4 space-y-4 min-w-0">
+            <div data-tour="pos-cart-panel" className="lg:col-span-5 xl:col-span-4 space-y-4 min-w-0">
               <CartPOS
                 cart={cart}
                 stockInfo={stockInfo}

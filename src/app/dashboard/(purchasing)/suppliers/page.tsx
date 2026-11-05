@@ -191,6 +191,7 @@ export default function SuppliersPage() {
             </p>
             <div className="mt-2 flex flex-wrap gap-2.5">
               <button
+                data-tour="supplier-add-btn"
                 onClick={openAdd}
                 className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
               >
@@ -222,7 +223,7 @@ export default function SuppliersPage() {
         </section>
 
         {/* Status Flow Stats Card Identik PO */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div data-tour="supplier-status-cards" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {STATUS_CARDS.map(st => {
             const active =
               st.key === 'all'
@@ -285,25 +286,29 @@ export default function SuppliersPage() {
         </div>
 
         {/* Filter Bar & Aksi Tambah */}
-        <SupplierFilterBar
-          search={search}
-          onSearchChange={setSearch}
-          totalCount={totalCount}
-          onOpenAdd={openAdd}
-          categories={categories}
-          activeCategory={filterCategory}
-          onSelectCategory={setFilterCategory}
-        />
+        <div data-tour="supplier-filter-bar">
+          <SupplierFilterBar
+            search={search}
+            onSearchChange={setSearch}
+            totalCount={totalCount}
+            onOpenAdd={openAdd}
+            categories={categories}
+            activeCategory={filterCategory}
+            onSelectCategory={setFilterCategory}
+          />
+        </div>
 
         {/* Loading / Table Card Container */}
         {loading ? (
           <TableSkeleton rows={5} cols={4} />
         ) : (
-          <SupplierTable
-            list={filteredList}
-            onEdit={openEdit}
-            onDelete={handleDelete}
-          />
+          <div data-tour="supplier-table">
+            <SupplierTable
+              list={filteredList}
+              onEdit={openEdit}
+              onDelete={handleDelete}
+            />
+          </div>
         )}
       </main>
 

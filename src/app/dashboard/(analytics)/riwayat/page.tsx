@@ -79,7 +79,7 @@ export default function RiwayatPage() {
         </section>
 
         {/* Tab + Search + Actions */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div data-tour="riwayat-filter-bar" className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div className="flex gap-2.5">
             <button
               type="button"

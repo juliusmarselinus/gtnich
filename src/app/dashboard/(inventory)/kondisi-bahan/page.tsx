@@ -189,7 +189,7 @@ export default function KondisiBahanPage() {
         </section>
 
         {/* Status Flow Stats Card Identik PO */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div data-tour="kondisi-status-cards" className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {STATUS_CARDS.map(st => {
             const active = filterFreshness === st.key
             const val =
@@ -248,7 +248,7 @@ export default function KondisiBahanPage() {
         </div>
 
         {/* Filter Pills & Search Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div data-tour="kondisi-filter-bar" className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
             {FILTER_TABS.map(tab => {
               const active = filterFreshness === tab.key
@@ -285,11 +285,13 @@ export default function KondisiBahanPage() {
         {loading ? (
           <CardGridSkeleton count={6} cardHeight="h-72" />
         ) : (
-          <KondisiCardGrid
-            list={list}
-            onKurangiStok={handleKurangiStok}
-            onRefresh={refresh}
-          />
+          <div data-tour="kondisi-card-grid">
+            <KondisiCardGrid
+              list={list}
+              onKurangiStok={handleKurangiStok}
+              onRefresh={refresh}
+            />
+          </div>
         )}
       </main>
     </div>

@@ -215,6 +215,7 @@ export default function PurchaseOrderPage() {
             </p>
             <div className="mt-2 flex flex-wrap gap-2.5">
               <button
+                data-tour="po-create-btn"
                 onClick={handleOpenManualWizard}
                 className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer whitespace-nowrap"
               >
@@ -343,11 +344,13 @@ export default function PurchaseOrderPage() {
         {loading ? (
           <TableSkeleton rows={6} cols={5} />
         ) : (
-          <POTable
-            list={list}
-            onUpdateStatus={handleUpdateStatusWithToast}
-            onRequestVerifyTerima={po => setVerifyingPO(po)}
-          />
+          <div data-tour="po-table">
+            <POTable
+              list={list}
+              onUpdateStatus={handleUpdateStatusWithToast}
+              onRequestVerifyTerima={po => setVerifyingPO(po)}
+            />
+          </div>
         )}
       </main>
 

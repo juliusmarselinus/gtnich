@@ -108,24 +108,26 @@ export default function DashboardPage() {
 
         {/* Baris 1: tugas Dapi + omzet & kembaran */}
         <div className="flex flex-wrap items-stretch gap-4">
-          <div className="flex min-w-0 flex-[3_1_400px]">
+          <div data-tour="overview-tasks" className="flex min-w-0 flex-[3_1_400px]">
             <DapiTasksCard
               tasks={data?.tasks || []}
               lowStockItems={data?.lowStockItems || []}
               isLoading={isLoading && !data}
             />
           </div>
-          <div className="flex min-w-0 flex-[2_1_300px] flex-col gap-4">
+          <div data-tour="overview-omzet" className="flex min-w-0 flex-[2_1_300px] flex-col gap-4">
             <OmzetCard metrics={data?.metrics} hourlyToday={data?.hourlyToday || new Array(8).fill(0)} isLoading={isLoading && !data} />
             <KembaranCard forecast={data?.forecast} />
           </div>
         </div>
 
         {/* Baris 2: pesanan berjalan */}
-        <ActiveOrderStrip activeOrders={data?.activeOrders || []} onOpen={openOrder} />
+        <div data-tour="overview-active-orders">
+          <ActiveOrderStrip activeOrders={data?.activeOrders || []} onOpen={openOrder} />
+        </div>
 
         {/* Baris 3: ringkasan */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+        <div data-tour="overview-summary-cards" className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
           <LowStockCard items={data?.lowStockItems || []} />
           <WeeklyRevenueCard days={data?.revenueChart || []} />
           <RecentOrdersCard orders={data?.recentOrders || []} onSelect={openOrder} />

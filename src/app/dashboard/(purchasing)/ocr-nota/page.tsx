@@ -112,7 +112,7 @@ export default function OCRNotaPage() {
         )}
 
         {/* Hero Section dengan Maskot Dapi */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#FFB800] px-6 py-6 sm:px-8 sm:py-7 min-h-[180px] shadow-xs">
+        <section data-tour="ocr-hero-info" className="relative overflow-hidden rounded-[28px] bg-[#FFB800] px-6 py-6 sm:px-8 sm:py-7 min-h-[180px] shadow-xs">
           <div className="absolute right-48 top-5 w-16 h-16 rounded-full bg-[#FF7A59] hidden md:block opacity-80" />
           <div className="absolute right-36 top-16 w-28 h-8 rounded-full bg-white/90 hidden md:block" />
 
@@ -158,6 +158,7 @@ export default function OCRNotaPage() {
         {/* State 1: Upload Dropzone (Ketika belum ada file diproses) */}
         {state === 'idle' && (
           <div
+            data-tour="ocr-dropzone"
             onDragOver={e => e.preventDefault()}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}

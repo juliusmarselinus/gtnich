@@ -189,6 +189,7 @@ export default function Sidebar() {
                   ref={el => {
                     sectionRefs.current[section.id] = el
                   }}
+                  data-tour={`tour-modul-${section.id}`}
                   className={clsx('rounded-2xl transition-colors', expanded && 'bg-kuning-pucat/80')}
                 >
                   <button

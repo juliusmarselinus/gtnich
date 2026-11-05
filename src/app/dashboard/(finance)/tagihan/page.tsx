@@ -175,7 +175,7 @@ export default function TagihanPage() {
         </section>
 
         {/* Status Flow Stats Card (Desain Card Identik PO: rounded-[28px], circle backdrop, typography) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div data-tour="tagihan-status-cards" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {STATUS_CARDS.map(st => {
             const active = statusBayarFilter === st.key
             const count =
@@ -295,17 +295,19 @@ export default function TagihanPage() {
         {loading ? (
           <TableSkeleton rows={6} cols={5} />
         ) : (
-          <TagihanTable
-            list={list}
-            onSelectDetail={po => {
-              setSelectedPO(po)
-              setModalMode('detail')
-            }}
-            onBayar={po => {
-              setSelectedPO(po)
-              setModalMode('bayar')
-            }}
-          />
+          <div data-tour="tagihan-table">
+            <TagihanTable
+              list={list}
+              onSelectDetail={po => {
+                setSelectedPO(po)
+                setModalMode('detail')
+              }}
+              onBayar={po => {
+                setSelectedPO(po)
+                setModalMode('bayar')
+              }}
+            />
+          </div>
         )}
       </main>
 

@@ -162,7 +162,7 @@ export default function SimulasiPage() {
         </section>
 
         {/* Status Flow Stats Card Identik PO: 2 card per row di mobile */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div data-tour="simulasi-tab-cards" className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           {STATUS_CARDS.map(st => {
             const active = tab === st.key
             return (
@@ -216,7 +216,7 @@ export default function SimulasiPage() {
         {isLoading && !menus.length && !bahanList.length ? (
           <RekomendasiSkeleton count={3} />
         ) : (
-          <>
+          <div data-tour="simulasi-workspace">
             {/* Simulasi Penjualan */}
             {tab === 'penjualan' && (
               <TabPenjualan
@@ -250,7 +250,7 @@ export default function SimulasiPage() {
                 onChangeServings={setServings}
               />
             )}
-          </>
+          </div>
         )}
       </main>
     </div>

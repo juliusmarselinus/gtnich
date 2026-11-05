@@ -472,7 +472,7 @@ export default function PengaturanModal({
         {/* Body Modal: Sidebar Kiri + Konten Kanan */}
         <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
           {/* Internal Sidebar Menu */}
-          <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-[#E8DCC8] bg-[#FFF7E3]/60 p-3 sm:p-4 flex md:flex-col gap-1.5 overflow-x-auto md:overflow-x-visible flex-shrink-0">
+          <div data-tour="pengaturan-tabs" className="w-full md:w-64 border-b md:border-b-0 md:border-r border-[#E8DCC8] bg-[#FFF7E3]/60 p-3 sm:p-4 flex md:flex-col gap-1.5 overflow-x-auto md:overflow-x-visible flex-shrink-0">
             {sidebarTabs.map(tab => {
               const Icon = tab.icon
               const active = activeTab === tab.id
@@ -508,7 +508,7 @@ export default function PengaturanModal({
           </div>
 
           {/* Konten Tab Kanan */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+          <div data-tour="pengaturan-content" className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
             {isLoading ? (
               <div className="space-y-6 animate-pulse">
                 <div className="rounded-[24px] bg-[#FFF8E8] border border-[#EDD9B0] p-5 space-y-4">

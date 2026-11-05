@@ -251,7 +251,7 @@ export default function ProsesPesananPage() {
         </div>
 
         {/* Search & Filter Status Pills */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div data-tour="proses-filter-bar" className="flex flex-wrap items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-kopi-muted absolute left-4 top-1/2 -translate-y-1/2" />
             <input
@@ -305,7 +305,7 @@ export default function ProsesPesananPage() {
             <p className="text-[11px]">Coba pilih filter lain atau buat transaksi penjualan / pre-order baru.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div data-tour="proses-order-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {pesananList.map(order => (
               <PesananCard
                 key={order.id}

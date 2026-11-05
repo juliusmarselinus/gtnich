@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useTour } from '@/context/TourContext'
 import DapiHead from '@/components/ui/DapiHead'
-import { ArrowRight, ArrowLeft, X, Sparkles, Check } from 'lucide-react'
+import { ArrowRight, ArrowLeft, X, Check } from 'lucide-react'
 import clsx from 'clsx'
 
 interface RectPos {
@@ -47,6 +47,7 @@ export default function FeatureHighlightTour() {
     }
 
     function locateTarget() {
+      if (!currentStep) return
       const el = document.querySelector(currentStep.targetSelector)
       if (el) {
         // Gulirkan elemen ke dalam pandangan jika tertutup
@@ -252,8 +253,8 @@ export default function FeatureHighlightTour() {
                   : 'bg-[#FF8F28] hover:bg-[#E57A18]'
               )}
             >
-              <span>{isLast ? 'Selesai! 🎉' : 'Lanjut'}</span>
-              {!isLast && <ArrowRight className="w-3 h-3" />}
+              <span>{isLast ? 'Selesai' : 'Lanjut'}</span>
+              {isLast ? <Check className="w-3.5 h-3.5" /> : <ArrowRight className="w-3 h-3" />}
             </button>
           </div>
         </div>
