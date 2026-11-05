@@ -98,24 +98,24 @@ export default function ProsesPesananPage() {
         title="Proses Pesanan & Pre-Order"
         subtitle="Kelola pesanan masuk, pantau ketersediaan bahan baku dapur, dan proses pesanan pre-order secara berurutan"
         actions={
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <button
               type="button"
               onClick={refresh}
               disabled={loading}
               title="Perbarui daftar pesanan"
-              className="flex h-10 sm:h-11 px-3 sm:px-3.5 items-center gap-1.5 rounded-full bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs border border-[#E8DCC8] cursor-pointer disabled:opacity-50"
+              className="flex h-9 sm:h-10 px-2.5 sm:px-3.5 items-center gap-1.5 rounded-full bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs border border-[#E8DCC8] cursor-pointer disabled:opacity-50 flex-shrink-0"
             >
               <RefreshCw className={clsx('w-3.5 h-3.5', loading && 'animate-spin')} />
               <span className="hidden md:inline">Segarkan</span>
             </button>
             <Link
               href="/dashboard/penjualan"
-              className="flex h-10 sm:h-11 px-3.5 sm:px-4 items-center gap-1.5 rounded-full bg-[#FF8F2B] hover:bg-[#E57A18] text-white text-xs font-bold transition-all shadow-xs active:scale-95 whitespace-nowrap"
+              className="flex h-9 sm:h-10 px-2.5 sm:px-4 items-center gap-1.5 rounded-full bg-[#FF8F2B] hover:bg-[#E57A18] text-white text-xs font-bold transition-all shadow-xs active:scale-95 whitespace-nowrap flex-shrink-0"
             >
               <Plus className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden xs:inline sm:inline">Input Penjualan / PO</span>
-              <span className="xs:hidden sm:hidden">Input PO</span>
+              <span className="hidden xs:inline">Input Penjualan</span>
+              <span className="xs:hidden">Jual</span>
             </Link>
           </div>
         }
@@ -174,14 +174,8 @@ export default function ProsesPesananPage() {
             </p>
             <div className="mt-2 flex flex-wrap gap-2.5">
               <Link
-                href="/dashboard/penjualan"
-                className="h-11 px-5 rounded-full bg-kopi text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(43,34,28,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4 flex-shrink-0" /> Input Penjualan / PO
-              </Link>
-              <Link
                 href="/dashboard/riwayat"
-                className="h-11 px-5 rounded-full bg-white/60 text-kopi text-sm font-bold flex items-center gap-2 hover:bg-white/80 active:scale-95 transition-all duration-150 whitespace-nowrap"
+                className="h-11 px-5 rounded-full bg-white/80 hover:bg-white text-kopi text-sm font-bold flex items-center gap-2 active:scale-95 transition-all duration-150 whitespace-nowrap shadow-xs"
               >
                 <History className="w-4 h-4" /> Riwayat Transaksi
               </Link>
@@ -267,8 +261,8 @@ export default function ProsesPesananPage() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-bold text-kopi-muted uppercase tracking-wider flex items-center gap-1.5 mr-1">
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none flex-nowrap">
+            <span className="text-[11px] font-bold text-kopi-muted uppercase tracking-wider flex items-center gap-1.5 mr-1 flex-shrink-0">
               <SlidersHorizontal className="w-3.5 h-3.5" /> Filter Status
             </span>
             {FILTER_TABS.map(tab => {
@@ -279,7 +273,7 @@ export default function ProsesPesananPage() {
                   type="button"
                   onClick={() => setActiveTab(tab.key as any)}
                   className={clsx(
-                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer flex items-center gap-2 active:scale-95',
+                    'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer flex items-center gap-2 active:scale-95 flex-shrink-0 whitespace-nowrap',
                     isActive
                       ? clsx(tab.on, 'shadow-[0_8px_16px_rgba(43,34,28,0.2)]')
                       : 'bg-white text-kopi shadow-[0_2px_8px_rgba(120,80,30,0.06)] hover:bg-[#FFF8EC]'

@@ -161,8 +161,8 @@ export default function SimulasiPage() {
           </div>
         </section>
 
-        {/* Status Flow Stats Card Identik PO */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Status Flow Stats Card Identik PO: 2 card per row di mobile */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           {STATUS_CARDS.map(st => {
             const active = tab === st.key
             return (
@@ -171,7 +171,7 @@ export default function SimulasiPage() {
                 type="button"
                 onClick={() => setTab(st.key)}
                 className={clsx(
-                  'relative overflow-hidden rounded-[28px] p-5 text-left flex flex-col gap-4 min-h-[140px] transition-all cursor-pointer hover:-translate-y-0.5',
+                  'relative overflow-hidden rounded-[24px] sm:rounded-[28px] p-3.5 sm:p-5 text-left flex flex-col justify-between min-h-[125px] sm:min-h-[140px] transition-all cursor-pointer hover:-translate-y-0.5',
                   active
                     ? clsx(st.on, 'shadow-[0_18px_30px_rgba(43,34,28,0.22)]')
                     : clsx(st.tint, 'text-kopi shadow-[0_6px_14px_rgba(120,80,30,0.08)]')
@@ -185,25 +185,25 @@ export default function SimulasiPage() {
                   )}
                 />
                 <div className="relative flex items-center justify-between">
-                  <span className="text-sm sm:text-base font-extrabold">{st.label}</span>
+                  <span className="text-xs sm:text-base font-extrabold line-clamp-1">{st.label}</span>
                   <span
                     className={clsx(
-                      'h-9 w-9 rounded-full flex items-center justify-center',
+                      'h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center flex-shrink-0',
                       active ? 'bg-white/30' : 'bg-white/60'
                     )}
                   >
-                    <st.Icon className="w-4 h-4" />
+                    <st.Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </span>
                 </div>
-                <div className="relative">
-                  <p className="text-2xl sm:text-3xl font-black tracking-tight leading-none">
+                <div className="relative mt-2">
+                  <p className="text-xl sm:text-3xl font-black tracking-tight leading-none font-mono">
                     {st.key === 'penjualan'
                       ? `${menus.length} Menu`
                       : st.key === 'supplier'
                       ? `${bahanList.length} Bahan`
                       : 'Kesiapan Stok'}
                   </p>
-                  <p className={clsx('text-xs mt-1.5 truncate', active ? 'opacity-85' : 'text-kopi-muted')}>
+                  <p className={clsx('text-[11px] sm:text-xs mt-1 truncate', active ? 'opacity-85' : 'text-kopi-muted')}>
                     {st.hint}
                   </p>
                 </div>

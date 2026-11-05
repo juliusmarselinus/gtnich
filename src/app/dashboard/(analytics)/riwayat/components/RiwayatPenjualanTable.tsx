@@ -34,7 +34,86 @@ export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjuala
 
   return (
     <div className="rounded-[30px] bg-[#FFFBF2] border border-[#EDE0C4] shadow-[0_4px_18px_rgba(140,100,30,0.07)] overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Mobile Card View (< sm) */}
+      <div className="sm:hidden divide-y divide-[#EDD9B0]/70">
+        {paginatedList.map(t => {
+          const exp = expandedId === t.id
+          const createdDate = new Date(t.createdAt)
+          return (
+            <div key={`m-${t.id}`} className="p-4 space-y-3 bg-[#FFFBF2]">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="font-mono font-black text-[#2B1D00] text-sm block">
+                    {t.invoiceNumber}
+                  </span>
+                  <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[#5A3A00]">
+                    <User className="w-3 h-3 text-[#9A7A55]" />
+                    <span className="font-bold">{t.customerName}</span>
+                    <span className="px-1.5 py-0.2 rounded-md text-[9px] font-bold bg-[#F5EDD8] text-[#5A3A00] border border-[#E8D4A0]">
+                      {t.channel}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <span className="font-mono font-black text-[#2B1D00] text-sm block">
+                    {formatRupiah(t.totalPrice)}
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-[#228B5B]">
+                    +{formatRupiah(t.profit)} laba
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-[#9A7A55] pt-1 border-t border-[#F5EEDB]">
+                <span>
+                  {createdDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}, {createdDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-[#FF8F2B] bg-[#FFF6EC] border border-[#FFE2C2] px-2 py-0.5 rounded-md">
+                    {t.paymentMethod}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(exp ? null : t.id)}
+                    className="p-1 rounded-lg bg-[#F5EDD8] border border-[#E8D4A0] text-[#5A3A00]"
+                  >
+                    {exp ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {exp && (
+                <div className="mt-2 p-3 rounded-2xl bg-[#FFF6E0] space-y-2 border border-[#F0D898]/70 text-xs">
+                  <div className="flex items-center justify-between text-[10px] text-[#8A5A00] font-bold">
+                    <span>Menu ({t.items.length})</span>
+                    <span>Kasir: {t.cashierName}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {t.items.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center bg-[#FFFBF2] p-2 rounded-xl text-xs">
+                        <span className="font-medium text-[#2B1D00] truncate max-w-[170px]">
+                          {item.qty}x {item.namaMenu}
+                        </span>
+                        <span className="font-mono font-bold text-[#FF8F28]">
+                          {formatRupiah(item.subtotal || item.hargaJual * item.qty)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {t.notes && (
+                    <p className="text-[10px] text-[#5A3A00] italic pt-1 border-t border-[#EDD9B0]">
+                      Catatan: {t.notes}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop Table View (>= sm) */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-xs min-w-[760px]">
           <thead>
             <tr className="border-b border-[#EDD9B0] bg-[#FFF0CC] whitespace-nowrap">

@@ -221,123 +221,141 @@ export default function BahanCard({
           <div
             key={b.id}
             className={clsx(
-              'bg-white rounded-[26px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] border border-[#EBE3D7]/80 overflow-hidden flex flex-col group hover:-translate-y-1 hover:shadow-[0_10px_26px_rgba(140,100,30,0.12)] transition-all duration-200',
+              'bg-white rounded-[26px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] border border-[#EBE3D7]/80 overflow-hidden flex flex-col sm:flex-col group hover:-translate-y-1 hover:shadow-[0_10px_26px_rgba(140,100,30,0.12)] transition-all duration-200',
               cfg.cardRing
             )}
           >
-            {/* Foto Bahan */}
-            <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-[#FFF9EC] to-[#F7F5F0] overflow-hidden flex items-center justify-center">
-              {fotoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={fotoUrl}
-                  alt={b.nama}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-1 text-slate-300">
-                  <ImageOff className="w-9 h-9" />
-                  <span className="text-[10px] font-semibold text-slate-400">Belum ada foto</span>
-                </div>
-              )}
-
-              {/* Status Badge Overlay */}
-              <div className="absolute top-2.5 right-2.5">
-                <span
-                  className={clsx(
-                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border shadow-xs backdrop-blur-xs',
-                    cfg.badgeBg,
-                    cfg.badgeText,
-                    cfg.badgeBorder
-                  )}
-                >
-                  <Icon className="w-3 h-3" />
-                  {cfg.label}
-                </span>
-              </div>
-
-              {/* Kode / ID Badge Overlay */}
-              <div className="absolute bottom-2 left-2.5">
-                <span className="px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-mono font-bold text-slate-600 shadow-xs border border-white">
-                  {b.code || b.id.slice(0, 6).toUpperCase()}
-                </span>
-              </div>
-            </div>
-
-            {/* Isi Konten Card */}
-            <div className="p-4 flex flex-col gap-2 flex-1">
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-sm leading-snug line-clamp-2">
-                  {b.nama}
-                </h3>
-                <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
-                  {b.supplier?.nama ? `Supplier: ${b.supplier.nama}` : 'Tanpa supplier'}
-                </p>
-              </div>
-
-              {/* Harga & Nilai Gudang */}
-              <div className="pt-1 border-t border-[#F7F2E9] space-y-1.5">
-                <div className="flex items-baseline justify-between text-xs">
-                  <span className="text-[11px] text-slate-500 font-medium">Harga Beli</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold text-[#D98B00]">
-                      {formatRupiah(b.hargaPerSatuan)}
-                      <span className="text-slate-400 font-normal text-[10px]"> /{b.satuan}</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleCariHargaPasarBox(b)}
-                      disabled={checkingPriceId === b.id}
-                      title="Cari harga pasaran untuk bahan ini"
-                      aria-label="Cari harga pasaran"
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[#8A5A00] text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      {checkingPriceId === b.id ? (
-                        <>
-                          <Loader2 className="w-2.5 h-2.5 animate-spin text-[#8A5A00]" />
-                          <span>Mencari...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-2.5 h-2.5" />
-                          <span>Cari Pasaran</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-                {priceNotes[b.id] && (
-                  <div className="text-[10px] text-slate-600 bg-[#F7F5F0] border border-[#EBE3D7] rounded-lg px-2 py-1 font-medium">
-                    <span className="text-[#8A5A00] font-bold">Pasaran:</span> {priceNotes[b.id]}
+            {/* Wrapper Mobile Horizontal / Desktop Vertical */}
+            <div className="flex flex-row sm:flex-col flex-1">
+              {/* Foto Bahan: Di mobile foto di sebelah kiri fixed, di desktop di atas aspect 4/3 */}
+              <div className="relative w-32 sm:w-full flex-shrink-0 sm:aspect-[4/3] bg-gradient-to-br from-[#FFF9EC] to-[#F7F5F0] overflow-hidden flex items-center justify-center">
+                {fotoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={fotoUrl}
+                    alt={b.nama}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-1 text-slate-300">
+                    <ImageOff className="w-8 h-8 sm:w-9 sm:h-9" />
+                    <span className="text-[10px] font-semibold text-slate-400">Belum ada foto</span>
                   </div>
                 )}
-                <div className="flex items-baseline justify-between text-xs">
-                  <span className="text-[10px] text-slate-400">Nilai Total Stok</span>
-                  <span className="font-bold text-slate-700 text-[11px]">
-                    {formatRupiah(totalNilaiStok)}
+
+                {/* Status Badge Overlay (Desktop) */}
+                <div className="hidden sm:block absolute top-2.5 right-2.5">
+                  <span
+                    className={clsx(
+                      'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border shadow-xs backdrop-blur-xs',
+                      cfg.badgeBg,
+                      cfg.badgeText,
+                      cfg.badgeBorder
+                    )}
+                  >
+                    <Icon className="w-3 h-3" />
+                    {cfg.label}
+                  </span>
+                </div>
+
+                {/* Kode / ID Badge Overlay */}
+                <div className="absolute bottom-2 left-2.5">
+                  <span className="px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-mono font-bold text-slate-600 shadow-xs border border-white">
+                    {b.code || b.id.slice(0, 6).toUpperCase()}
                   </span>
                 </div>
               </div>
 
-              {/* Visual Stok & Progress Bar */}
-              <div className="mt-auto pt-2 space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[11px] font-semibold text-slate-500">Stok Tersedia</span>
-                  <span className="font-extrabold text-slate-900 text-xs">
-                    {b.stok} <span className="text-slate-500 font-medium text-[11px]">{b.satuan}</span>
-                  </span>
+              {/* Isi Konten Card: Di mobile sebelah kanan */}
+              <div className="p-3 sm:p-4 flex flex-col gap-2 flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-1.5">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2">
+                      {b.nama}
+                    </h3>
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                      {b.supplier?.nama ? `Supplier: ${b.supplier.nama}` : 'Tanpa supplier'}
+                    </p>
+                  </div>
+                  {/* Status Badge Mobile */}
+                  <div className="sm:hidden flex-shrink-0">
+                    <span
+                      className={clsx(
+                        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black border shadow-xs',
+                        cfg.badgeBg,
+                        cfg.badgeText,
+                        cfg.badgeBorder
+                      )}
+                    >
+                      {cfg.label}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="h-2 w-full rounded-full bg-[#F5EFE6] overflow-hidden p-0.5">
-                  <div
-                    className={clsx('h-full rounded-full transition-all duration-300', cfg.barColor)}
-                    style={{ width: `${Math.max(pct, b.stok > 0 ? 5 : 0)}%` }}
-                  />
+                {/* Harga & Nilai Gudang */}
+                <div className="pt-1 border-t border-[#F7F2E9] space-y-1 sm:space-y-1.5">
+                  <div className="flex flex-wrap items-baseline justify-between text-xs gap-1">
+                    <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Harga Beli</span>
+                    <div className="flex items-center gap-1 sm:gap-1.5">
+                      <span className="font-extrabold text-[#D98B00] text-xs">
+                        {formatRupiah(b.hargaPerSatuan)}
+                        <span className="text-slate-400 font-normal text-[9px] sm:text-[10px]"> /{b.satuan}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCariHargaPasarBox(b)}
+                        disabled={checkingPriceId === b.id}
+                        title="Cari harga pasaran untuk bahan ini"
+                        aria-label="Cari harga pasaran"
+                        className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[#8A5A00] text-[9px] sm:text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        {checkingPriceId === b.id ? (
+                          <>
+                            <Loader2 className="w-2.5 h-2.5 animate-spin text-[#8A5A00]" />
+                            <span className="hidden xs:inline">Cari...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Search className="w-2.5 h-2.5" />
+                            <span className="hidden xs:inline">Pasaran</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  {priceNotes[b.id] && (
+                    <div className="text-[9px] sm:text-[10px] text-slate-600 bg-[#F7F5F0] border border-[#EBE3D7] rounded-lg px-2 py-0.5 sm:py-1 font-medium">
+                      <span className="text-[#8A5A00] font-bold">Pasaran:</span> {priceNotes[b.id]}
+                    </div>
+                  )}
+                  <div className="flex items-baseline justify-between text-xs">
+                    <span className="text-[9px] sm:text-[10px] text-slate-400">Nilai Stok</span>
+                    <span className="font-bold text-slate-700 text-[10px] sm:text-[11px]">
+                      {formatRupiah(totalNilaiStok)}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
-                  <span>Min: {b.stokMinimum} {b.satuan}</span>
-                  <span>{st === 'habis' ? 'Segera Restock' : st === 'rendah' ? 'Perlu Restock' : 'Stok Cukup'}</span>
+                {/* Visual Stok & Progress Bar */}
+                <div className="mt-auto pt-1 sm:pt-2 space-y-1 sm:space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500">Stok</span>
+                    <span className="font-extrabold text-slate-900 text-xs">
+                      {b.stok} <span className="text-slate-500 font-medium text-[10px] sm:text-[11px]">{b.satuan}</span>
+                    </span>
+                  </div>
+
+                  <div className="h-1.5 sm:h-2 w-full rounded-full bg-[#F5EFE6] overflow-hidden p-0.5">
+                    <div
+                      className={clsx('h-full rounded-full transition-all duration-300', cfg.barColor)}
+                      style={{ width: `${Math.max(pct, b.stok > 0 ? 5 : 0)}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-slate-400 font-medium">
+                    <span>Min: {b.stokMinimum} {b.satuan}</span>
+                    <span>{st === 'habis' ? 'Restock Segera' : st === 'rendah' ? 'Perlu Restock' : 'Cukup'}</span>
+                  </div>
                 </div>
               </div>
             </div>

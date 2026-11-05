@@ -86,6 +86,7 @@ export default function CartPOS({
   const [cashInput, setCashInput] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerName, setCustomerName] = useState('')
+  const [cashierName, setCashierName] = useState('Kasir Dapur')
   const [tableNumber, setTableNumber] = useState('')
   const [notes, setNotes] = useState('')
   const [isPreOrder, setIsPreOrder] = useState(false)
@@ -105,6 +106,7 @@ export default function CartPOS({
     setCashInput('')
     setCustomerEmail('')
     setCustomerName('')
+    setCashierName('Kasir Dapur')
     setTableNumber('')
     setNotes('')
     setIsPreOrder(false)
@@ -183,6 +185,7 @@ export default function CartPOS({
         channel: 'Toko Langsung',
         customerName: customerName.trim() || undefined,
         customerEmail: customerEmail.trim() || undefined,
+        cashierName: cashierName.trim() || 'Kasir Dapur',
         tableNumber: tableNumber.trim() || undefined,
         paymentMethod: method === 'tunai' ? 'Tunai / Cash' : 'QRIS',
         cashReceived: method === 'tunai' ? cashReceived : undefined,
@@ -200,7 +203,7 @@ export default function CartPOS({
 
   const previewData: ReceiptData = {
     createdAt: new Date().toISOString(),
-    cashierName: 'Kasir Dapur',
+    cashierName: cashierName.trim() || 'Kasir Dapur',
     customerName: customerName.trim() || undefined,
     customerEmail: customerEmail.trim() || undefined,
     tableNumber: tableNumber.trim() || undefined,
@@ -679,7 +682,7 @@ export default function CartPOS({
                       placeholder="Masukkan email penerima struk (misal: pembeli@gmail.com)"
                       className={`${INPUT} bg-white border border-[#F2E3D0]`}
                     />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <input
                         type="text"
                         value={customerName}
@@ -689,9 +692,16 @@ export default function CartPOS({
                       />
                       <input
                         type="text"
+                        value={cashierName}
+                        onChange={e => setCashierName(e.target.value)}
+                        placeholder="Nama kasir (default: Kasir Dapur)"
+                        className={`${INPUT} bg-white border border-[#F2E3D0]`}
+                      />
+                      <input
+                        type="text"
                         value={tableNumber}
                         onChange={e => setTableNumber(e.target.value)}
-                        placeholder="Nomor Meja (opsional, cth: 05)"
+                        placeholder="Nomor Meja (opsional)"
                         className={`${INPUT} bg-white border border-[#F2E3D0]`}
                       />
                     </div>

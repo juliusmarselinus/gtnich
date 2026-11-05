@@ -44,7 +44,81 @@ export default function RiwayatPOTable({ poList }: RiwayatPOTableProps) {
 
   return (
     <div className="rounded-[30px] bg-[#FFFBF2] border border-[#EDE0C4] shadow-[0_4px_18px_rgba(140,100,30,0.07)] overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Mobile Card View (< sm) */}
+      <div className="sm:hidden divide-y divide-[#F0E0B8]/70">
+        {paginatedList.map(po => {
+          const exp = expandedId === po.id
+          const dateCreated = new Date(po.tanggalBuat)
+          const badgeClass = statusCls[po.status.toLowerCase()] || 'bg-[#F5EDD8] text-[#5A3A00]'
+          return (
+            <div key={`m-po-${po.id}`} className="p-4 space-y-3 bg-[#FFFBF2]">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="font-mono font-black text-[#2B1D00] text-sm block">
+                    {po.noPO}
+                  </span>
+                  <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[#5A3A00]">
+                    <Truck className="w-3 h-3 text-[#9A7A55]" />
+                    <span className="font-bold">{po.namaSupplier}</span>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <span className="font-mono font-black text-[#2B1D00] text-sm block">
+                    {formatRupiah(po.totalAktual || po.totalEstimasi)}
+                  </span>
+                  <span
+                    className={clsx(
+                      'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase',
+                      badgeClass
+                    )}
+                  >
+                    {po.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-[#9A7A55] pt-1 border-t border-[#F5EEDB]">
+                <span>
+                  {dateCreated.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}, {dateCreated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(exp ? null : po.id)}
+                  className="p-1 rounded-lg bg-[#F5EDD8] border border-[#E8D4A0] text-[#5A3A00]"
+                >
+                  {exp ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+
+              {exp && (
+                <div className="mt-2 p-3 rounded-2xl bg-[#FFF6E0] space-y-2 border border-[#F0D898]/70 text-xs">
+                  <div className="flex items-center justify-between text-[10px] text-[#8A5A00] font-bold">
+                    <span>Pasokan Bahan ({po.items.length})</span>
+                    {po.tanggalTerima && (
+                      <span>Diterima: {new Date(po.tanggalTerima).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    {po.items.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center bg-[#FFFBF2] p-2 rounded-xl text-xs">
+                        <span className="font-medium text-[#2B1D00] truncate max-w-[170px]">
+                          {item.namaBahan} ({item.qty} {item.satuan})
+                        </span>
+                        <span className="font-mono font-bold text-[#FF8F28]">
+                          {formatRupiah(item.qty * (item.hargaAktual || item.hargaEstimasi))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop Table View (>= sm) */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-xs min-w-[760px]">
           <thead>
             <tr className="border-b border-[#EDD9B0] bg-[#FFF6E0] whitespace-nowrap">

@@ -205,11 +205,11 @@ export default function PenjualanPage() {
         )}
 
         {/* Tab switcher */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center justify-between gap-3 overflow-x-auto pb-1 scrollbar-none flex-nowrap">
+          <div className="flex items-center gap-2 flex-nowrap flex-shrink-0">
             {[
-              { key: 'katalog', label: 'Kasir & Katalog Menu', icon: ShoppingBag },
-              { key: 'riwayat', label: `Riwayat Transaksi (${recentOrders.length})`, icon: History },
+              { key: 'katalog', label: 'Kasir & Katalog', icon: ShoppingBag },
+              { key: 'riwayat', label: `Riwayat (${recentOrders.length})`, icon: History },
             ].map(t => {
               const Icon = t.icon
               const active = activeTab === t.key
@@ -219,7 +219,7 @@ export default function PenjualanPage() {
                   type="button"
                   onClick={() => setActiveTab(t.key as 'katalog' | 'riwayat')}
                   className={clsx(
-                    'px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer active:scale-95',
+                    'px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer active:scale-95 whitespace-nowrap flex-shrink-0',
                     active
                       ? 'bg-[#FFB800] text-[#2B1D00] shadow-sm'
                       : 'bg-white text-slate-600 hover:bg-[#FFF6D6] hover:text-slate-900'
@@ -232,22 +232,14 @@ export default function PenjualanPage() {
             })}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-nowrap flex-shrink-0">
             <Link
               href="/dashboard/menu"
-              className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-slate-700 hover:bg-[#FFF6D6] flex items-center gap-1.5 transition-all duration-150 active:scale-95 shadow-2xs"
+              className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-slate-700 hover:bg-[#FFF6D6] flex items-center gap-1.5 transition-all duration-150 active:scale-95 shadow-2xs whitespace-nowrap flex-shrink-0"
               title="Buka daftar katalog menu lengkap dan resep"
             >
               <UtensilsCrossed className="w-3.5 h-3.5 text-slate-500" />
-              <span className="hidden sm:inline">Kelola Menu ({rawMenuCount})</span>
-            </Link>
-            <Link
-              href="/dashboard/menu?tambah=1"
-              className="px-5 py-2.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 transition-all duration-150 shadow-sm hover:shadow-md"
-              title="Buka formulir tambah menu baru"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Menu</span>
+              <span>Kelola Menu ({rawMenuCount})</span>
             </Link>
           </div>
         </div>

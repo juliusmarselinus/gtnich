@@ -75,51 +75,62 @@ export default function Topbar({ title, subtitle, actions }: TopbarProps) {
   }
 
   const roundBtn =
-    'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white text-kopi transition-colors hover:bg-kuning-muda cursor-pointer'
+    'flex h-9 w-9 sm:h-11 sm:w-11 flex-shrink-0 items-center justify-center rounded-full bg-white text-kopi transition-colors hover:bg-kuning-muda cursor-pointer'
 
   return (
-    <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 bg-krim/90 px-4 py-3 backdrop-blur-md sm:px-6 md:px-8">
-      {/* Mobile: buka drawer */}
-      <button type="button" onClick={toggleSidebar} aria-label="Buka menu navigasi" className={clsx(roundBtn, 'lg:hidden')}>
-        <Menu className="h-5 w-5" />
-      </button>
-      {/* Desktop: ciutkan / buka sidebar */}
-      <button
-        type="button"
-        onClick={toggleCollapsed}
-        aria-label={isCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
-        aria-expanded={!isCollapsed}
-        className={clsx(roundBtn, 'hidden lg:flex')}
-      >
-        {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-      </button>
-
-      <div className="min-w-0 flex-1 basis-56">
-        <h1 className="truncate text-xl font-extrabold tracking-tight text-kopi sm:text-[26px]">{title}</h1>
-        {subtitle && <p className="mt-0.5 line-clamp-1 text-[13px] text-kopi-muted sm:text-sm">{subtitle}</p>}
-      </div>
-
-      {actions}
-
-      {/* Notifikasi */}
-      <div className="relative" ref={dropdownRef}>
+    <header className="sticky top-0 z-40 flex items-center justify-between gap-2 sm:gap-3 bg-krim/95 px-3 py-2.5 sm:px-6 md:px-8 sm:py-3 backdrop-blur-md border-b border-[#F0E6D8]/60 shadow-[0_1px_3px_rgba(43,34,28,0.04)]">
+      {/* Kiri: Hamburger Menu + Judul */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+        {/* Mobile: buka drawer */}
+        <button type="button" onClick={toggleSidebar} aria-label="Buka menu navigasi" className={clsx(roundBtn, 'lg:hidden')}>
+          <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+        </button>
+        {/* Desktop: ciutkan / buka sidebar */}
         <button
           type="button"
-          onClick={() => setShowNotifications(!showNotifications)}
-          aria-label={`Notifikasi, ${unreadCount} baru`}
-          aria-expanded={showNotifications}
-          className={clsx(roundBtn, 'relative')}
+          onClick={toggleCollapsed}
+          aria-label={isCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+          aria-expanded={!isCollapsed}
+          className={clsx(roundBtn, 'hidden lg:flex')}
         >
-          <Bell className="h-[18px] w-[18px]" />
-          {unreadCount > 0 && (
-            <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-koral px-1 text-[9px] font-black text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
+          {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
         </button>
 
-        {showNotifications && (
-          <div className="absolute right-0 z-50 mt-3 flex max-h-[85vh] w-[22rem] max-w-[90vw] flex-col rounded-[24px] bg-white p-4 shadow-kartu ring-1 ring-krim-garis">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-base sm:text-xl md:text-[24px] font-extrabold tracking-tight text-kopi leading-tight">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="hidden xs:block truncate mt-0.5 text-[11px] sm:text-[13px] text-kopi-muted">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Kanan: Actions + Notifikasi */}
+      <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+        {actions}
+
+        {/* Notifikasi */}
+        <div className="relative flex-shrink-0" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setShowNotifications(!showNotifications)}
+            aria-label={`Notifikasi, ${unreadCount} baru`}
+            aria-expanded={showNotifications}
+            className={clsx(roundBtn, 'relative')}
+          >
+            <Bell className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+            {unreadCount > 0 && (
+              <span className="absolute right-0.5 top-0.5 sm:right-1 sm:top-1 flex h-4 min-w-4 sm:h-[18px] sm:min-w-[18px] items-center justify-center rounded-full border border-white sm:border-2 bg-koral px-0.5 sm:px-1 text-[8px] sm:text-[9px] font-black text-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {showNotifications && (
+            <div className="absolute right-0 z-50 mt-3 flex max-h-[85vh] w-[22rem] max-w-[90vw] flex-col rounded-[24px] bg-white p-4 shadow-kartu ring-1 ring-krim-garis">
             <div className="mb-2.5 flex flex-shrink-0 items-center justify-between border-b border-krim-garis pb-2.5">
               <span className="flex items-center gap-1.5 text-sm font-extrabold text-kopi">
                 <Bell className="h-4 w-4 text-kuning-teks" />
@@ -253,6 +264,7 @@ export default function Topbar({ title, subtitle, actions }: TopbarProps) {
             </div>
           </div>
         )}
+        </div>
       </div>
     </header>
   )
