@@ -168,8 +168,8 @@ export default function MenuPage() {
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Menu & Resep Masakan"
-        subtitle="Kelola hidangan, komposisi takaran bahan baku resep, estimasi HPP riil, dan margin laba real-time"
+        title="Menu & Resep Dapur"
+        subtitle="Atur takaran resep, hitung modal per porsi (HPP), dan tentukan harga jual menu"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">

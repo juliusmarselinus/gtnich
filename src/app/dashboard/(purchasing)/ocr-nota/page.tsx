@@ -95,8 +95,8 @@ export default function OCRNotaPage() {
   return (
     <div className="flex-1 pb-24 lg:pb-16">
       <Topbar
-        title="Pemindai Struk & Nota Pembelian"
-        subtitle="Foto atau unggah nota belanja supplier untuk membaca rincian bahan secara otomatis"
+        title="Foto Struk / Nota Belanja"
+        subtitle="Foto nota belanjaan dari pasar atau toko grosir untuk dicatat otomatis ke stok bahan"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto">

@@ -171,8 +171,8 @@ export default function BahanPage() {
   return (
     <div className="flex-1 pb-24 lg:pb-16">
       <Topbar
-        title="Data Bahan Baku"
-        subtitle="Kelola persediaan bahan, satuan, harga beli, dan batas aman stok dapur secara real-time"
+        title="Daftar Bahan Baku"
+        subtitle="Kelola sisa stok bahan, satuan takaran, harga beli, dan batas aman belanja"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">

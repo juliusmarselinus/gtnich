@@ -106,8 +106,8 @@ export default function PenjualanPage() {
   return (
     <div className="flex-1 pb-24 lg:pb-16">
       <Topbar
-        title="Input Penjualan (Kasir Dapur)"
-        subtitle="Pilih menu pesanan pembeli, hitung keuntungan instan, dan potong stok bahan baku otomatis"
+        title="Kasir Penjualan"
+        subtitle="Catat pesanan pembeli, hitung untung seketika, dan stok bahan otomatis berkurang"
       />
 
       <main className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6">

@@ -74,8 +74,8 @@ export default function LaporanPage() {
   return (
     <div className="flex-1 pb-24 lg:pb-16">
       <Topbar
-        title="Laporan & Statistik Keuangan"
-        subtitle="Analisis real-time omzet, estimasi profit bersih, margin laba, dan efisiensi konsumsi bahan baku"
+        title="Laporan Penjualan & Keuangan"
+        subtitle="Ringkasan pemasukan omzet, perkiraan untung bersih, dan pengeluaran bahan dapur"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-7xl mx-auto">

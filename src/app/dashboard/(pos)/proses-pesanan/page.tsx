@@ -95,8 +95,8 @@ export default function ProsesPesananPage() {
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Proses Pesanan & Pre-Order"
-        subtitle="Kelola pesanan masuk, pantau ketersediaan bahan baku dapur, dan proses pesanan pre-order secara berurutan"
+        title="Antrean Pesanan & Pre-Order"
+        subtitle="Pantau pesanan yang harus dimasak dan siapkan pesanan pre-order tepat waktu"
         actions={
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <button

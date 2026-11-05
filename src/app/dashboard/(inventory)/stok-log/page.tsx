@@ -119,8 +119,8 @@ export default function StokLogPage() {
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Stok Log & Stock Opname"
-        subtitle="Audit jejak mutasi bahan otomatis (PO, Penjualan, Manual) dan rekonsiliasi perhitungan fisik gudang dapur"
+        title="Riwayat Stok & Cek Fisik"
+        subtitle="Lihat catatan keluar-masuk bahan dan cocokkan jumlah fisik di dapur dengan aplikasi"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">

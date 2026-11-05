@@ -42,10 +42,10 @@ export const navSections: NavSection[] = [
     label: 'Operasional',
     icon: ShoppingCart,
     items: [
-      { href: '/dashboard/penjualan', label: 'Input Penjualan', desc: 'Kasir POS cepat & auto potong stok', icon: ShoppingCart },
-      { href: '/dashboard/proses-pesanan', label: 'Proses Pesanan', desc: 'Kelola pre-order & antrean dapur', icon: CookingPot },
-      { href: '/dashboard/purchase-order', label: 'Pembelian Stok', desc: 'Pemesanan bahan & verifikasi barang', icon: ClipboardList },
-      { href: '/dashboard/tagihan', label: 'Tagihan Supplier', desc: 'Monitoring invoice tempo & pembayaran', icon: Receipt },
+      { href: '/dashboard/penjualan', label: 'Kasir Penjualan', desc: 'Catat pesanan & potong stok otomatis', icon: ShoppingCart },
+      { href: '/dashboard/proses-pesanan', label: 'Proses Pesanan', desc: 'Antrean pesanan & pre-order dapur', icon: CookingPot },
+      { href: '/dashboard/purchase-order', label: 'Belanja Stok', desc: 'Pesan bahan & cek belanjaan datang', icon: ClipboardList },
+      { href: '/dashboard/tagihan', label: 'Tagihan Supplier', desc: 'Catatan nota tempo & jatuh tempo', icon: Receipt },
     ],
   },
   {
@@ -53,11 +53,11 @@ export const navSections: NavSection[] = [
     label: 'Inventaris',
     icon: Package,
     items: [
-      { href: '/dashboard/bahan', label: 'Data Bahan', desc: 'Katalog bahan, satuan & harga pokok', icon: Package },
-      { href: '/dashboard/menu', label: 'Menu & Resep', desc: 'Kalkulasi HPP & harga jual', icon: ChefHat },
-      { href: '/dashboard/suppliers', label: 'Supplier', desc: 'Vendor rekanan, histori & min order', icon: Truck },
-      { href: '/dashboard/kondisi-bahan', label: 'Kondisi Bahan', desc: 'Visual meter stok aman vs kritis', icon: Gauge },
-      { href: '/dashboard/stok-log', label: 'Stok Log & Opname', desc: 'Log mutasi & rekonsiliasi fisik', icon: Database },
+      { href: '/dashboard/bahan', label: 'Daftar Bahan', desc: 'Stok bahan baku & harga beli', icon: Package },
+      { href: '/dashboard/menu', label: 'Menu & Resep', desc: 'Takaran resep, modal porsi & harga jual', icon: ChefHat },
+      { href: '/dashboard/suppliers', label: 'Supplier & Toko', desc: 'Langganan pasar, kontak & minimal order', icon: Truck },
+      { href: '/dashboard/kondisi-bahan', label: 'Kondisi Bahan', desc: 'Pantau stok menipis & bahan basi', icon: Gauge },
+      { href: '/dashboard/stok-log', label: 'Riwayat & Cek Stok', desc: 'Keluar-masuk bahan & cocokkan fisik', icon: Database },
     ],
   },
   {
@@ -65,10 +65,10 @@ export const navSections: NavSection[] = [
     label: 'Analitik & Laporan',
     icon: BarChart3,
     items: [
-      { href: '/dashboard/laporan', label: 'Laporan Keuangan', desc: 'Omzet, margin laba & konsumsi bahan', icon: BarChart3 },
-      { href: '/dashboard/riwayat', label: 'Riwayat Transaksi', desc: 'Arsip transaksi kasir & PO', icon: History },
-      { href: '/dashboard/simulasi', label: 'Simulasi Bisnis', desc: 'Proyeksi profit & harga bahan', icon: TwinIcon },
-      { href: '/dashboard/rekomendasi', label: 'Rekomendasi AI', desc: 'Saran restock & efisiensi', icon: Lightbulb },
+      { href: '/dashboard/laporan', label: 'Laporan Keuangan', desc: 'Pemasukan omzet, untung & biaya bahan', icon: BarChart3 },
+      { href: '/dashboard/riwayat', label: 'Riwayat Transaksi', desc: 'Arsip nota kasir & riwayat belanja', icon: History },
+      { href: '/dashboard/simulasi', label: 'Simulasi Bisnis', desc: 'Hitung potensi omzet & harga bahan naik', icon: TwinIcon },
+      { href: '/dashboard/rekomendasi', label: 'Saran Dapur AI', desc: 'Tips belanja hemat & menu terlaris', icon: Lightbulb },
     ],
   },
   {
@@ -76,7 +76,7 @@ export const navSections: NavSection[] = [
     label: 'Tools & Utilitas',
     icon: Wrench,
     items: [
-      { href: '/dashboard/ocr-nota', label: 'OCR Nota', desc: 'Scan foto nota belanja jadi data', icon: ScanLine },
+      { href: '/dashboard/ocr-nota', label: 'Foto Nota Belanja', desc: 'Foto nota pasar langsung jadi data bahan', icon: ScanLine },
     ],
   },
 ]
@@ -84,7 +84,7 @@ export const navSections: NavSection[] = [
 export const settingsItem: NavItem = {
   href: '/dashboard/pengaturan',
   label: 'Pengaturan',
-  desc: 'Identitas dapur, kanal & profil usaha',
+  desc: 'Nama usaha, alamat, struk & profil akun',
   icon: Settings,
 }
 

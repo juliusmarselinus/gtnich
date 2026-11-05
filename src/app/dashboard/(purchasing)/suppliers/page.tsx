@@ -123,19 +123,19 @@ export default function SuppliersPage() {
     mood: (totalCount > 0 ? 'senang' : 'khawatir') as 'senang' | 'khawatir',
     title:
       totalCount > 0
-        ? `${totalCount} Mitra Distributor Terhubung`
-        : 'Belum Ada Mitra Distributor',
+        ? `${totalCount} Toko Langganan & Supplier Terdaftar`
+        : 'Belum Ada Supplier Terdaftar',
     subtitle:
       totalCount > 0
-        ? `Jaringan rantai pasok dapur terpusat. Tersebar dalam ${totalCategories} kategori pengadaan bahan baku.`
-        : 'Mulai daftarkan rekanan supplier dan pedagang pasar agar pencatatan Purchase Order lebih tertib.',
+        ? `Daftar toko langganan belanja bahan baku dapur Anda, terbagi dalam ${totalCategories} kategori.`
+        : 'Mulai daftarkan toko langganan atau pedagang pasar agar belanja bahan dapur lebih mudah dan cepat.',
   }
 
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Manajemen Supplier"
-        subtitle="Kelola kemitraan distributor, kategori pasokan terpusat, dan riwayat pasokan bahan baku secara langsung di PostgreSQL Supabase"
+        title="Daftar Supplier & Toko Pasar"
+        subtitle="Simpan nomor kontak toko langganan, jadwal belanja, dan riwayat pesanan bahan"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">

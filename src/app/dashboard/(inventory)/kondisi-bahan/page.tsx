@@ -99,8 +99,8 @@ export default function KondisiBahanPage() {
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Kondisi Bahan & Inventory"
-        subtitle="Analisis masa simpan (shelf-life), prediksi tanggal kedaluwarsa AI sejak barang masuk, dan monitoring level stok gudang"
+        title="Kondisi & Kesegaran Bahan"
+        subtitle="Pantau bahan yang menipis atau mendekati tanggal kedaluwarsa sebelum rusak"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">

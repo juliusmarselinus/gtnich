@@ -102,8 +102,8 @@ export default function RekomendasiPage() {
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Rekomendasi Pintar Dapur"
-        subtitle="Insight dan anjuran prediktif berbasis data riil stok gudang, tren penjualan kasir, dan kalkulasi profitabilitas"
+        title="Saran & Rekomendasi Dapur"
+        subtitle="Masukan pintar untuk belanja hemat, menu paling laku, dan tips efisiensi dapur"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">

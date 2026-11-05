@@ -88,8 +88,8 @@ export default function SimulasiPage() {
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Simulasi Dapur & Bisnis"
-        subtitle="Eksplorasi proyeksi keuntungan penjualan, perubahan harga bahan baku distributor, dan kecukupan supply berbasis database"
+        title="Simulasi Dapur & Untung"
+        subtitle="Uji perkiraan untung jika target porsi dinaikkan atau jika harga bahan di pasar berubah"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">

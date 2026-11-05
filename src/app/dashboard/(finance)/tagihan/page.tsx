@@ -91,8 +91,8 @@ export default function TagihanPage() {
   return (
     <div className="flex-1 pb-24 lg:pb-16">
       <Topbar
-        title="Tagihan Pembelian (Invoices)"
-        subtitle="Kelola rincian kewajiban pembayaran faktur barang masuk dari distributor/supplier"
+        title="Tagihan Belanja Supplier"
+        subtitle="Pantau nota belanja tempo yang belum lunas agar pembayaran supplier tetap tertib"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">

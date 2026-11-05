@@ -160,8 +160,8 @@ export default function PurchaseOrderPage() {
   return (
     <div className="flex-1 pb-16">
       <Topbar
-        title="Pembelian Stok (PO)"
-        subtitle="Kelola pesanan stok: rancang pembelian, catat supplier/pasar, verifikasi penerimaan barang (+auto stok), dan monitor tagihan"
+        title="Belanja Stok Bahan (PO)"
+        subtitle="Rencana belanja bahan ke pasar atau supplier, cek barang saat datang, dan catat nota tagihan"
       />
 
       <main className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 max-w-6xl mx-auto">
