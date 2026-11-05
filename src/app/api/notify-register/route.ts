@@ -9,23 +9,24 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized: Pendaftaran belum terverifikasi' },
+        { success: false, error: 'Unauthorized: Sesi pengguna tidak valid' },
         { status: 401 }
       )
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
     const { userName, storeName, registrationMethod } = body
-    const email = user.email
 
+    // Gunakan email terotentikasi langsung dari user session
+    const email = user.email
     if (!email) {
-      return NextResponse.json({ success: false, error: 'Email akun tidak ditemukan' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Email pengguna tidak ditemukan' }, { status: 400 })
     }
 
     const result = await sendWelcomeRegistrationEmail({
       email,
       userName: userName || user.user_metadata?.full_name || email.split('@')[0],
-      storeName: storeName || user.user_metadata?.store_name || 'Dapur Anda',
+      storeName: storeName || user.user_metadata?.store_name || 'Dapur Saya',
       registrationMethod: registrationMethod || 'Email & Kata Sandi',
     })
 

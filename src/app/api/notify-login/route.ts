@@ -9,17 +9,18 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized: Harap login terlebih dahulu' },
+        { success: false, error: 'Unauthorized: Sesi pengguna tidak valid' },
         { status: 401 }
       )
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
     const { userName, loginMethod } = body
-    const email = user.email
 
+    // Gunakan email terverifikasi dari session Supabase untuk keamanan
+    const email = user.email
     if (!email) {
-      return NextResponse.json({ success: false, error: 'Email akun tidak ditemukan' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Email pengguna tidak ditemukan' }, { status: 400 })
     }
 
     // Ambil IP address dari request headers jika tersedia
