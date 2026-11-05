@@ -116,7 +116,7 @@ export default function LaporanPage() {
 
             {/* Quick Hero Metrics */}
             {data && (
-              <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-bold text-[#2B1D00]">
+              <div data-tour="laporan-summary" className="mt-5 flex flex-wrap items-center gap-3 text-xs font-bold text-[#2B1D00]">
                 <div className="px-3 py-1.5 rounded-xl bg-white/35 backdrop-blur-xs">
                   <span>Omzet: </span>
                   <span className="font-black">{formatRupiah(data.summary.totalRevenue)}</span>

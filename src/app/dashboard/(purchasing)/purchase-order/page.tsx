@@ -256,7 +256,7 @@ export default function PurchaseOrderPage() {
         </section>
 
         {/* Status Flow Stats Card */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div data-tour="po-status-cards" className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {STATUS_CARDS.map(st => {
             const active = statusFilter === st.key
             const count = counts[st.key as keyof typeof counts]

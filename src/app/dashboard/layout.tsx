@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import { SidebarProvider } from '@/context/SidebarContext'
+import { TourProvider } from '@/context/TourContext'
 import { createClient } from '@/lib/supabase/client'
 import DapiHead from '@/components/ui/DapiHead'
 import ProfileSetupModal from '@/components/ProfileSetupModal'
+import TourContainer from '@/components/TourContainer'
 
 export default function DashboardLayout({
   children,
@@ -165,24 +167,27 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-krim text-kopi selection:bg-kuning/40 lg:p-4">
-        <Sidebar />
-        <div className="relative flex min-w-0 flex-1 flex-col overflow-y-auto">{children}</div>
-      </div>
-      {needsProfileSetup && currentUserId && (
-        <ProfileSetupModal
-          userId={currentUserId}
-          initialName={existingProfileData.fullName}
-          initialStore={existingProfileData.storeName}
-          initialBusinessType={existingProfileData.businessType}
-          initialSalesChannels={existingProfileData.salesChannels}
-          initialStockoutFrequency={existingProfileData.stockoutFrequency}
-          onCompleted={() => {
-            setNeedsProfileSetup(false)
-            router.refresh()
-          }}
-        />
-      )}
+      <TourProvider>
+        <div className="flex h-screen bg-krim text-kopi selection:bg-kuning/40 lg:p-4">
+          <Sidebar />
+          <div className="relative flex min-w-0 flex-1 flex-col overflow-y-auto">{children}</div>
+        </div>
+        <TourContainer />
+        {needsProfileSetup && currentUserId && (
+          <ProfileSetupModal
+            userId={currentUserId}
+            initialName={existingProfileData.fullName}
+            initialStore={existingProfileData.storeName}
+            initialBusinessType={existingProfileData.businessType}
+            initialSalesChannels={existingProfileData.salesChannels}
+            initialStockoutFrequency={existingProfileData.stockoutFrequency}
+            onCompleted={() => {
+              setNeedsProfileSetup(false)
+              router.refresh()
+            }}
+          />
+        )}
+      </TourProvider>
     </SidebarProvider>
   )
 }

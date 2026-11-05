@@ -13,10 +13,13 @@ import {
   Loader2,
   PanelLeftClose,
   PanelLeftOpen,
+  HelpCircle,
 } from 'lucide-react'
 import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useSidebar } from '@/context/SidebarContext'
+import { useTour, PAGE_GUIDES } from '@/context/TourContext'
+import { usePathname } from 'next/navigation'
 import { formatRupiah } from '@/lib/mock-data'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -29,11 +32,16 @@ interface TopbarProps {
 }
 
 export default function Topbar({ title, subtitle, actions }: TopbarProps) {
+  const pathname = usePathname()
   const [showNotifications, setShowNotifications] = useState(false)
   const [updatingPriceId, setUpdatingPriceId] = useState<string | null>(null)
   const { notifications, unreadCount, markAllRead, dismissNotification, clearAll, applyPriceUpdate } = useNotifications()
   const { toggleSidebar, isCollapsed, toggleCollapsed } = useSidebar()
+  const { openTour } = useTour()
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Cek apakah halaman ini memiliki panduan khusus
+  const hasPageGuide = Boolean(PAGE_GUIDES[pathname] && PAGE_GUIDES[pathname].length > 0)
 
   const handleApplyPrice = async (notifId: string, bahanId: string, newPrice: number) => {
     try {
@@ -108,9 +116,23 @@ export default function Topbar({ title, subtitle, actions }: TopbarProps) {
         </div>
       </div>
 
-      {/* Kanan: Actions + Notifikasi */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+      {/* Kanan: Actions + Bantuan + Notifikasi */}
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
         {actions}
+
+        {/* Tombol Panduan / Bantuan Cepat (Dinamis: Spesifik Halaman atau Tur Global) */}
+        <button
+          type="button"
+          onClick={() => openTour(hasPageGuide)}
+          title={hasPageGuide ? 'Panduan Penggunaan Halaman Ini' : 'Buka Panduan Fitur Dapi'}
+          aria-label="Panduan Fitur Dapur"
+          className={clsx(roundBtn, 'hover:text-[#FF8F28] relative')}
+        >
+          <HelpCircle className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+          {hasPageGuide && (
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#FF8F28] rounded-full ring-2 ring-white" />
+          )}
+        </button>
 
         {/* Notifikasi */}
         <div className="relative flex-shrink-0" ref={dropdownRef}>

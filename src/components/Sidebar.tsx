@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { ChevronDown, LayoutDashboard, LogOut, Settings, X } from 'lucide-react'
+import { ChevronDown, LayoutDashboard, LogOut, Settings, X, HelpCircle } from 'lucide-react'
 import clsx from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useSidebar } from '@/context/SidebarContext'
+import { useTour } from '@/context/TourContext'
 import { navSections } from '@/lib/navigation'
 import DapiHead from './ui/DapiHead'
 import DapurTwinLogo from './ui/DapurTwinLogo'
@@ -17,12 +18,21 @@ export default function Sidebar() {
   const router = useRouter()
   const supabase = createClient()
   const { isOpen, closeSidebar, isCollapsed, toggleCollapsed } = useSidebar()
+  const { openTour, activeSectionNeeded, isTourOpen } = useTour()
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const [user, setUser] = useState<{ email?: string } | null>(null)
   const [storeName, setStoreName] = useState<string | null>(null)
   const [activeSectionId, setActiveSectionId] = useState<string | null>('operasional')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+
+  // Jika tur butuh modul tertentu terbuka, otomatis buka accordion-nya
+  useEffect(() => {
+    if (isTourOpen && activeSectionNeeded) {
+      if (isCollapsed) toggleCollapsed()
+      setActiveSectionId(activeSectionNeeded)
+    }
+  }, [isTourOpen, activeSectionNeeded, isCollapsed, toggleCollapsed])
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -147,6 +157,7 @@ export default function Sidebar() {
           <Link
             href="/dashboard"
             onClick={onNavigate}
+            data-tour="tour-overview"
             aria-current={isOverviewActive ? 'page' : undefined}
             title={collapsed ? 'Overview' : undefined}
             className={clsx(rowClass(isOverviewActive), 'flex-shrink-0')}
@@ -220,10 +231,42 @@ export default function Sidebar() {
                     <div className="ml-5 space-y-0.5 border-l-2 border-krim-garis/90 pl-2.5 pr-1">
                       {section.items.map(({ href, label }) => {
                         const active = isItemActive(href)
+                        const tourKey =
+                          href === '/dashboard/penjualan'
+                            ? 'tour-penjualan'
+                            : href === '/dashboard/proses-pesanan'
+                            ? 'tour-proses-pesanan'
+                            : href === '/dashboard/purchase-order'
+                            ? 'tour-purchase-order'
+                            : href === '/dashboard/tagihan'
+                            ? 'tour-tagihan'
+                            : href === '/dashboard/bahan'
+                            ? 'tour-bahan'
+                            : href === '/dashboard/menu'
+                            ? 'tour-menu'
+                            : href === '/dashboard/suppliers'
+                            ? 'tour-suppliers'
+                            : href === '/dashboard/kondisi-bahan'
+                            ? 'tour-kondisi-bahan'
+                            : href === '/dashboard/stok-log'
+                            ? 'tour-stok-log'
+                            : href === '/dashboard/laporan'
+                            ? 'tour-laporan'
+                            : href === '/dashboard/riwayat'
+                            ? 'tour-riwayat'
+                            : href === '/dashboard/simulasi'
+                            ? 'tour-simulasi'
+                            : href === '/dashboard/rekomendasi'
+                            ? 'tour-rekomendasi'
+                            : href === '/dashboard/ocr-nota'
+                            ? 'tour-ocr-nota'
+                            : undefined
+
                         return (
                           <Link
                             key={href}
                             href={href}
+                            data-tour={tourKey}
                             onClick={onNavigate}
                             tabIndex={expanded ? 0 : -1}
                             aria-current={active ? 'page' : undefined}
@@ -243,24 +286,44 @@ export default function Sidebar() {
                 </div>
               )
             })}
+
+            {/* Menu Pengaturan & Panduan Fitur: Tergabung di nav bar yang sama, bukan di dalam dropdown */}
+            <div className="pt-2 mt-1 border-t border-krim-garis/80 space-y-1">
+              {/* Link Pengaturan Usaha */}
+              <Link
+                href="/dashboard/pengaturan"
+                data-tour="tour-pengaturan"
+                onClick={onNavigate}
+                title={collapsed ? 'Pengaturan' : undefined}
+                className={clsx(rowClass(pathname === '/dashboard/pengaturan'), 'flex-shrink-0')}
+              >
+                <span className={iconClass(pathname === '/dashboard/pengaturan')}>
+                  <Settings className="h-4 w-4" />
+                </span>
+                <span className={clsx('truncate', hideWhenCollapsed)}>Pengaturan</span>
+              </Link>
+
+              {/* Tombol Panduan Fitur */}
+              <button
+                type="button"
+                onClick={() => {
+                  openTour()
+                  onNavigate()
+                }}
+                title={collapsed ? 'Panduan Fitur Dapi' : undefined}
+                className={clsx(rowClass(false), 'flex-shrink-0 text-left cursor-pointer w-full')}
+              >
+                <span className={iconClass(false)}>
+                  <HelpCircle className="h-4 w-4" />
+                </span>
+                <span className={clsx('truncate', hideWhenCollapsed)}>Panduan Fitur</span>
+              </button>
+            </div>
           </nav>
         </div>
 
-        {/* Bagian Bawah: Pengaturan & Profil Pengguna */}
-        <div className="flex flex-col gap-2 flex-shrink-0 pt-1.5 border-t border-krim-garis/80">
-          {/* Link Halaman Pengaturan Sistem */}
-          <Link
-            href="/dashboard/pengaturan"
-            onClick={onNavigate}
-            title={collapsed ? 'Pengaturan' : undefined}
-            className={clsx(rowClass(pathname === '/dashboard/pengaturan'), 'flex-shrink-0')}
-          >
-            <span className={iconClass(pathname === '/dashboard/pengaturan')}>
-              <Settings className="h-4 w-4" />
-            </span>
-            <span className={clsx('truncate', hideWhenCollapsed)}>Pengaturan</span>
-          </Link>
-
+        {/* Bagian Bawah: Hanya Profil Pengguna */}
+        <div className="flex flex-col gap-1.5 flex-shrink-0 pt-2 border-t border-krim-garis/80">
           {/* Profil Pengguna */}
           <div
             className={clsx(
