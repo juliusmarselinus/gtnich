@@ -290,19 +290,25 @@ export default function Sidebar() {
 
             {/* Menu Pengaturan & Panduan Fitur: Tergabung di nav bar yang sama, bukan di dalam dropdown */}
             <div className="pt-2 mt-1 border-t border-krim-garis/80 space-y-1">
-              {/* Link Pengaturan Usaha */}
-              <Link
-                href="/dashboard/pengaturan"
+              {/* Tombol Pengaturan Usaha (Modal) */}
+              <button
+                type="button"
                 data-tour="tour-pengaturan"
-                onClick={onNavigate}
+                onClick={() => {
+                  setIsSettingsOpen(true)
+                  onNavigate()
+                }}
                 title={collapsed ? 'Pengaturan' : undefined}
-                className={clsx(rowClass(pathname === '/dashboard/pengaturan'), 'flex-shrink-0')}
+                className={clsx(
+                  rowClass(isSettingsOpen),
+                  'flex-shrink-0 cursor-pointer w-full text-left'
+                )}
               >
-                <span className={iconClass(pathname === '/dashboard/pengaturan')}>
+                <span className={iconClass(isSettingsOpen)}>
                   <Settings className="h-4 w-4" />
                 </span>
                 <span className={clsx('truncate', hideWhenCollapsed)}>Pengaturan</span>
-              </Link>
+              </button>
 
               {/* Tombol Panduan Fitur */}
               <button

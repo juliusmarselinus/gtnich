@@ -66,8 +66,16 @@ export default function POWizardModal({
       if (initialCatatan !== undefined) setCatatan(initialCatatan)
       if (initialItems !== undefined) setItems(initialItems)
       if (initialStep !== undefined) setStep(initialStep)
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose()
+        }
+      }
+      window.addEventListener('keydown', handleKeyDown)
+      return () => window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, initialSupplierId, initialCatatan, initialItems, initialStep])
+  }, [isOpen, initialSupplierId, initialCatatan, initialItems, initialStep, onClose])
   const [newItem, setNewItem] = useState({
     bahanId: '',
     qty: 0,
@@ -194,25 +202,37 @@ export default function POWizardModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="clay-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-5">
-        {/* Step Indicator */}
-        <div className="flex items-center gap-2">
-          {['Pilih Supplier', 'Tambah Item', 'Konfirmasi'].map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div
-                className={clsx(
-                  'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold clay-pill',
-                  step >= i + 1 ? 'bg-[#FF8F2B] text-white' : 'bg-slate-100 text-slate-400'
-                )}
-              >
-                {i + 1}
+      <div className="clay-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-5 relative">
+        {/* Header: Step Indicator & Tombol Silang (X) di Atas */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {['Pilih Supplier', 'Tambah Item', 'Konfirmasi'].map((s, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div
+                  className={clsx(
+                    'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold clay-pill shrink-0',
+                    step >= i + 1 ? 'bg-[#FF8F2B] text-white' : 'bg-slate-100 text-slate-400'
+                  )}
+                >
+                  {i + 1}
+                </div>
+                <span className={clsx('text-xs font-bold truncate', step === i + 1 ? 'text-slate-800' : 'text-slate-400')}>
+                  {s}
+                </span>
+                {i < 2 && <div className="flex-1 h-px bg-slate-200 mx-1" />}
               </div>
-              <span className={clsx('text-xs font-bold', step === i + 1 ? 'text-slate-800' : 'text-slate-400')}>
-                {s}
-              </span>
-              {i < 2 && <div className="flex-1 h-px bg-slate-200 mx-1" />}
-            </div>
-          ))}
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full clay-btn text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+            title="Tutup / Batal (Esc)"
+            aria-label="Tutup modal"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {errorMsg && (
