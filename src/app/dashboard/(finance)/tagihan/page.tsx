@@ -80,7 +80,7 @@ export default function TagihanPage() {
       await payTagihan(payload)
       toast.success(
         'Pembayaran Tagihan Berhasil',
-        `Pelunasan untuk ${payload.noPO || 'Tagihan'} sebesar ${formatRupiah(payload.nominal)} berhasil dicatat.`
+        `Pelunasan untuk ${payload.noPO || 'Tagihan'} sebesar ${formatRupiah(payload.nominalBayar ?? payload.nominal ?? 0)} berhasil dicatat.`
       )
     } catch (err: any) {
       toast.error('Gagal Memproses Pembayaran', err.message || 'Terjadi kesalahan sistem')
