@@ -6,6 +6,7 @@ interface RawAIItem {
   matchedBahanId?: string | null
   qty?: number | string
   satuan?: string
+  hargaPerSatuan?: number | string
 }
 
 interface AIResepRequest {
@@ -50,6 +51,7 @@ function parseAIResponse(raw: string) {
         matchedBahanId: it.matchedBahanId ? String(it.matchedBahanId).trim() : null,
         qty: Number(it.qty) > 0 ? Number(it.qty) : 1,
         satuan: String(it.satuan || 'gram').trim().toLowerCase(),
+        hargaPerSatuan: Number(it.hargaPerSatuan) > 0 ? Number(it.hargaPerSatuan) : 0,
       }))
       .filter(it => it.nama.length > 0),
   }
@@ -102,7 +104,8 @@ INSTRUKSI PENTING:
 1. Prioritaskan MENGGUNAKAN bahan yang ada di daftar master di atas jika relevan atau mirip (misal: menu butuh telur, jika ada master "Telur Ayam" gunakan ID dan nama master tersebut).
 2. Jika bahan cocok dengan master bahan, sertakan "matchedBahanId" dengan ID dari daftar master. Jika belum ada di master dapur, isi "matchedBahanId" dengan null.
 3. Tentukan takaran kuantitas "qty" (angka positif > 0) dan "satuan" (misal: gram, ml, butir, pcs, sdm, sdt, lembar, kg, liter) yang realistis untuk 1 porsi saji.
-4. Berikan rekomendasi kategori menu ("Camilan", "Kue & Manisan", "Lauk Kering", "Minuman", "Makanan Berat", atau "Bumbu & Saus") dan emoji yang sesuai.
+4. Isi "hargaPerSatuan" dengan perkiraan harga pasar wajar di Indonesia saat ini dalam Rupiah untuk 1 "satuan" bahan tersebut (contoh: tepung terigu per gram sekitar 13, telur per butir sekitar 2000). Angka saja, boleh desimal.
+5. Berikan rekomendasi kategori menu ("Camilan", "Kue & Manisan", "Lauk Kering", "Minuman", "Makanan Berat", atau "Bumbu & Saus") dan emoji yang sesuai.
 
 KEMBALIKAN HANYA JSON DENGAN FORMAT PERSIS SEPERTI INI:
 {
@@ -113,7 +116,8 @@ KEMBALIKAN HANYA JSON DENGAN FORMAT PERSIS SEPERTI INI:
       "nama": "Nama Bahan",
       "matchedBahanId": "id-dari-daftar-atau-null",
       "qty": 100,
-      "satuan": "gram"
+      "satuan": "gram",
+      "hargaPerSatuan": 13
     }
   ]
 }`

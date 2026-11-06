@@ -299,6 +299,7 @@ export const menuService = {
       matchedBahanId: string | null
       qty: number
       satuan: string
+      hargaPerSatuan?: number
     }>
   }> {
     const res = await fetch('/dashboard/menu/api/ai-resep', {
@@ -332,11 +333,13 @@ export const menuService = {
       matchedBahanId: string | null
       qty: number
       satuan: string
+      hargaPerSatuan?: number
     }>,
     existingBahanList: BahanOption[]
   ): Promise<{
     resolvedResep: ResepItemInput[]
     newlyCreatedBahan: BahanOption[]
+    pricedCount: number
   }> {
     const supabase = createClient()
     const { data: sessionData } = await supabase.auth.getSession()
@@ -345,6 +348,7 @@ export const menuService = {
     const resolvedResep: ResepItemInput[] = []
     const newlyCreatedBahan: BahanOption[] = []
     const workingBahanList = [...existingBahanList]
+    let pricedCount = 0
 
     for (const item of aiItems) {
       if (!item.nama || !item.nama.trim()) continue
@@ -374,6 +378,22 @@ export const menuService = {
         const baseUnit = matchedBahan.satuan || 'gram'
         const candidateUnit = item.satuan || baseUnit
 
+        // Harga master masih 0 -> isi dengan perkiraan harga pasar dari AI (dikonversi ke satuan master)
+        if (!matchedBahan.hargaPerSatuan && item.hargaPerSatuan && item.hargaPerSatuan > 0) {
+          const factor = getUnitConversionFactor(candidateUnit, baseUnit) || 1
+          const hargaMaster = Math.round((item.hargaPerSatuan / factor) * 100) / 100
+          const { error: priceErr } = await supabase
+            .from('bahan')
+            .update({ harga_per_satuan: hargaMaster, updated_at: new Date().toISOString() })
+            .eq('id', matchedBahan.id)
+          if (!priceErr) {
+            matchedBahan = { ...matchedBahan, hargaPerSatuan: hargaMaster }
+            const idx = workingBahanList.findIndex(b => b.id === matchedBahan!.id)
+            if (idx >= 0) workingBahanList[idx] = matchedBahan
+            pricedCount++
+          }
+        }
+
         resolvedResep.push({
           bahanId: matchedBahan.id,
           namaBahan: matchedBahan.nama,
@@ -390,7 +410,7 @@ export const menuService = {
               user_id: userId,
               nama: item.nama.trim(),
               satuan: item.satuan.trim() || 'gram',
-              harga_per_satuan: 0,
+              harga_per_satuan: item.hargaPerSatuan && item.hargaPerSatuan > 0 ? item.hargaPerSatuan : 0,
               stok: 0,
               stok_minimum: 0,
             })
@@ -407,6 +427,7 @@ export const menuService = {
             }
             newlyCreatedBahan.push(mapped)
             workingBahanList.push(mapped)
+            if (mapped.hargaPerSatuan > 0) pricedCount++
 
             resolvedResep.push({
               bahanId: mapped.id,
@@ -425,6 +446,7 @@ export const menuService = {
     return {
       resolvedResep,
       newlyCreatedBahan,
+      pricedCount,
     }
   },
 }
@@ -438,6 +460,7 @@ export const resolveAIIngredients = (
     matchedBahanId: string | null
     qty: number
     satuan: string
+    hargaPerSatuan?: number
   }>,
   existingBahanList: BahanOption[]
 ) => menuService.resolveAIIngredients(aiItems, existingBahanList)

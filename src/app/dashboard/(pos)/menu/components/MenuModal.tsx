@@ -195,10 +195,17 @@ export default function MenuModal({
       }
 
       const fetchResolve = resolveAIIngredients || menuService.resolveAIIngredients
-      const { resolvedResep, newlyCreatedBahan } = await fetchResolve(
+      const { resolvedResep, newlyCreatedBahan, pricedCount = 0 } = await fetchResolve(
         aiData.items,
         currentBahanList
       )
+
+      if (pricedCount > 0) {
+        const hargaBaru = new Map(resolvedResep.map(r => [r.bahanId, r.hargaPerSatuan || 0]))
+        setCurrentBahanList(prev =>
+          prev.map(b => (!b.hargaPerSatuan && hargaBaru.get(b.id) ? { ...b, hargaPerSatuan: hargaBaru.get(b.id)! } : b))
+        )
+      }
 
       if (newlyCreatedBahan.length > 0) {
         setCurrentBahanList(prev => [...prev, ...newlyCreatedBahan])
@@ -219,10 +226,11 @@ export default function MenuModal({
         resep: resolvedResep,
       }))
 
-      const createdNote = newlyCreatedBahan.length > 0
-        ? ` (${newlyCreatedBahan.length} bahan otomatis ditambahkan ke inventaris dapur)`
-        : ''
-      setAiSuccessMsg(`Berhasil menyiapkan ${resolvedResep.length} bahan komposisi untuk "${form.nama.trim()}"${createdNote}.`)
+      const createdNote = [
+        newlyCreatedBahan.length > 0 ? `${newlyCreatedBahan.length} bahan otomatis ditambahkan ke inventaris dapur` : '',
+        pricedCount > 0 ? `${pricedCount} harga diisi perkiraan pasar, cek lagi di halaman Bahan` : '',
+      ].filter(Boolean).join('; ')
+      setAiSuccessMsg(`Berhasil menyiapkan ${resolvedResep.length} bahan komposisi untuk "${form.nama.trim()}"${createdNote ? ` (${createdNote})` : ''}.`)
     } catch (err: unknown) {
       const e = err as Error
       console.error('Error searching AI recipe:', e)
