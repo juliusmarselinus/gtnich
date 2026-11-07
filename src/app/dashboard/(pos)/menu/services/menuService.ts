@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { MenuItem, ResepItemDetail, MenuFormData, BahanOption, ResepItemInput } from '../types'
-import { getUnitConversionFactor } from '@/lib/satuan'
+import { getUnitConversionFactor, getCompatibleRecipeUnits } from '@/lib/satuan'
 
 interface RawResepItemDB {
   id: string
@@ -300,6 +300,7 @@ export const menuService = {
       qty: number
       satuan: string
       hargaPerSatuan?: number
+      satuanBeli?: string
     }>
   }> {
     const res = await fetch('/dashboard/menu/api/ai-resep', {
@@ -334,6 +335,7 @@ export const menuService = {
       qty: number
       satuan: string
       hargaPerSatuan?: number
+      satuanBeli?: string
     }>,
     existingBahanList: BahanOption[]
   ): Promise<{
@@ -380,7 +382,7 @@ export const menuService = {
 
         // Harga master masih 0 -> isi dengan perkiraan harga pasar dari AI (dikonversi ke satuan master)
         if (!matchedBahan.hargaPerSatuan && item.hargaPerSatuan && item.hargaPerSatuan > 0) {
-          const factor = getUnitConversionFactor(candidateUnit, baseUnit) || 1
+          const factor = getUnitConversionFactor(item.satuanBeli || candidateUnit, baseUnit) || 1          
           const hargaMaster = Math.round((item.hargaPerSatuan / factor) * 100) / 100
           const { error: priceErr } = await supabase
             .from('bahan')
@@ -409,7 +411,7 @@ export const menuService = {
             .insert({
               user_id: userId,
               nama: item.nama.trim(),
-              satuan: item.satuan.trim() || 'gram',
+              satuan: (item.satuanBeli || item.satuan).trim() || 'gram',
               harga_per_satuan: item.hargaPerSatuan && item.hargaPerSatuan > 0 ? item.hargaPerSatuan : 0,
               stok: 0,
               stok_minimum: 0,
@@ -432,7 +434,7 @@ export const menuService = {
             resolvedResep.push({
               bahanId: mapped.id,
               namaBahan: mapped.nama,
-              satuan: mapped.satuan,
+              satuan: getCompatibleRecipeUnits(mapped.satuan).includes(item.satuan) ? item.satuan : mapped.satuan,
               hargaPerSatuan: mapped.hargaPerSatuan,
               qty: Number(item.qty) || 1,
             })
@@ -461,6 +463,7 @@ export const resolveAIIngredients = (
     qty: number
     satuan: string
     hargaPerSatuan?: number
+    satuanBeli?: string
   }>,
   existingBahanList: BahanOption[]
 ) => menuService.resolveAIIngredients(aiItems, existingBahanList)
