@@ -85,8 +85,9 @@ export const rekomendasiService = {
     })
 
     // ─── B. Analisis Tagihan PO & Keuangan ────────────────────────────────────
+    // Tagihan yang sudah dicatat lunas tidak perlu disarankan lagi
     const pendingTagihan = (poList || []).filter(
-      po => po.status === 'tagihan' || (po.status === 'diterima' && !po.catatan?.includes('LUNAS'))
+      po => (po.status === 'tagihan' || po.status === 'diterima') && !po.catatan?.includes('[LUNAS')
     )
 
     pendingTagihan.forEach(po => {

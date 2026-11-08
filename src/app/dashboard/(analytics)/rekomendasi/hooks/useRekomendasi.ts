@@ -36,6 +36,26 @@ export function useRekomendasi() {
     fetchData()
   }, [fetchData])
 
+  // Muat ulang saran (tanpa loading) saat kembali ke tab/halaman ini
+  useEffect(() => {
+    const onVisible = async () => {
+      if (document.visibilityState !== 'visible') return
+      try {
+        const res = await rekomendasiService.getRekomendasi()
+        setItems(res.items)
+        setSummary(res.summary)
+      } catch {
+        // diam saja, data lama tetap tampil
+      }
+    }
+    window.addEventListener('focus', onVisible)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener('focus', onVisible)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
+
   const filteredItems = items.filter(r => filter === 'all' || r.tipe === filter)
 
   return {
