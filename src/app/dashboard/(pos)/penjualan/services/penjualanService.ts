@@ -400,6 +400,9 @@ export const penjualanService = {
 
     if (itemsErr) {
       console.error('Error insert order_items:', itemsErr)
+      // Rollback order induk agar tidak ada transaksi invoice kosong tanpa item
+      await supabase.from('orders').delete().eq('id', orderId)
+      throw new Error(`Gagal mencatat rincian pesanan (${itemsErr.message}). Transaksi dibatalkan.`)
     }
 
     // 3. Potong stok + stok_logs
