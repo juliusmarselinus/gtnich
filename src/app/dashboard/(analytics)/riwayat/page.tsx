@@ -162,10 +162,10 @@ export default function RiwayatPage() {
               </Link>
             ) : (
               <Link
-                href="/dashboard/purchase-order"
+                href="/dashboard/purchase-order?buat=1"
                 className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-[#7E22CE] bg-[#EDE9FF] border border-[#DDD6FE] hover:bg-[#DDD6FE]/70 flex items-center gap-1.5 whitespace-nowrap transition-colors"
               >
-                <span>Buat PO Baru</span>
+                <span>Lakukan Pembelian</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             )}

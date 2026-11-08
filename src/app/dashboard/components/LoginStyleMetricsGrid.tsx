@@ -206,10 +206,10 @@ export default function LoginStyleMetricsGrid({
                       </div>
 
                       <Link
-                        href="/dashboard/purchase-order"
+                        href="/dashboard/purchase-order?buat=1"
                         className="px-3.5 py-1.5 rounded-full bg-[#FF8F28] hover:bg-[#FF9F3F] text-white text-[11px] font-bold shadow-[0_2px_0_#C9620C] active:translate-y-[1px] active:shadow-none transition-all"
                       >
-                        Beli PO
+                        Lakukan Pembelian
                       </Link>
                     </div>
                   )

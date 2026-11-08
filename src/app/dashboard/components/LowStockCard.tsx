@@ -11,10 +11,10 @@ export default function LowStockCard({ items }: { items: DashboardLowStockBahan[
         <h2 className={cardTitle}>Stok menipis</h2>
         {items.length > 0 ? (
           <Link
-            href="/dashboard/purchase-order"
+            href="/dashboard/purchase-order?buat=1"
             className="flex h-8 items-center rounded-full bg-koral px-3.5 text-xs font-bold text-white hover:bg-koral-gelap"
           >
-            Buat PO
+            Lakukan Pembelian
           </Link>
         ) : (
           <Link href="/dashboard/bahan" className={textLink}>

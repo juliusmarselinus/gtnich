@@ -144,10 +144,10 @@ export default function DapiLoginStyleOverviewHero({
                 </span>
               </div>
               <Link
-                href="/dashboard/purchase-order"
+                href="/dashboard/purchase-order?buat=1"
                 className="underline hover:text-black flex items-center gap-1"
               >
-                Buat PO
+                Lakukan Pembelian
               </Link>
             </div>
           )}

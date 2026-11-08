@@ -237,10 +237,10 @@ export default function BahanPage() {
                 <Plus className="w-4 h-4 flex-shrink-0" /> Tambah Bahan Baru
               </button>
               <Link
-                href="/dashboard/purchase-order"
+                href="/dashboard/purchase-order?buat=1"
                 className="h-11 px-5 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-sm font-bold flex items-center gap-2 shadow-[0_8px_18px_rgba(255,107,0,0.3)] hover:-translate-y-0.5 transition-transform cursor-pointer whitespace-nowrap"
               >
-                <ShoppingCart className="w-4 h-4 flex-shrink-0" /> Buat Pembelian PO
+                <ShoppingCart className="w-4 h-4 flex-shrink-0" /> Lakukan Pembelian
               </Link>
               <Link
                 href="/dashboard/ocr-nota"

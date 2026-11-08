@@ -142,8 +142,8 @@ function buildTasks(lowStockItems: DashboardLowStockBahan[], pos: PurchaseOrder[
           `Sisa ${first.stock} ${first.satuan}` +
           (first.stockMinimum > 0 ? `, minimum ${first.stockMinimum}` : '') +
           (others > 0 ? ` · +${others} bahan lain` : ''),
-        href: '/dashboard/purchase-order',
-        actionLabel: 'Buat PO',
+        href: '/dashboard/purchase-order?buat=1',
+        actionLabel: 'Lakukan Pembelian',
       })
     }
   }

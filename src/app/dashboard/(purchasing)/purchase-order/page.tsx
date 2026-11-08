@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import Topbar from '@/components/Topbar'
 import POTable from './components/POTable'
 import POWizardModal from './components/POWizardModal'
@@ -14,6 +15,7 @@ import clsx from 'clsx'
 import DapiHead from '@/components/ui/DapiHead'
 import { useToast } from '@/context/ToastContext'
 import { TableSkeleton } from '@/components/ui/Skeleton'
+import { getKemasanPasarFallback } from './utils/kemasanPasar'
 
 const STATUS_CARDS = [
   { key: 'draft', label: 'Draft', hint: 'Belum dikirim ke supplier', Icon: PencilLine, tint: 'bg-[#FFEDB3]', on: 'bg-kuning text-kopi' },
@@ -89,6 +91,7 @@ export default function PurchaseOrderPage() {
 
   const [showWizard, setShowWizard] = useState(false)
   const [verifyingPO, setVerifyingPO] = useState<PurchaseOrder | null>(null)
+  const searchParams = useSearchParams()
 
   // State Rekomendasi Cerdas AI
   const [showAIModal, setShowAIModal] = useState(false)
@@ -102,6 +105,58 @@ export default function PurchaseOrderPage() {
     catatan: string
     supplierId: string
   } | null>(null)
+
+  // Buka modal secara langsung jika diarahkan dengan query ?buat=1 atau ?action=create
+  // Otomatis pre-load bahan yang stoknya menipis/kritis sebagai item rekomendasi pembelian
+  useEffect(() => {
+    if (searchParams.get('buat') === '1' || searchParams.get('action') === 'create') {
+      if (loading) return // Tunggu bahanList selesai dimuat
+
+      // Filter bahan yang stoknya di bawah atau sama dengan stok minimum (atau stok <= 0)
+      const lowStockBahan = bahanList.filter(b => {
+        const min = b.stokMinimum ?? 5
+        return b.stok <= min
+      })
+
+      // Jika tidak ada yang menipis secara kritis, ambil bahan stok terendah
+      const targetBahanList = lowStockBahan.length > 0 ? lowStockBahan : bahanList.slice(0, 3)
+
+      if (targetBahanList.length > 0) {
+        const autoItems: CreatePOInput['items'] = targetBahanList.map(b => {
+          const fallback = getKemasanPasarFallback(b.nama, b.satuan, b.hargaPerSatuan)
+          const min = b.stokMinimum ?? 5
+          const rawNeed = (min * 2) - b.stok
+          const targetQty = Math.max(
+            fallback.minQtyBeli,
+            Math.ceil(Math.max(1, rawNeed) / fallback.isiKemasan) * fallback.isiKemasan
+          )
+
+          return {
+            bahanId: b.id,
+            namaBahan: b.nama,
+            satuan: b.satuan,
+            qty: targetQty,
+            hargaEstimasi: b.hargaPerSatuan,
+            stokSebelum: b.stok,
+          }
+        })
+
+        // Tentukan supplier dominan jika ada
+        const dominantSupplierId =
+          targetBahanList.find(b => b.supplierId)?.supplierId || (suppliers[0]?.id || '')
+
+        setWizardPreload({
+          items: autoItems,
+          catatan: `Pemesanan restock otomatis: ${autoItems.length} bahan dipesan berdasarkan rekomendasi stok menipis operasional dapur.`,
+          supplierId: dominantSupplierId,
+        })
+      } else {
+        setWizardPreload(null)
+      }
+
+      setShowWizard(true)
+    }
+  }, [searchParams, loading, bahanList, suppliers])
 
   const handleFetchAIRekomendasi = async () => {
     setShowAIModal(true)

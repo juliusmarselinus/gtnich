@@ -64,8 +64,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast: addToast, success, error, warning, info }}>
       {children}
-      {/* Toast Container di Pojok Kanan Atas */}
-      <div className="fixed top-5 right-5 z-[100] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none p-2 sm:p-0">
+      {/* Toast Container: Responsive di Mobile (full width di tengah atas dengan safe padding) dan Desktop (kanan atas) */}
+      <div className="fixed top-3 inset-x-3 sm:inset-x-auto sm:top-5 sm:right-5 z-[9999] flex flex-col items-center sm:items-end gap-2.5 sm:max-w-sm pointer-events-none">
         {toasts.map(t => {
           const isSuccess = t.type === 'success'
           const isError = t.type === 'error'
@@ -113,24 +113,24 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           return (
             <div
               key={t.id}
-              className={`pointer-events-auto flex items-start gap-3.5 p-4 rounded-[24px] border-2 shadow-xl backdrop-blur-md transition-all duration-300 animate-in slide-in-from-top-3 fade-in-0 ${containerStyle}`}
+              className={`pointer-events-auto w-full max-w-full sm:max-w-sm flex items-start gap-3 p-3.5 sm:p-4 rounded-[22px] sm:rounded-[24px] border-2 shadow-xl backdrop-blur-md transition-all duration-300 animate-in slide-in-from-top-3 fade-in-0 box-border ${containerStyle}`}
             >
               {/* Maskot Avatar Dapi dengan kontainer warna filosofi */}
               <div
-                className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center border-2 shadow-xs ${badgeBg}`}
+                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex-shrink-0 flex items-center justify-center border-2 shadow-xs ${badgeBg}`}
               >
-                <DapiHead size={34} mood={dapiMood} />
+                <DapiHead size={32} mood={dapiMood} />
               </div>
 
               {/* Teks Toast */}
               <div className="flex-1 min-w-0 pt-0.5">
                 <div className="flex items-center gap-1.5">
-                  <h4 className={`text-xs font-black tracking-tight leading-snug ${titleColor}`}>
+                  <h4 className={`text-xs font-black tracking-tight leading-snug break-words ${titleColor}`}>
                     {t.title}
                   </h4>
                 </div>
                 {t.message && (
-                  <p className={`text-[11px] font-medium leading-snug mt-0.5 line-clamp-3 ${messageColor}`}>
+                  <p className={`text-[11px] font-medium leading-snug mt-0.5 break-words line-clamp-3 ${messageColor}`}>
                     {t.message}
                   </p>
                 )}
@@ -140,7 +140,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => removeToast(t.id)}
-                className={`w-6 h-6 rounded-full flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-black/5 transition-opacity cursor-pointer -mr-1 -mt-1 ${titleColor}`}
+                className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-black/5 transition-opacity cursor-pointer -mr-1 -mt-1 ${titleColor}`}
               >
                 <X className="w-3.5 h-3.5" />
               </button>

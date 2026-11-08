@@ -139,7 +139,7 @@ export const purchaseOrderService = {
 
     let query = supabase
       .from('bahan')
-      .select('id, nama, satuan, harga_per_satuan, stok')
+      .select('id, nama, satuan, harga_per_satuan, stok, stok_minimum, supplier_id')
       .order('nama', { ascending: true })
 
     if (userId) {
@@ -159,6 +159,8 @@ export const purchaseOrderService = {
       satuan: b.satuan,
       hargaPerSatuan: Number(b.harga_per_satuan) || 0,
       stok: Number(b.stok) || 0,
+      stokMinimum: Number(b.stok_minimum) || 0,
+      supplierId: b.supplier_id || null,
     }))
   },
 

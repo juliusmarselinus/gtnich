@@ -43,6 +43,8 @@ export interface BahanOption {
   satuan: string
   hargaPerSatuan: number
   stok: number
+  stokMinimum?: number
+  supplierId?: string | null
 }
 
 export interface CreatePOInput {

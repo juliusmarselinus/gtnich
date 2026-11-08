@@ -53,8 +53,8 @@ export const rekomendasiService = {
           deskripsi: `Stok ${b.nama} saat ini habis (0 ${b.satuan}). Semua menu yang membutuhkan bahan ini tidak dapat diproduksi di dapur. Segera terbitkan Purchase Order${namaSupplier}.`,
           confidence: 99,
           priority: 'tinggi',
-          actionLink: '/dashboard/purchase-order',
-          actionLabel: 'Buat PO Bahan Ini',
+          actionLink: '/dashboard/purchase-order?buat=1',
+          actionLabel: 'Lakukan Pembelian',
           relatedId: b.id,
         })
       } else if (stok < stokMin) {
