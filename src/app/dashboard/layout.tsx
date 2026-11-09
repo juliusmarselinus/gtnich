@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 import DapiHead from '@/components/ui/DapiHead'
 import ProfileSetupModal from '@/components/ProfileSetupModal'
 import TourContainer from '@/components/TourContainer'
+import MobileNav from '@/components/MobileNav'
 
 export default function DashboardLayout({
   children,

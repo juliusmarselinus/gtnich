@@ -48,7 +48,9 @@ export default function RecentSalesTable({ sales }: RecentSalesTableProps) {
           Belum ada riwayat penjualan pada periode ini.
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-[#EDD9B0] text-[10px] font-bold text-[#9A7A55] uppercase tracking-wider">
@@ -98,6 +100,42 @@ export default function RecentSalesTable({ sales }: RecentSalesTableProps) {
             </tbody>
           </table>
         </div>
+
+        {/* Tampilan Mobile Card Rekap Penjualan */}
+        <div className="sm:hidden space-y-3">
+          {sales.map(s => (
+            <div
+              key={s.id}
+              className="p-3.5 rounded-2xl bg-white border border-[#EDD9B0] space-y-2 shadow-2xs"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="font-mono font-bold text-xs text-[#2B1D00]">{s.invoiceNumber}</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#F5EDD8] text-[#5A3A00] border border-[#E8D4A0]">
+                      {s.channel}
+                    </span>
+                    <span className="text-[10px] text-slate-500">{s.customerName}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="font-mono font-black text-xs text-[#2B1D00] block">{formatRupiah(s.totalPrice)}</span>
+                  <span className="font-mono font-bold text-[10px] text-[#228B5B]">+{formatRupiah(s.profit)}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-[#8A6A40] pt-1.5 border-t border-[#F5E8CC]">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#FFF0CC] text-[#5A3A00]">
+                  {s.paymentMethod}
+                </span>
+                <span className="font-mono">
+                  {new Date(s.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}, {new Date(s.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        </>
       )}
     </div>
   )

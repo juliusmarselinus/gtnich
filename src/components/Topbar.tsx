@@ -109,7 +109,7 @@ export default function Topbar({ title, subtitle, actions }: TopbarProps) {
             {title}
           </h1>
           {subtitle && (
-            <p className="hidden xs:block truncate mt-0.5 text-[11px] sm:text-[13px] text-kopi-muted">
+            <p className="truncate mt-0.5 text-[11px] sm:text-[13px] text-kopi-muted block">
               {subtitle}
             </p>
           )}
@@ -152,7 +152,7 @@ export default function Topbar({ title, subtitle, actions }: TopbarProps) {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 z-50 mt-3 flex max-h-[85vh] w-[22rem] max-w-[90vw] flex-col rounded-[24px] bg-white p-4 shadow-kartu ring-1 ring-krim-garis">
+            <div className="absolute right-0 z-50 mt-3 flex max-h-[85vh] w-[22rem] max-w-[calc(100vw-24px)] flex-col rounded-[24px] bg-white p-4 shadow-kartu ring-1 ring-krim-garis">
             <div className="mb-2.5 flex flex-shrink-0 items-center justify-between border-b border-krim-garis pb-2.5">
               <span className="flex items-center gap-1.5 text-sm font-extrabold text-kopi">
                 <Bell className="h-4 w-4 text-kuning-teks" />

@@ -263,8 +263,8 @@ export default function PurchaseOrderPage() {
             <span className="absolute left-[52%] top-8 h-2.5 w-2.5 rounded-full bg-koral/60" />
           </div>
 
-          <div className="relative flex flex-col gap-3 p-6 sm:p-10 md:max-w-[58%]">
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-none text-kopi">Pembelian Stok</h2>
+          <div className="relative flex flex-col gap-3 p-5 sm:p-8 md:p-10 md:max-w-[58%]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-none text-kopi">Pembelian Stok</h2>
             <p className="text-sm sm:text-base text-[#5A3A00] leading-snug">
               Pesan bahan ke supplier, cek barang datang, dan pantau tagihan di satu tempat.
             </p>

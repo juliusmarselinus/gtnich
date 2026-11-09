@@ -77,7 +77,7 @@ export default function OpnameTable({
 
       {/* Table Container */}
       <div className="rounded-[32px] bg-white border border-[#EBE6DC] shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-xs min-w-[650px]">
             <thead>
               <tr className="border-b border-[#F0EBE1] bg-[#FCFAF6] text-[#8C8275] text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
@@ -141,6 +141,63 @@ export default function OpnameTable({
               })}
             </tbody>
           </table>
+        </div>
+        {/* Tampilan Mobile Card Opname */}
+        <div className="sm:hidden space-y-3 p-3 bg-[#FCFAF6]">
+          {entries.map(o => {
+            const hasDisc = o.selisih !== 0
+            return (
+              <div
+                key={o.bahanId}
+                className={clsx(
+                  "p-4 rounded-2xl border transition-colors space-y-3",
+                  hasDisc ? "bg-[#FEF9F8] border-[#F9C2B8]/80" : "bg-white border-[#EBE6DC]"
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="font-extrabold text-[#2B261F] text-sm leading-snug">{o.namaBahan}</h4>
+                    <span className="text-[10px] text-[#8C8275] font-semibold">Satuan: {o.satuan}</span>
+                  </div>
+                  <span
+                    className={clsx(
+                      "font-mono font-bold text-[11px] px-2.5 py-0.5 rounded-full border shadow-2xs",
+                      o.selisih === 0
+                        ? "bg-[#F5F2EB] text-[#7A7062] border-[#EBE6DC]"
+                        : o.selisih > 0
+                        ? "bg-[#E8F5E4] text-[#2D7A1F] border-[#C5E8BD]"
+                        : "bg-[#FDE8E4] text-[#D8431F] border-[#F9C2B8]"
+                    )}
+                  >
+                    {o.selisih === 0 ? "0 Sesuai" : (o.selisih > 0 ? "+" : "") + o.selisih + " " + o.satuan}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#F0EBE1] items-center">
+                  <div>
+                    <span className="text-[10px] text-[#8C8275] block font-semibold">Stok Sistem</span>
+                    <span className="font-mono font-bold text-xs text-[#2B261F]">{o.stokSystem} {o.satuan}</span>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-[#8C8275] block font-semibold mb-1">Fisik Nyata</label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={o.stokAktual}
+                      onChange={e => onUpdateAktual(o.bahanId, parseFloat(e.target.value))}
+                      className={clsx(
+                        "w-full px-3 py-2 rounded-xl text-xs text-right font-mono font-bold border transition-all focus:outline-none focus:ring-2 focus:ring-[#FFB800]",
+                        hasDisc
+                          ? "border-[#F9C2B8] text-[#D8431F] bg-[#FEF4F2]"
+                          : "border-[#FFE49A]/80 text-[#2B261F] bg-[#FFF9EC]"
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {entries.length === 0 && (

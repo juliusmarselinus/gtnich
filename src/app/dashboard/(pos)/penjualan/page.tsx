@@ -24,6 +24,7 @@ import {
   Plus,
   RotateCcw,
   UtensilsCrossed,
+  ArrowRight,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useToast } from '@/context/ToastContext'
@@ -330,7 +331,7 @@ export default function PenjualanPage() {
               )}
             </div>
 
-            <div data-tour="pos-cart-panel" className="lg:col-span-5 xl:col-span-4 space-y-4 min-w-0">
+            <div id="pos-cart-section" data-tour="pos-cart-panel" className="lg:col-span-5 xl:col-span-4 space-y-4 min-w-0">
               <CartPOS
                 cart={cart}
                 stockInfo={stockInfo}
@@ -353,6 +354,34 @@ export default function PenjualanPage() {
               Daftar Transaksi Kasir yang Tersimpan
             </h3>
             <RecentOrdersTable orders={recentOrders} onUpdateStatus={updateOrderStatus} />
+          </div>
+        )}
+
+        {/* Floating Cart Bar untuk Mobile */}
+        {activeTab === 'katalog' && cart.length > 0 && (
+          <div className="fixed bottom-16 left-3 right-3 z-30 block lg:hidden animate-in slide-in-from-bottom-4 duration-200">
+            <div className="bg-[#2B1D00] text-white rounded-2xl p-3 shadow-[0_8px_24px_rgba(43,29,0,0.35)] flex items-center justify-between gap-3 border border-[#FFE49A]/30">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-9 h-9 rounded-xl bg-[#FFB800] text-[#2B1D00] flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs">
+                  {totals.totalItems}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-black truncate">{formatRupiah(totals.subtotal)}</p>
+                  <p className="text-[10px] text-[#FFEDB3] truncate">{cart.length} macam pesanan</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('pos-cart-section')
+                  if (el) el.scrollIntoView({ behavior: 'smooth' })
+                }}
+                className="px-4 py-2 rounded-xl bg-[#FFB800] hover:bg-[#FFA500] text-[#2B1D00] font-black text-xs flex items-center gap-1.5 shadow-xs transition-colors flex-shrink-0 active:scale-95 cursor-pointer"
+              >
+                <span>Lihat Pesanan & Bayar</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         )}
       </main>

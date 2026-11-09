@@ -41,9 +41,14 @@ export default function DapiTasksCard({ tasks, lowStockItems, isLoading }: DapiT
           </span>
         )}
         <DapiMascot
+          width={110}
+          mood={hasAlert ? 'khawatir' : 'senang'}
+          className="absolute -bottom-8 -right-2 sm:hidden opacity-90 pointer-events-none"
+        />
+        <DapiMascot
           width={168}
           mood={hasAlert ? 'khawatir' : 'senang'}
-          className="absolute -bottom-14 right-4 hidden sm:block"
+          className="absolute -bottom-14 right-4 hidden sm:block pointer-events-none"
         />
       </div>
 

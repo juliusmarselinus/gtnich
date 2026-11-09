@@ -65,7 +65,8 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
         </div>
       )}
       <div className={`${CARD} overflow-hidden`}>
-        <div className="overflow-x-auto">
+        {/* Tampilan Desktop Tabel */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-xs min-w-[760px]">
             <thead>
               <tr className="bg-[#FFF6D6] whitespace-nowrap">
@@ -221,6 +222,140 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Tampilan Mobile Card Layout */}
+        <div className="md:hidden space-y-3 p-3 bg-[#FFFBF5]">
+          {orders.map(o => {
+            const exp = expandedId === o.id
+            const tglStr = new Date(o.createdAt).toLocaleDateString('id-ID', {
+              day: '2-digit',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+            const statusConfig = STATUS_UI[o.status] || STATUS_UI.selesai
+
+            return (
+              <div
+                key={o.id}
+                className="p-4 rounded-[22px] bg-white border border-[#F2E7D3] space-y-3 shadow-xs"
+              >
+                {/* Header Nota & Status */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-extrabold text-slate-900 text-xs font-mono">{o.invoiceNumber}</span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FFF6D6] text-[#7A5A10] font-bold">
+                        {o.channel}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">{o.paymentMethod}</span>
+                    </div>
+                  </div>
+                  <span className={clsx('inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold', statusConfig.cls)}>
+                    {statusConfig.label}
+                  </span>
+                </div>
+
+                {/* Pelanggan & Waktu */}
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block">Pelanggan</span>
+                    <span className="font-bold text-slate-800">{o.customerName || 'Pelanggan Umum'}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-slate-400 block">Waktu</span>
+                    <span className="font-medium text-slate-500 text-[11px]">{tglStr}</span>
+                  </div>
+                </div>
+
+                {/* Total & Laba */}
+                <div className="flex items-center justify-between bg-[#FFF9EC] p-2.5 rounded-xl border border-[#FFE49A]/50">
+                  <div>
+                    <span className="text-[10px] text-[#8A6A40] block font-semibold">Total Transaksi</span>
+                    <span className="font-black text-slate-900 text-sm font-mono">{formatRupiah(o.totalPrice)}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-[#8A6A40] block font-semibold">Laba Bersih</span>
+                    <span className="font-black text-[#8A5A00] text-xs font-mono">{formatRupiah(o.profit)}</span>
+                  </div>
+                </div>
+
+                {/* Tombol Aksi & Struk */}
+                <div className="flex items-center justify-end gap-1.5 pt-1">
+                  {onUpdateStatus && NEXT_STEP[o.status] && (
+                    <button
+                      type="button"
+                      disabled={busyId === o.id}
+                      onClick={() => changeStatus(o, NEXT_STEP[o.status]!.to)}
+                      className="px-3 py-1.5 rounded-full bg-[#2B221C] text-white text-[11px] font-bold disabled:opacity-50 cursor-pointer active:scale-95"
+                    >
+                      {busyId === o.id ? '...' : NEXT_STEP[o.status]!.label}
+                    </button>
+                  )}
+                  {onUpdateStatus && NEXT_STEP[o.status] && (
+                    <button
+                      type="button"
+                      disabled={busyId === o.id}
+                      onClick={() => changeStatus(o, 'batal')}
+                      className="px-2.5 py-1.5 rounded-full bg-[#FDE7E1] text-[#B8391E] text-[11px] font-bold disabled:opacity-50 cursor-pointer active:scale-95"
+                    >
+                      Batal
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setReceiptOrder(o)}
+                    className="px-3 py-1.5 rounded-full bg-[#FFB800] text-[#2B1D00] text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
+                  >
+                    <ReceiptText className="w-3 h-3" /> Struk
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(exp ? null : o.id)}
+                    className="p-1.5 rounded-full bg-[#FFF6D6] text-slate-600 cursor-pointer inline-flex items-center justify-center active:scale-90"
+                    title={exp ? 'Tutup rincian' : 'Lihat rincian item'}
+                  >
+                    <div className={clsx('transition-transform duration-200', exp && 'rotate-180')}>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </button>
+                </div>
+
+                {/* Detail Item saat di-expand di Mobile */}
+                {exp && (
+                  <div className="pt-2 border-t border-slate-100 space-y-2 animate-in fade-in-0 duration-150">
+                    <p className="text-[10px] font-bold text-[#8A6A40] uppercase tracking-wider">
+                      Rincian Menu ({o.items?.length || 0} item)
+                    </p>
+                    <div className="space-y-1.5">
+                      {o.items?.map((item, idx) => (
+                        <div
+                          key={item.id || idx}
+                          className="flex justify-between items-center bg-[#FAF7F2] rounded-xl px-3 py-2 text-xs"
+                        >
+                          <div>
+                            <span className="font-bold text-slate-900">{item.namaMenu}</span>
+                            <span className="text-[#D98B00] font-bold ml-1.5 text-[11px]">
+                              ({item.qty}x)
+                            </span>
+                          </div>
+                          <span className="font-bold text-slate-900 font-mono text-xs">
+                            {formatRupiah(item.subtotal || item.hargaJual * item.qty)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {o.notes && (
+                      <p className="text-[10px] text-[#B3361B] bg-[#FDE8E4] p-2 rounded-xl">
+                        <strong>Catatan:</strong> {o.notes}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 

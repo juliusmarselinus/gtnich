@@ -60,7 +60,8 @@ export default function POTable({
 
   return (
     <div className="rounded-[32px] bg-white p-2 sm:p-3 shadow-[0_14px_34px_rgba(120,80,30,0.10)]">
-      <div className="overflow-x-auto">
+      {/* desktop table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-xs min-w-[760px] border-separate border-spacing-y-2">
           <thead>
             <tr className="whitespace-nowrap">
@@ -242,6 +243,150 @@ export default function POTable({
             })}
           </tbody>
         </table>
+      </div>
+
+
+      {/* TAMPILAN MOBILE & TABLET (Card-based Layout) */}
+      <div className="md:hidden space-y-3 p-1">
+        {paginatedList.map((po, idx) => {
+          const cfg = STATUS_CONFIG[po.status] || STATUS_CONFIG.draft
+          const exp = expandedId === po.id
+          const isProcessing = loadingActionId === po.id
+          const supplierName = po.namaSupplier || 'Tanpa Supplier (Beli Langsung)'
+          const totalPO = po.totalAktual > 0 ? po.totalAktual : po.totalEstimasi
+
+          return (
+            <div
+              key={po.id}
+              className="p-4 sm:p-5 rounded-[26px] bg-[#FAF7F2] border border-[#EBE6DC]/80 space-y-3.5 shadow-2xs"
+            >
+              {/* Header Kartu: Supplier & Status */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span
+                    className={clsx(
+                      'flex-shrink-0 h-10 w-10 rounded-2xl flex items-center justify-center text-xs font-black text-kopi',
+                      AVATAR_BG[idx % AVATAR_BG.length]
+                    )}
+                  >
+                    {initialOf(supplierName)}
+                  </span>
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-kopi text-sm leading-snug truncate">{supplierName}</h4>
+                    <p className="text-[11px] text-kopi-muted font-mono mt-0.5">{po.noPO}</p>
+                  </div>
+                </div>
+
+                <span className={clsx('inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold flex-shrink-0', cfg.cls)}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  {cfg.label}
+                </span>
+              </div>
+
+              {/* Info Items Ringkas */}
+              <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white text-kopi-muted border border-krim-garis">
+                  {po.items.length} jenis bahan
+                </span>
+                {po.items.slice(0, 2).map((item, itmIdx) => (
+                  <span key={itmIdx} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-kuning/20 text-[#6B4E00]">
+                    {item.namaBahan} ({item.qty} {item.satuan})
+                  </span>
+                ))}
+                {po.items.length > 2 && (
+                  <span className="text-[10px] text-kopi-muted">
+                    +{po.items.length - 2} lainnya
+                  </span>
+                )}
+              </div>
+
+              {/* Tanggal & Total */}
+              <div className="flex items-center justify-between pt-2 border-t border-[#EBE6DC]/60 text-xs">
+                <div>
+                  <span className="text-[10px] text-kopi-muted uppercase block font-semibold">Tgl Dibuat</span>
+                  <span className="font-mono text-kopi font-bold text-[11px]">{po.tanggalBuat}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-kopi-muted uppercase block font-semibold">Total Pembelian</span>
+                  <span className="font-mono text-kopi font-black text-base">{formatRupiah(totalPO)}</span>
+                </div>
+              </div>
+
+              {/* Catatan jika ada */}
+              {po.catatan && (
+                <p className="text-[11px] text-kopi-muted bg-white/70 p-2 rounded-xl border border-krim-garis/60 leading-tight">
+                  <span className="font-semibold text-kopi">Catatan:</span> {po.catatan}
+                </p>
+              )}
+
+              {/* Tombol Aksi & Expand Detail */}
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(exp ? null : po.id)}
+                  className="py-2.5 px-3.5 rounded-full bg-white border border-[#EBE6DC] text-xs font-bold text-kopi hover:bg-krim transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+                >
+                  <span>{exp ? 'Tutup Rincian' : 'Rincian Bahan'}</span>
+                  <div className={clsx('transition-transform duration-200', exp && 'rotate-180')}>
+                    <ChevronDown className="w-3.5 h-3.5 text-kopi-muted" />
+                  </div>
+                </button>
+
+                {cfg.nextStatus ? (
+                  <button
+                    type="button"
+                    onClick={() => handleAction(po, cfg.nextStatus!)}
+                    disabled={isProcessing}
+                    className={clsx(
+                      'py-2.5 px-4 rounded-full font-bold text-xs transition-all duration-150 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5 shadow-xs flex-1',
+                      cfg.nextStatus === 'diterima'
+                        ? 'bg-[#C2502F] text-white hover:bg-[#a63f22]'
+                        : 'bg-kopi text-white hover:bg-black'
+                    )}
+                  >
+                    {isProcessing ? 'Memproses...' : cfg.nextLabel}
+                  </button>
+                ) : (
+                  <span className="text-xs font-bold text-[#5E7420] flex items-center gap-1 px-3 py-1.5">
+                    <FileCheck className="w-4 h-4" /> Selesai
+                  </span>
+                )}
+              </div>
+
+              {/* Detail Items saat di-expand di Mobile */}
+              {exp && (
+                <div className="pt-2 border-t border-[#EBE6DC]/80 space-y-2 animate-in fade-in-0 duration-150">
+                  <p className="text-[10px] font-bold text-kopi-muted uppercase tracking-wider">
+                    Daftar Item Bahan ({po.items.length})
+                  </p>
+                  <div className="space-y-1.5">
+                    {po.items.map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between rounded-xl bg-white p-2.5 border border-krim-garis/60 text-xs"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="font-bold text-kopi truncate">{item.namaBahan}</p>
+                          <p className="text-[10px] text-kopi-muted">
+                            {item.qty} {item.satuan} × {formatRupiah(item.hargaEstimasi)}
+                          </p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-mono font-bold text-kopi text-xs">
+                            {formatRupiah(item.qty * item.hargaEstimasi)}
+                          </p>
+                          <span className={clsx('text-[10px] font-bold', item.diterima ? 'text-[#5E7420]' : 'text-[#C2502F]')}>
+                            {item.diterima ? '✓ Diterima' : 'Menunggu'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {list.length === 0 && (
