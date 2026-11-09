@@ -159,7 +159,7 @@ export default function FeatureHighlightTour() {
             width: targetRect.width + 12,
             height: targetRect.height + 12,
           }}
-          className="absolute rounded-[16px] border-2 border-[#FFB800] shadow-[0_0_24px_rgba(255,184,0,0.85)] pointer-events-none animate-pulse transition-all duration-300 ease-out"
+          className="absolute rounded-[16px] border-2 border-[#FFB800] shadow-[0_0_24px_rgba(255,184,0,0.85)] pointer-events-none transition-all duration-300 ease-out"
         />
       )}
 

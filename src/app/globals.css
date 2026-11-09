@@ -270,19 +270,6 @@ body {
   }
 }
 
-@keyframes dapi-pulse-glow {
-  0%, 100% {
-    filter: drop-shadow(0 6px 14px rgba(255, 184, 0, 0.25));
-  }
-  50% {
-    filter: drop-shadow(0 14px 28px rgba(255, 184, 0, 0.55));
-  }
-}
-
-.anim-dapi-float {
-  animation: dapi-float 3s ease-in-out infinite;
-}
-
 .anim-dapi-glow {
-  animation: dapi-pulse-glow 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 8px 18px rgba(255, 184, 0, 0.35));
 }

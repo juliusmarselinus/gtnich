@@ -207,7 +207,7 @@ export function MascotSkeleton({
         </div>
 
         <div className="relative shrink-0 flex items-center justify-center">
-          <div className="absolute -inset-3 rounded-full bg-kuning/25 blur-xl animate-pulse" />
+          <div className="absolute -inset-3 rounded-full bg-kuning/25 blur-xl" />
           <DapiMascot
             width={140}
             mood="senang"
@@ -267,7 +267,7 @@ export function KembaranCardSkeleton() {
 export function ActiveOrderStripSkeleton() {
   return (
     <section className="flex flex-wrap items-center gap-4 rounded-[28px] bg-kuning px-[18px] py-3.5 shadow-sm">
-      <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-white text-koral shadow-xs animate-pulse">
+      <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-white text-koral shadow-xs">
         <ChefHat className="h-5 w-5" />
       </span>
       <div className="flex-1 space-y-1.5 min-w-[200px]">
@@ -334,7 +334,6 @@ export function TableSkeleton({
                 <span className="text-xs font-bold text-kopi">
                   {title || 'Dapi Sedang Memuat Data...'}
                 </span>
-                <span className="h-1.5 w-1.5 rounded-full bg-kuning animate-ping" />
               </div>
               <p className="text-[11px] text-kopi-muted font-medium">
                 Sinkronisasi tabel dengan catatan dapur
@@ -403,7 +402,6 @@ export function CardGridSkeleton({
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-bold text-[#8A5A00] bg-white px-3 py-1 rounded-full shadow-2xs">
-            <span className="h-2 w-2 rounded-full bg-koral animate-pulse" />
             <span>Memuat data</span>
           </div>
         </div>

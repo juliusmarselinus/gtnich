@@ -303,90 +303,46 @@ export default function QrMejaPage() {
         img.src = url
       })
 
-      // Buat Canvas Stand Poster Meja (900 x 1260 px — Tajam untuk Cetak A5/A6/Akrilik)
+      // Buat Canvas Stand Meja (Tent Card) 1:1 persis seperti Desain Preview di Dashboard
+      // Proporsi kartu: W = 720, H = 960 (Resolusi tajam, rasio 3:4 pas untuk display akrilik/stand meja)
       const canvas = document.createElement('canvas')
-      const W = 900
-      const H = 1260
+      const W = 720
+      const H = 960
       canvas.width = W
       canvas.height = H
       const ctx = canvas.getContext('2d')
       if (!ctx) throw new Error('Canvas context tidak didukung')
 
-      // 1. Background Krem Hangat DapurTwin
+      // 1. Background keseluruhan kartu (Krem Halus DapurTwin: #FFFDF9)
+      const cardRadius = 40
       ctx.fillStyle = '#FFFDF9'
-      ctx.fillRect(0, 0, W, H)
-
-      // 2. Dekorasi Header Kuning Emas Melengkung
-      ctx.fillStyle = '#FFB800'
       ctx.beginPath()
-      ctx.roundRect(40, 40, W - 80, 250, 44)
+      ctx.roundRect(0, 0, W, H, cardRadius)
       ctx.fill()
 
-      // Lingkaran Aksen di dalam Header
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'
+      // 2. Banner Header Melengkung di atas (Gradasi Kuning DapurTwin: #FFC93C -> #FFB800 -> #FF9A1F)
+      const headerH = 200
+      ctx.save()
       ctx.beginPath()
-      ctx.arc(W - 110, 100, 95, 0, Math.PI * 2)
-      ctx.fill()
+      ctx.roundRect(0, 0, W, headerH, [cardRadius, cardRadius, 0, 0])
+      ctx.clip()
 
-      // 3. Teks Nama Toko & Subjudul di Header
-      ctx.fillStyle = '#2B1D00'
-      ctx.textAlign = 'center'
-      ctx.font = '800 22px system-ui, -apple-system, sans-serif'
-      ctx.fillText('PESAN & BAYAR DARI MEJA', W / 2, 115)
+      const headerGrad = ctx.createLinearGradient(0, 0, W, 0)
+      headerGrad.addColorStop(0, '#FFC93C')
+      headerGrad.addColorStop(0.5, '#FFB800')
+      headerGrad.addColorStop(1, '#FF9A1F')
+      ctx.fillStyle = headerGrad
+      ctx.fillRect(0, 0, W, headerH)
 
-      ctx.font = '900 50px system-ui, -apple-system, sans-serif'
-      ctx.fillText(storeName.toUpperCase().slice(0, 26), W / 2, 185)
-
-      ctx.font = '600 22px system-ui, -apple-system, sans-serif'
-      ctx.fillStyle = '#5C3D00'
-      ctx.fillText(
-        storeAddress ? storeAddress.slice(0, 48) : 'Scan QR Code di bawah menggunakan kamera HP Anda',
-        W / 2,
-        235
-      )
-
-      // 4. Pill Nomor Meja Besar (Coklat Kopi Gelap)
-      ctx.fillStyle = '#2B1D00'
-      ctx.beginPath()
-      ctx.roundRect(W / 2 - 210, 325, 420, 96, 48)
-      ctx.fill()
-
-      ctx.fillStyle = '#FFB800'
-      ctx.font = '900 44px ui-monospace, SFMono-Regular, Menlo, monospace'
-      ctx.fillText(table.name.toUpperCase(), W / 2, 388)
-
-      // 5. Bingkai Putih QR Code dengan Border Tegas
-      const qrBoxSize = 520
-      const qrBoxX = (W - qrBoxSize) / 2
-      const qrBoxY = 455
-
-      ctx.fillStyle = '#FFFFFF'
-      ctx.strokeStyle = '#2B1D00'
-      ctx.lineWidth = 8
-      ctx.beginPath()
-      ctx.roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 40)
-      ctx.fill()
-      ctx.stroke()
-
-      // Gambar QR Code di tengah bingkai
-      const pad = 45
-      ctx.drawImage(img, qrBoxX + pad, qrBoxY + pad, qrBoxSize - pad * 2, qrBoxSize - pad * 2)
-      URL.revokeObjectURL(url)
-
-      // 6. Langkah Instruksi Pemesanan di Bawah QR
-      ctx.fillStyle = '#2B1D00'
-      ctx.font = '800 28px system-ui, -apple-system, sans-serif'
-      ctx.fillText('1. Scan QR   •   2. Pilih Menu   •   3. Bayar', W / 2, 1055)
-
-      // Coba render avatar maskot Dapi di Canvas menggunakan konstanta DAPI_HEAD_SVG_MARKUP
+      // Coba render avatar maskot Dapi di pojok kiri bawah header persis seperti di Preview
       try {
         const dapiBlob = new Blob([DAPI_HEAD_SVG_MARKUP], { type: 'image/svg+xml;charset=utf-8' })
         const dapiUrl = URL.createObjectURL(dapiBlob)
         const dapiImg = new Image()
         await new Promise<void>(res => {
           dapiImg.onload = () => {
-            // Gambar maskot di pojok kiri atas header poster
-            ctx.drawImage(dapiImg, 65, 80, 95, 114)
+            // Letakkan di pojok kiri bawah header
+            ctx.drawImage(dapiImg, 18, headerH - 120, 115, 138)
             URL.revokeObjectURL(dapiUrl)
             res()
           }
@@ -400,10 +356,63 @@ export default function QrMejaPage() {
         // Fallback jika blob svg tidak dapat dirender
       }
 
-      // Footer kecil
-      ctx.fillStyle = '#9A7B3A'
-      ctx.font = '600 18px ui-monospace, monospace'
-      ctx.fillText(`Zona: ${table.zone} (${table.capacity} Kursi) • Powered by DapurTwin POS`, W / 2, 1140)
+      // Teks di Header Banner
+      ctx.fillStyle = '#2B1D00'
+      ctx.textAlign = 'center'
+      ctx.font = '900 18px system-ui, -apple-system, sans-serif'
+      ctx.letterSpacing = '3px'
+      ctx.fillText('PESAN & BAYAR DARI MEJA', W / 2 + 20, 80)
+      ctx.letterSpacing = '0px'
+
+      ctx.font = '900 38px system-ui, -apple-system, sans-serif'
+      ctx.fillText(storeName.slice(0, 26), W / 2 + 20, 140)
+      ctx.restore()
+
+      // 3. Pill Nomor Meja (Rounded Full Hitam Kopi Gelap dengan Teks Kuning Emas)
+      const pillW = 320
+      const pillH = 76
+      const pillX = (W - pillW) / 2
+      const pillY = headerH + 45
+      ctx.fillStyle = '#2B1D00'
+      ctx.beginPath()
+      ctx.roundRect(pillX, pillY, pillW, pillH, pillH / 2)
+      ctx.fill()
+
+      ctx.fillStyle = '#FFB800'
+      ctx.textAlign = 'center'
+      ctx.font = '900 36px ui-monospace, SFMono-Regular, Menlo, monospace'
+      ctx.fillText(table.name, W / 2, pillY + 52)
+
+      // 4. Bingkai Putih QR Code dengan Border Coklat Kopi Gelap (Persis Desain Preview)
+      const qrBoxSize = 420
+      const qrBoxX = (W - qrBoxSize) / 2
+      const qrBoxY = pillY + pillH + 40
+
+      ctx.fillStyle = '#FFFFFF'
+      ctx.strokeStyle = '#2B1D00'
+      ctx.lineWidth = 6
+      ctx.beginPath()
+      ctx.roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 32)
+      ctx.fill()
+      ctx.stroke()
+
+      // Gambar QR Code di tengah bingkai putih
+      const pad = 36
+      ctx.drawImage(img, qrBoxX + pad, qrBoxY + pad, qrBoxSize - pad * 2, qrBoxSize - pad * 2)
+      URL.revokeObjectURL(url)
+
+      // 5. Langkah Instruksi Pemesanan di Bawah QR
+      ctx.fillStyle = '#2B1D00'
+      ctx.font = '800 24px system-ui, -apple-system, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('1. Scan QR  •  2. Pilih Menu  •  3. Bayar', W / 2, qrBoxY + qrBoxSize + 60)
+
+      // 6. Border Luar Seluruh Kartu (#E8DCC8, 6px) persis seperti preview
+      ctx.strokeStyle = '#E8DCC8'
+      ctx.lineWidth = 6
+      ctx.beginPath()
+      ctx.roundRect(3, 3, W - 6, H - 6, cardRadius)
+      ctx.stroke()
 
       // Trigger Download PNG
       const pngUrl = canvas.toDataURL('image/png')
@@ -488,15 +497,6 @@ export default function QrMejaPage() {
       tint: 'bg-[#F2D9CC]',
       on: 'bg-[#C2502F] text-white',
     },
-    {
-      key: 'Outdoor',
-      label: 'Format Cetak',
-      count: 'A4 & PNG',
-      hint: 'Siap display meja',
-      Icon: ListOrdered,
-      tint: 'bg-[#E2EBC0]',
-      on: 'bg-[#7F9A2E] text-white',
-    },
   ]
 
   return (
@@ -525,15 +525,6 @@ export default function QrMejaPage() {
               >
                 <Plus className="w-4 h-4 flex-shrink-0" />
                 <span>Tambah Meja</span>
-              </button>
-              <button
-                type="button"
-                onClick={handlePrintAll}
-                disabled={tables.length === 0}
-                className="flex h-9 sm:h-10 px-3 sm:px-4 items-center gap-1.5 rounded-full bg-[#FF8F2B] hover:bg-[#E57A18] text-white text-xs font-bold transition-all shadow-xs active:scale-95 whitespace-nowrap flex-shrink-0 cursor-pointer disabled:opacity-50"
-              >
-                <Printer className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Cetak Semua QR ({tables.length})</span>
               </button>
             </div>
           }
@@ -601,8 +592,8 @@ export default function QrMejaPage() {
           </div>
         </section>
 
-        {/* 4 Kartu KPI pastel bulat persis seperti /dashboard/proses-pesanan */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* 3 Kartu KPI pastel bulat */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {STATUS_CARDS.map((st, idx) => (
             <div
               key={idx}
