@@ -14,6 +14,7 @@ import { Plus, Search, Loader2, AlertCircle, RefreshCw, LogIn, ReceiptText, Slid
 import clsx from 'clsx'
 import DapiHead from '@/components/ui/DapiHead'
 import { useToast } from '@/context/ToastContext'
+import { useBusy } from '@/context/BusyContext'
 import { TableSkeleton } from '@/components/ui/Skeleton'
 import { getKemasanPasarFallback } from './utils/kemasanPasar'
 
@@ -44,49 +45,56 @@ export default function PurchaseOrderPage() {
   } = usePurchaseOrder()
 
   const toast = useToast()
+  const { isBusy, withLock } = useBusy()
 
   const handleCreatePOWithToast = async (input: CreatePOInput) => {
-    try {
-      await createPO(input)
-      toast.success(
-        'Purchase Order Berhasil Dibuat',
-        `PO untuk ${input.namaSupplier || 'Supplier'} siap diproses.`
-      )
-    } catch (err: any) {
-      toast.error('Gagal Membuat PO', err.message || 'Terjadi kesalahan sistem')
-      throw err
-    }
+    return await withLock(async () => {
+      try {
+        await createPO(input)
+        toast.success(
+          'Purchase Order Berhasil Dibuat',
+          `PO untuk ${input.namaSupplier || 'Supplier'} siap diproses.`
+        )
+      } catch (err: any) {
+        toast.error('Gagal Membuat PO', err.message || 'Terjadi kesalahan sistem')
+        throw err
+      }
+    }, 'Menyimpan Purchase Order...')
   }
 
   const handleUpdateStatusWithToast = async (poId: string, newStatus: any) => {
-    try {
-      await updateStatus(poId, newStatus)
-      const statusLabel =
-        newStatus === 'dikirim'
-          ? 'Dikirim ke Supplier'
-          : newStatus === 'diterima'
-          ? 'Diterima'
-          : newStatus === 'tagihan'
-          ? 'Masuk ke Tagihan'
-          : newStatus
-      toast.success('Status PO Diperbarui', `Status PO berhasil diubah menjadi "${statusLabel}".`)
-    } catch (err: any) {
-      toast.error('Gagal Memperbarui Status', err.message || 'Terjadi kesalahan sistem')
-      throw err
-    }
+    return await withLock(async () => {
+      try {
+        await updateStatus(poId, newStatus)
+        const statusLabel =
+          newStatus === 'dikirim'
+            ? 'Dikirim ke Supplier'
+            : newStatus === 'diterima'
+            ? 'Diterima'
+            : newStatus === 'tagihan'
+            ? 'Masuk ke Tagihan'
+            : newStatus
+        toast.success('Status PO Diperbarui', `Status PO berhasil diubah menjadi "${statusLabel}".`)
+      } catch (err: any) {
+        toast.error('Gagal Memperbarui Status', err.message || 'Terjadi kesalahan sistem')
+        throw err
+      }
+    }, 'Memperbarui status PO...')
   }
 
   const handleVerifyPenerimaanWithToast = async (input: any) => {
-    try {
-      await verifyPenerimaan(input)
-      toast.success(
-        'Barang Diterima & Stok Bertambah',
-        'Stok bahan baku dapur telah otomatis diperbarui sesuai kuantitas aktual.'
-      )
-    } catch (err: any) {
-      toast.error('Gagal Verifikasi Barang', err.message || 'Terjadi kesalahan sistem')
-      throw err
-    }
+    return await withLock(async () => {
+      try {
+        await verifyPenerimaan(input)
+        toast.success(
+          'Barang Diterima & Stok Bertambah',
+          'Stok bahan baku dapur telah otomatis diperbarui sesuai kuantitas aktual.'
+        )
+      } catch (err: any) {
+        toast.error('Gagal Verifikasi Barang', err.message || 'Terjadi kesalahan sistem')
+        throw err
+      }
+    }, 'Memverifikasi barang masuk dan menambah stok...')
   }
 
   const [showWizard, setShowWizard] = useState(false)

@@ -7,6 +7,7 @@ import { formatRupiah } from '@/lib/mock-data'
 import Pagination from '@/components/ui/Pagination'
 import DapiMascot from '@/components/ui/DapiMascot'
 import { useToast } from '@/context/ToastContext'
+import { useBusy } from '@/context/BusyContext'
 import {
   Store,
   QrCode,
@@ -99,6 +100,7 @@ export default function PublicOrderPage({
   const [orderNotes, setOrderNotes] = useState('')
   const [paymentChoice, setPaymentChoice] = useState<'qris' | 'kasir'>('kasir')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { isBusy, withLock } = useBusy()
 
   // QRIS Payment Flow
   const [qrisData, setQrisData] = useState<{
@@ -300,45 +302,47 @@ export default function PublicOrderPage({
     payStatus: string,
     midtransId?: string
   ) => {
-    try {
-      setIsSubmitting(true)
-      const res = await fetch(`/order/${storeId}/api/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tableNumber: tableParam,
-          customerName: customerName.trim(),
-          customerEmail: customerEmail.trim() || null,
-          notes: orderNotes.trim() || null,
+    return await withLock(async () => {
+      try {
+        setIsSubmitting(true)
+        const res = await fetch(`/order/${storeId}/api/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tableNumber: tableParam,
+            customerName: customerName.trim(),
+            customerEmail: customerEmail.trim() || null,
+            notes: orderNotes.trim() || null,
+            paymentMethod: method,
+            paymentStatus: payStatus,
+            midtransOrderId: midtransId || null,
+            items: cart.map(c => ({
+              menuId: c.menu.id,
+              qty: c.qty,
+            })),
+          }),
+        })
+
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || 'Gagal mengirimkan pesanan ke dapur.')
+        }
+
+        setPaymentDone(true)
+        setCompletedOrder({
+          invoiceNumber: data.invoiceNumber,
+          totalPrice: data.totalPrice,
+          paymentStatus: data.paymentStatus,
           paymentMethod: method,
-          paymentStatus: payStatus,
-          midtransOrderId: midtransId || null,
-          items: cart.map(c => ({
-            menuId: c.menu.id,
-            qty: c.qty,
-          })),
-        }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Gagal mengirimkan pesanan ke dapur.')
+        })
+        setCart([])
+        toast.success('Pesanan Diterima Dapur', `No. Nota ${data.invoiceNumber} berhasil dikirim ke antrean.`)
+      } catch (err: any) {
+        toast.error('Gagal Memproses Pesanan', err.message || 'Terjadi gangguan koneksi.')
+      } finally {
+        setIsSubmitting(false)
       }
-
-      setPaymentDone(true)
-      setCompletedOrder({
-        invoiceNumber: data.invoiceNumber,
-        totalPrice: data.totalPrice,
-        paymentStatus: data.paymentStatus,
-        paymentMethod: method,
-      })
-      setCart([])
-      toast.success('Pesanan Diterima Dapur', `No. Nota ${data.invoiceNumber} berhasil dikirim ke antrean.`)
-    } catch (err: any) {
-      toast.error('Gagal Memproses Pesanan', err.message || 'Terjadi gangguan koneksi.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    }, 'Mengirimkan pesanan Anda ke dapur...')
   }
 
   if (loading) {

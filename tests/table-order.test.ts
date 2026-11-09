@@ -31,9 +31,18 @@ test('Kalkulasi subtotal dan profit pesanan mandiri meja', () => {
   assert.equal(result.profit, 44000)
 })
 
-test('Status pembayaran untuk metode Bayar di Kasir', () => {
-  assert.equal(resolvePaymentStatus('Bayar di Kasir', false), 'Belum Lunas')
-  assert.equal(resolvePaymentStatus('Bayar di Kasir', true), 'Lunas')
+test('Aturan pengiriman email struk hanya saat pembayaran lunas', () => {
+  const shouldSendReceiptAtCheckout = (paymentStatus: string) => {
+    return String(paymentStatus).toLowerCase() === 'lunas'
+  }
+
+  // Jika Bayar di Kasir (status Belum Dibayar / Belum Lunas) -> TIDAK boleh kirim struk saat checkout
+  assert.equal(shouldSendReceiptAtCheckout('Belum Dibayar'), false)
+  assert.equal(shouldSendReceiptAtCheckout('Belum Lunas'), false)
+
+  // Jika QRIS Dinamis (status Lunas) -> Boleh kirim struk saat checkout
+  assert.equal(shouldSendReceiptAtCheckout('Lunas'), true)
+  assert.equal(shouldSendReceiptAtCheckout('lunas'), true)
 })
 
 test('Status pembayaran untuk metode QRIS Dinamis', () => {

@@ -136,9 +136,56 @@ export function useProsesPesanan() {
     setBusyOrderId(order.id)
     try {
       await prosesPesananService.tandaiLunasDiKasir(order.id)
+
+      // Cek apakah ada email pelanggan di customerEmail, customerPhone, atau notes
+      let targetEmail = order.customerEmail?.trim() || ''
+      if (!targetEmail && order.customerPhone && order.customerPhone.includes('@')) {
+        targetEmail = order.customerPhone.trim()
+      }
+      if (!targetEmail && order.notes) {
+        const match = order.notes.match(/\[Email:\s*([^\]]+)\]/i)
+        if (match && match[1]) {
+          targetEmail = match[1].trim()
+        }
+      }
+
+      // Jika pelanggan menyertakan email, kirimkan struk lunas kasir resmi via Resend
+      if (targetEmail) {
+        try {
+          await fetch('/api/notify-sale', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customerEmail: targetEmail,
+              invoiceNumber: order.invoiceNumber,
+              customerName: order.customerName,
+              customerPhone: order.customerPhone,
+              paymentMethod: 'Tunai di Kasir',
+              paymentStatus: 'Lunas',
+              subtotal: order.subtotal,
+              discount: order.discount || 0,
+              totalPrice: order.totalPrice,
+              cashReceived: order.totalPrice,
+              changeAmount: 0,
+              cashierName: order.cashierName || 'Kasir',
+              notes: order.notes,
+              items: (order.items || []).map(it => ({
+                namaMenu: it.namaMenu,
+                qty: it.qty,
+                hargaJual: it.hargaJual,
+                subtotal: it.subtotal || it.hargaJual * it.qty,
+              })),
+              createdAt: order.createdAt,
+            }),
+          })
+        } catch (mailErr) {
+          console.warn('[handleTandaiLunas] Gagal mengirim struk pelunasan kasir:', mailErr)
+        }
+      }
+
       toast.success(
         `Pembayaran ${order.invoiceNumber} Diterima`,
-        `Pesanan dari ${order.tableNumber ? `Meja ${order.tableNumber}` : 'pelanggan'} telah ditandai Lunas.`
+        `Pesanan dari ${order.tableNumber ? `Meja ${order.tableNumber}` : 'pelanggan'} telah ditandai Lunas di kasir.${targetEmail ? ' Struk digital berhasil dikirimkan ke ' + targetEmail : ''}`
       )
       await fetchPesanan()
     } catch (err: unknown) {

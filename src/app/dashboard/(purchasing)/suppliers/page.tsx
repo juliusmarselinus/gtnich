@@ -23,6 +23,7 @@ import {
 import clsx from 'clsx'
 import { useToast } from '@/context/ToastContext'
 import { TableSkeleton } from '@/components/ui/Skeleton'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 const STATUS_CARDS = [
   {
@@ -68,6 +69,8 @@ export default function SuppliersPage() {
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Supplier | null>(null)
+  const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const toast = useToast()
 
@@ -94,16 +97,25 @@ export default function SuppliersPage() {
     }
   }
 
-  async function handleDelete(id: string) {
+  function handleDelete(id: string) {
     const target = list.find(s => s.id === id)
-    const namaSupplier = target ? target.nama : 'Supplier'
-    if (confirm(`Yakin ingin menghapus ${namaSupplier} dari database?`)) {
-      try {
-        await deleteSupplier(id)
-        toast.success('Supplier Dihapus', `${namaSupplier} telah dihapus dari daftar.`)
-      } catch (err: any) {
-        toast.error('Gagal Menghapus Supplier', err.message || 'Terjadi kesalahan sistem')
-      }
+    if (target) {
+      setSupplierToDelete(target)
+    }
+  }
+
+  async function executeDeleteSupplier() {
+    if (!supplierToDelete) return
+    setIsDeleting(true)
+    const namaSupplier = supplierToDelete.nama
+    try {
+      await deleteSupplier(supplierToDelete.id)
+      toast.success('Supplier Dihapus', `${namaSupplier} telah dihapus dari daftar.`)
+      setSupplierToDelete(null)
+    } catch (err: any) {
+      toast.error('Gagal Menghapus Supplier', err.message || 'Terjadi kesalahan sistem')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -319,6 +331,19 @@ export default function SuppliersPage() {
         onSave={handleSaveSupplierWithToast}
         editingSupplier={editing}
         categories={categories}
+      />
+
+      {/* Modal Konfirmasi Hapus Supplier */}
+      <ConfirmModal
+        isOpen={Boolean(supplierToDelete)}
+        title="Hapus Rekanan Supplier?"
+        message={`Apakah Anda yakin ingin menghapus data supplier "${supplierToDelete?.nama || ''}" dari sistem? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        isDestructive={true}
+        loading={isDeleting}
+        onClose={() => setSupplierToDelete(null)}
+        onConfirm={executeDeleteSupplier}
       />
     </div>
   )

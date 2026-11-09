@@ -297,7 +297,14 @@ export const menuService = {
 
   async delete(id: string): Promise<void> {
     const supabase = createClient()
-    const { error } = await supabase.from('menus').delete().eq('id', id)
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase.from('menus').delete().eq('id', id)
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+    const { error } = await query
 
     if (error) {
       console.error('Error deleting menu:', error)
@@ -310,13 +317,22 @@ export const menuService = {
    */
   async toggleActive(id: string, isActive: boolean): Promise<void> {
     const supabase = createClient()
-    const { error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('menus')
       .update({
         is_active: isActive,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { error } = await query
 
     if (error) {
       console.error('Error toggling menu active status:', error)

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useToast } from '@/context/ToastContext'
+import { useBusy } from '@/context/BusyContext'
 import { PenjualanKatalogSkeleton } from '@/components/ui/Skeleton'
 
 export default function PenjualanPage() {
@@ -64,6 +65,7 @@ export default function PenjualanPage() {
   const [successNotif, setSuccessNotif] = useState<string | null>(null)
   const [receiptOrder, setReceiptOrder] = useState<OrderRecord | null>(null)
   const toast = useToast()
+  const { isBusy, withLock } = useBusy()
 
   const cartItemCounts = cart.reduce((acc, item) => {
     acc[item.menuId] = item.cartQty
@@ -88,20 +90,22 @@ export default function PenjualanPage() {
   }
 
   const handleCheckout = async (form: CheckoutFormInput) => {
-    try {
-      const res = await processCheckout(form)
-      setReceiptOrder(res)
-      setSuccessNotif(`Transaksi ${res.invoiceNumber} berhasil disimpan!`)
-      toast.success(
-        'Transaksi Berhasil Disimpan',
-        `No. Struk ${res.invoiceNumber} senilai ${formatRupiah(res.totalPrice)} dicatat. Stok dapur otomatis terpotong.`
-      )
-      setTimeout(() => setSuccessNotif(null), 4500)
-      return res
-    } catch (err: any) {
-      toast.error('Gagal Proses Transaksi', err.message || 'Terjadi kesalahan sistem')
-      throw err
-    }
+    return await withLock(async () => {
+      try {
+        const res = await processCheckout(form)
+        setReceiptOrder(res)
+        setSuccessNotif(`Transaksi ${res.invoiceNumber} berhasil disimpan!`)
+        toast.success(
+          'Transaksi Berhasil Disimpan',
+          `No. Struk ${res.invoiceNumber} senilai ${formatRupiah(res.totalPrice)} dicatat. Stok dapur otomatis terpotong.`
+        )
+        setTimeout(() => setSuccessNotif(null), 4500)
+        return res
+      } catch (err: any) {
+        toast.error('Gagal Proses Transaksi', err.message || 'Terjadi kesalahan sistem')
+        throw err
+      }
+    }, 'Menyimpan transaksi kasir dan memotong stok bahan...')
   }
 
   return (
@@ -339,7 +343,7 @@ export default function PenjualanPage() {
                 onRemove={removeFromCart}
                 onClear={clearCart}
                 totals={totals}
-                isSubmitting={isSubmitting}
+                isSubmitting={isSubmitting || isBusy}
                 onCheckout={handleCheckout}
                 storeProfile={storeProfile}
               />

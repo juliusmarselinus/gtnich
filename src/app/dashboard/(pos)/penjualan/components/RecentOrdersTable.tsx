@@ -6,6 +6,7 @@ import { ShoppingBag, ChevronDown, ChevronUp, ReceiptText } from 'lucide-react'
 import { useState, Fragment } from 'react'
 import { ReceiptModal, orderToReceipt } from './Receipt'
 import clsx from 'clsx'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 interface RecentOrdersTableProps {
   orders: OrderRecord[]
@@ -34,9 +35,19 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
   const [busyId, setBusyId] = useState<string | null>(null)
   const [statusError, setStatusError] = useState<string | null>(null)
 
+  const [pendingCancelOrder, setPendingCancelOrder] = useState<OrderRecord | null>(null)
+
   const changeStatus = async (o: OrderRecord, to: OrderStatus) => {
     if (!onUpdateStatus) return
-    if (to === 'batal' && !window.confirm(`Batalkan pesanan ${o.invoiceNumber}? Stok bahan akan dikembalikan.`)) return
+    if (to === 'batal') {
+      setPendingCancelOrder(o)
+      return
+    }
+    await executeStatusChange(o, to)
+  }
+
+  const executeStatusChange = async (o: OrderRecord, to: OrderStatus) => {
+    if (!onUpdateStatus) return
     setBusyId(o.id)
     setStatusError(null)
     try {
@@ -45,6 +56,7 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
       setStatusError((e as Error).message)
     } finally {
       setBusyId(null)
+      setPendingCancelOrder(null)
     }
   }
   const [receiptOrder, setReceiptOrder] = useState<OrderRecord | null>(null)
@@ -361,6 +373,20 @@ export default function RecentOrdersTable({ orders, onUpdateStatus }: RecentOrde
 
       {receiptOrder && (
         <ReceiptModal data={orderToReceipt(receiptOrder)} onClose={() => setReceiptOrder(null)} />
+      )}
+
+      {pendingCancelOrder && (
+        <ConfirmModal
+          isOpen={true}
+          title="Batalkan Pesanan?"
+          message={`Batalkan pesanan ${pendingCancelOrder.invoiceNumber}? Stok bahan baku yang telah terpakai akan dikembalikan secara otomatis.`}
+          confirmText="Ya, Batalkan"
+          cancelText="Kembali"
+          isDestructive={true}
+          loading={busyId === pendingCancelOrder.id}
+          onClose={() => setPendingCancelOrder(null)}
+          onConfirm={() => executeStatusChange(pendingCancelOrder, 'batal')}
+        />
       )}
     </>
   )

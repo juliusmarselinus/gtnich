@@ -303,7 +303,7 @@ export default function ProsesPesananPage() {
               <PesananCard
                 key={order.id}
                 order={order}
-                busy={busyOrderId === order.id}
+                busy={Boolean(busyOrderId)}
                 onUpdateStatus={handleUpdateStatus}
                 onTandaiLunas={handleTandaiLunas}
                 onViewReceipt={o => setReceiptOrder(o)}

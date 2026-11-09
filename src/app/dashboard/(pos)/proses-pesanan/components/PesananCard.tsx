@@ -21,6 +21,7 @@ import {
   MessageCircle,
 } from 'lucide-react'
 import clsx from 'clsx'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 interface PesananCardProps {
   order: PesananWithKebutuhan
@@ -66,6 +67,7 @@ export default function PesananCard({
   onViewReceipt,
 }: PesananCardProps) {
   const [showDetail, setShowDetail] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const statusInfo = STATUS_BADGE[order.status] || STATUS_BADGE.menunggu
 
   const formatTanggal = (iso: string) => {
@@ -313,11 +315,7 @@ export default function PesananCard({
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => {
-                  if (confirm(`Batalkan pesanan ${order.invoiceNumber}?`)) {
-                    onUpdateStatus(order, 'batal')
-                  }
-                }}
+                onClick={() => setShowCancelConfirm(true)}
                 className="h-10 px-3.5 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-bold text-xs flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
                 title="Batalkan Pesanan"
               >
@@ -341,11 +339,7 @@ export default function PesananCard({
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => {
-                  if (confirm(`Batalkan pesanan ${order.invoiceNumber}? Stok bahan akan dikembalikan otomatis.`)) {
-                    onUpdateStatus(order, 'batal')
-                  }
-                }}
+                onClick={() => setShowCancelConfirm(true)}
                 className="h-10 px-3.5 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-bold text-xs flex items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
                 title="Batalkan Pesanan"
               >
@@ -370,6 +364,21 @@ export default function PesananCard({
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        title="Batalkan Pesanan?"
+        message={`Batalkan pesanan ${order.invoiceNumber}? Stok bahan baku yang telah terpotong akan dikembalikan secara otomatis ke dapur.`}
+        confirmText="Ya, Batalkan"
+        cancelText="Kembali"
+        isDestructive={true}
+        loading={busy}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={async () => {
+          setShowCancelConfirm(false)
+          await onUpdateStatus(order, 'batal')
+        }}
+      />
     </div>
   )
 }

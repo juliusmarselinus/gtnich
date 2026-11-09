@@ -285,21 +285,45 @@ export const penjualanService = {
     for (const log of logs || []) {
       const qtyBack = -Number(log.perubahan) || 0
       if (qtyBack <= 0) continue
-      const { data: bhn } = await supabase.from('bahan').select('stok, satuan').eq('id', log.bahan_id).single()
-      if (!bhn) continue
-      const currentStock = Number(bhn.stok) || 0
-      const newStock = Number((currentStock + qtyBack).toFixed(3))
-      await supabase.from('bahan').update({ stok: newStock, updated_at: new Date().toISOString() }).eq('id', log.bahan_id)
-      await supabase.from('stok_logs').insert({
-        user_id: effectiveUserId,
-        bahan_id: log.bahan_id,
-        perubahan: qtyBack,
-        stok_sebelum: currentStock,
-        stok_sesudah: newStock,
-        sumber: 'Pembatalan Penjualan',
-        reference_id: order.id,
-        catatan: `Pesanan ${order.invoiceNumber} dibatalkan: stok dikembalikan ${qtyBack} ${bhn.satuan}`,
+
+      // Coba atomic stock mutation via RPC terlebih dahulu
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('mutate_stok_bahan', {
+        p_bahan_id: log.bahan_id,
+        p_delta: qtyBack,
       })
+
+      if (!rpcErr && rpcRes && rpcRes.success) {
+        const stokSebelum = Number(rpcRes.stok_sebelum) || 0
+        const stokSesudah = Number(rpcRes.stok_sesudah) || 0
+        const satuanBahan = rpcRes.satuan || ''
+
+        await supabase.from('stok_logs').insert({
+          user_id: effectiveUserId,
+          bahan_id: log.bahan_id,
+          perubahan: qtyBack,
+          stok_sebelum: stokSebelum,
+          stok_sesudah: stokSesudah,
+          sumber: 'Pembatalan Penjualan',
+          reference_id: order.id,
+          catatan: `Pesanan ${order.invoiceNumber} dibatalkan: stok dikembalikan ${qtyBack} ${satuanBahan}`,
+        })
+      } else {
+        const { data: bhn } = await supabase.from('bahan').select('stok, satuan').eq('id', log.bahan_id).single()
+        if (!bhn) continue
+        const currentStock = Number(bhn.stok) || 0
+        const newStock = Number((currentStock + qtyBack).toFixed(3))
+        await supabase.from('bahan').update({ stok: newStock, updated_at: new Date().toISOString() }).eq('id', log.bahan_id)
+        await supabase.from('stok_logs').insert({
+          user_id: effectiveUserId,
+          bahan_id: log.bahan_id,
+          perubahan: qtyBack,
+          stok_sebelum: currentStock,
+          stok_sesudah: newStock,
+          sumber: 'Pembatalan Penjualan',
+          reference_id: order.id,
+          catatan: `Pesanan ${order.invoiceNumber} dibatalkan: stok dikembalikan ${qtyBack} ${bhn.satuan}`,
+        })
+      }
     }
   },
 
@@ -573,8 +597,8 @@ export const penjualanService = {
         createdAt: orderData.created_at,
       }
 
-      // Panggil endpoint internal notify-sale
-      fetch('/api/notify-sale', {
+      // Panggil endpoint internal notify-sale (await agar request selesai sebelum navigasi/unmount)
+      await fetch('/api/notify-sale', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(emailPayload),

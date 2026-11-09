@@ -62,6 +62,17 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
     mappedStatus = 'batal'
   }
 
+  // Ekstraksi email pelanggan dari field customer_phone atau notes jika ada
+  let extractedEmail: string | null = null
+  if (row.customer_phone && row.customer_phone.includes('@')) {
+    extractedEmail = row.customer_phone.trim()
+  } else if (row.notes) {
+    const match = row.notes.match(/\[Email:\s*([^\]]+)\]/i)
+    if (match && match[1]) {
+      extractedEmail = match[1].trim()
+    }
+  }
+
   return {
     id: row.id,
     userId: row.user_id,
@@ -69,6 +80,7 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
     invoiceNumber: row.invoice_number,
     customerName: row.customer_name,
     customerPhone: row.customer_phone,
+    customerEmail: extractedEmail,
     tableNumber: row.table_number || null,
     channel: row.channel,
     status: mappedStatus,

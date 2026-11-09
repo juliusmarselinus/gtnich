@@ -282,7 +282,14 @@ export const supplierService = {
 
   async delete(id: string): Promise<void> {
     const supabase = createClient()
-    const { error } = await supabase.from('suppliers').delete().eq('id', id)
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase.from('suppliers').delete().eq('id', id)
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+    const { error } = await query
 
     if (error) {
       console.error('Error deleting supplier detail:', error)

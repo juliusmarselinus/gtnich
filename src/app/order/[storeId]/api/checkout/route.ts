@@ -197,15 +197,20 @@ export async function POST(
       }
     }
 
-    // 3. Kirim Struk Pembayaran ke Email Pelanggan via Resend (desain struk sama persis seperti Kasir)
-    if (customerEmail && customerEmail.trim()) {
+    // 3. Kirim Struk Pembayaran ke Email Pelanggan via Resend
+    // Aturan: Hanya kirim struk jika status pembayaran sudah LUNAS (misal via QRIS langsung).
+    // Jika 'Bayar di Kasir' (status 'Belum Dibayar'), struk email TIDAK langsung dikirim saat checkout meja,
+    // melainkan baru dikirim setelah kasir menandai Lunas di kasir/KDS dapur.
+    const isPaymentLunas = String(finalPaymentStatus).toLowerCase() === 'lunas'
+
+    if (customerEmail && customerEmail.trim() && isPaymentLunas) {
       try {
         const storeName = storeProfile?.store_name || 'Dapur Resto & Kafe'
         const ownerName = storeProfile?.full_name || 'Owner'
         const clientEmail = customerEmail.trim()
 
-        // Panggil helper email struk DapurTwin
-        sendSaleTransactionEmail({
+        // Panggil helper email struk DapurTwin (await agar proses serverless tidak terputus sebelum email terkirim)
+        await sendSaleTransactionEmail({
           email: clientEmail,
           isCustomerCopy: true,
           storeName,
@@ -213,7 +218,7 @@ export async function POST(
           invoiceNumber: finalInvoiceNumber,
           customerName: customerName ? `${customerName} (${tableNumber || 'Meja'})` : `Pelanggan ${tableNumber || 'Meja'}`,
           customerEmail: clientEmail,
-          paymentMethod: paymentMethod || 'Bayar di Kasir',
+          paymentMethod: paymentMethod || 'QRIS Dinamis',
           paymentStatus: finalPaymentStatus,
           subtotal,
           discount: 0,
@@ -229,8 +234,6 @@ export async function POST(
             subtotal: it.subtotal,
           })),
           createdAt: new Date(),
-        }).catch(emailErr => {
-          console.warn('[Checkout] Gagal mengirim struk email pelanggan via Resend:', emailErr)
         })
       } catch (err) {
         console.warn('[Checkout] Exception saat memicu email Resend:', err)

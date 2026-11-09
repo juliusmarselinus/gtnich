@@ -27,11 +27,12 @@ export const tagihanService = {
 
     const notePayment = `[LUNAS ${nowStr}] Metode: ${input.metodePembayaran} • Nominal: Rp ${input.nominalBayar.toLocaleString('id-ID')}${input.catatan ? ' • Bukti/Ket: ' + input.catatan : ''}`
 
-    // Ambil catatan PO eksisting
+    // Ambil catatan PO eksisting milik user
     const { data: currentPO } = await supabase
       .from('purchase_orders')
       .select('catatan, status')
       .eq('id', input.poId)
+      .eq('user_id', userId)
       .single()
 
     const newCatatan = currentPO?.catatan
@@ -51,6 +52,7 @@ export const tagihanService = {
       .from('purchase_orders')
       .update(updatePayload)
       .eq('id', input.poId)
+      .eq('user_id', userId)
 
     if (error) {
       throw new Error(`Gagal mencatat pelunasan tagihan: ${error.message}`)

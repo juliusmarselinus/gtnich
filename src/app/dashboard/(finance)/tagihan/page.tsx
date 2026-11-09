@@ -24,6 +24,7 @@ import {
 import clsx from 'clsx'
 import DapiHead from '@/components/ui/DapiHead'
 import { useToast } from '@/context/ToastContext'
+import { useBusy } from '@/context/BusyContext'
 import { TableSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_CARDS = [
@@ -74,18 +75,21 @@ export default function TagihanPage() {
   const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null)
   const [modalMode, setModalMode] = useState<'detail' | 'bayar'>('detail')
   const toast = useToast()
+  const { isBusy, withLock } = useBusy()
 
   const handleProsesBayarWithToast = async (payload: any) => {
-    try {
-      await payTagihan(payload)
-      toast.success(
-        'Pembayaran Tagihan Berhasil',
-        `Pelunasan untuk ${payload.noPO || 'Tagihan'} sebesar ${formatRupiah(payload.nominalBayar ?? payload.nominal ?? 0)} berhasil dicatat.`
-      )
-    } catch (err: any) {
-      toast.error('Gagal Memproses Pembayaran', err.message || 'Terjadi kesalahan sistem')
-      throw err
-    }
+    return await withLock(async () => {
+      try {
+        await payTagihan(payload)
+        toast.success(
+          'Pembayaran Tagihan Berhasil',
+          `Pelunasan untuk ${payload.noPO || 'Tagihan'} sebesar ${formatRupiah(payload.nominalBayar ?? payload.nominal ?? 0)} berhasil dicatat.`
+        )
+      } catch (err: any) {
+        toast.error('Gagal Memproses Pembayaran', err.message || 'Terjadi kesalahan sistem')
+        throw err
+      }
+    }, 'Mencatat pelunasan tagihan supplier...')
   }
 
   return (

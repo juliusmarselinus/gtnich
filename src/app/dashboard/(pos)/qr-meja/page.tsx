@@ -33,6 +33,7 @@ import {
   ListOrdered,
 } from 'lucide-react'
 import clsx from 'clsx'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 interface TableInfo {
   id: string
@@ -75,6 +76,7 @@ export default function QrMejaPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [selectedTableForPrint, setSelectedTableForPrint] = useState<TableInfo | null>(null)
   const [isPrintAll, setIsPrintAll] = useState<boolean>(false)
+  const [tableToDelete, setTableToDelete] = useState<TableInfo | null>(null)
 
   const toast = useToast()
 
@@ -241,13 +243,18 @@ export default function QrMejaPage() {
     }
   }
 
-  const handleDeleteTable = async (table: TableInfo) => {
-    if (!window.confirm(`Hapus ${table.name} dari daftar QR Meja?`)) return
+  const handleDeleteTable = (table: TableInfo) => {
+    setTableToDelete(table)
+  }
+
+  const executeDeleteTable = async () => {
+    if (!tableToDelete) return
+    const table = tableToDelete
 
     try {
       if (storeId && table.isDbSynced) {
         const supabase = createClient()
-        await supabase.from('store_tables').delete().eq('id', table.id)
+        await supabase.from('store_tables').delete().eq('id', table.id).eq('user_id', storeId)
       }
     } catch {
       // ignore
@@ -256,6 +263,7 @@ export default function QrMejaPage() {
     const updated = tables.filter(t => t.id !== table.id)
     saveLocalFallback(updated)
     toast.info('Meja Dihapus', `${table.name} telah dihapus dari daftar.`)
+    setTableToDelete(null)
 
     if (paginatedTables.length === 1 && currentPage > 1) {
       setCurrentPage(p => p - 1)
@@ -1028,6 +1036,18 @@ export default function QrMejaPage() {
             </form>
           </div>
         </div>
+      )}
+      {tableToDelete && (
+        <ConfirmModal
+          isOpen={true}
+          title="Hapus Meja?"
+          message={`Apakah Anda yakin ingin menghapus ${tableToDelete.name} dari daftar QR meja? Pelanggan tidak akan bisa lagi scan kode QR meja ini.`}
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          isDestructive={true}
+          onClose={() => setTableToDelete(null)}
+          onConfirm={executeDeleteTable}
+        />
       )}
     </div>
   )
