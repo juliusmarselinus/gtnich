@@ -529,6 +529,7 @@ export default function QrMejaPage() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
+                data-tour="qr-add-btn"
                 className="flex h-9 sm:h-10 px-3 sm:px-4 items-center gap-1.5 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] text-[#2B1D00] text-xs font-bold transition-all shadow-xs active:scale-95 whitespace-nowrap flex-shrink-0 cursor-pointer"
               >
                 <Plus className="w-4 h-4 flex-shrink-0" />
@@ -601,7 +602,7 @@ export default function QrMejaPage() {
         </section>
 
         {/* 3 Kartu KPI pastel bulat */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div data-tour="qr-status-cards" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {STATUS_CARDS.map((st, idx) => (
             <div
               key={idx}
@@ -632,7 +633,7 @@ export default function QrMejaPage() {
         </div>
 
         {/* Search & Filter Zona Bar (Persis seperti /dashboard/proses-pesanan) */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div data-tour="qr-filter-bar" className="flex flex-wrap items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-kopi-muted absolute left-4 top-1/2 -translate-y-1/2" />
             <input
@@ -694,7 +695,7 @@ export default function QrMejaPage() {
             <p className="text-[11px]">Tambahkan meja baru melalui formulir di atas.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div data-tour="qr-table-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {paginatedTables.map(table => {
               const orderUrl = getOrderUrl(table.name)
               const isCopied = copiedId === table.id

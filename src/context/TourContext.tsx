@@ -103,6 +103,40 @@ export const PAGE_GUIDES: Record<string, TourStepInfo[]> = {
       mood: 'senang',
     },
   ],
+  '/dashboard/qr-meja': [
+    {
+      targetSelector: '[data-tour="qr-add-btn"]',
+      title: 'Tambah Meja Baru',
+      subtitle: 'Daftarkan nomor meja makan dan zonanya',
+      description: 'Klik tombol ini untuk memasukkan nomor meja (misal: Meja 5), kapasitas kursi, serta area penempatan seperti Area Utama, Outdoor, atau Lantai 2.',
+      tip: 'Setiap meja yang didaftarkan akan otomatis memiliki link katalog online dan kode QR unik tersendiri.',
+      mood: 'senang',
+    },
+    {
+      targetSelector: '[data-tour="qr-status-cards"]',
+      title: 'Ringkasan Kapasitas & Pesanan QR',
+      subtitle: 'Pantau total meja dan pemakaian scan',
+      description: 'Tiga kartu ringkasan untuk melihat total meja terpasang, daya tampung kursi pelanggan secara keseluruhan, dan akumulasi jumlah transaksi yang masuk lewat scan QR.',
+      tip: 'Angka pesanan QR mencerminkan seberapa sering pelanggan memanfaatkan pemesanan mandiri dari meja.',
+      mood: 'senang',
+    },
+    {
+      targetSelector: '[data-tour="qr-filter-bar"]',
+      title: 'Pencarian Meja & Filter Area',
+      subtitle: 'Saring kartu meja berdasarkan lokasi',
+      description: 'Gunakan kolom pencarian untuk menemukan meja tertentu, atau klik filter zona (Indoor, Outdoor, Lantai 2) untuk mengelompokkan tampilan kartu meja.',
+      tip: 'Memudahkan Anda saat ingin mencetak ulang kartu QR per kelompok ruangan.',
+      mood: 'senang',
+    },
+    {
+      targetSelector: '[data-tour="qr-table-grid"]',
+      title: 'Kartu Meja & Aksi Cetak QR',
+      subtitle: 'Pratinjau stand akrilik, unduh PNG, dan cetak',
+      description: 'Setiap kartu meja menampilkan kode QR resolusi tinggi, jumlah kursi, tombol Salin Link pemesanan, Buka Katalog, Unduh Desain Stand (PNG), dan tombol Cetak langsung.',
+      tip: 'Gunakan tombol Unduh PNG untuk mencetak stand akrilik meja dengan kualitas gambar tajam dan instruksi scan 3 langkah yang ramah pelanggan.',
+      mood: 'senang',
+    },
+  ],
   '/dashboard/purchase-order': [
     {
       targetSelector: '[data-tour="po-create-btn"]',
