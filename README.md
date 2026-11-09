@@ -137,6 +137,80 @@ src/
 
 ---
 
+## 🗄️ Skema Database & Relasi (Supabase PostgreSQL)
+
+DapurTwin dirancang dengan arsitektur multi-tenant berbasis `user_id` yang terhubung ke `auth.users` dan tabel induk profil bisnis `public.profiles`. Seluruh tabel operasional menerapkan kontrol isolasi data menggunakan **Row Level Security (RLS)**.
+
+### Entity-Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+  PROFILES ||--o{ SUPPLIERS : "mengelola"
+  PROFILES ||--o{ SUPPLIER_CATEGORIES : "membuat"
+  PROFILES ||--o{ BAHAN : "memiliki inventori"
+  PROFILES ||--o{ MENUS : "memiliki katalog"
+  PROFILES ||--o{ CUSTOMERS : "mencatat pelanggan"
+  PROFILES ||--o{ ORDERS : "menerima transaksi"
+  PROFILES ||--o{ PURCHASE_ORDERS : "melakukan pengadaan"
+  PROFILES ||--o{ REKOMENDASI : "menerima insight"
+  PROFILES ||--o{ OCR_RECEIPTS : "memindai nota"
+  PROFILES ||--o{ STORE_TABLES : "mengatur meja QR"
+
+  SUPPLIER_CATEGORIES ||--o{ SUPPLIERS : "mengelompokkan"
+  SUPPLIERS ||--o{ BAHAN : "menyediakan bahan"
+  SUPPLIERS ||--o{ PURCHASE_ORDERS : "menerima PO"
+  SUPPLIERS ||--o{ SUPPLIER_RIWAYAT : "riwayat transaksi"
+
+  MENUS ||--|{ RESEP_ITEMS : "memiliki rincian resep"
+  BAHAN ||--o{ RESEP_ITEMS : "digunakan dalam resep"
+  BAHAN ||--o{ PO_ITEMS : "dipesan dalam PO"
+  BAHAN ||--o{ STOK_LOGS : "mencatat mutasi fisik"
+
+  PURCHASE_ORDERS ||--|{ PO_ITEMS : "memiliki item pengadaan"
+  CUSTOMERS ||--o{ ORDERS : "melakukan pemesanan"
+  ORDERS ||--|{ ORDER_ITEMS : "memiliki rincian item"
+  MENUS ||--o{ ORDER_ITEMS : "dijual dalam pesanan"
+```
+
+---
+
+### Kamus Data & Relasi Entitas
+
+#### 1. Core Akun & Master Supplier
+| Entitas | Deskripsi & Tujuan | Foreign Key & Relasi Kunci |
+| :--- | :--- | :--- |
+| `profiles` | Master profil toko/dapur, pengaturan pajak resto, dan status setup bisnis. | `id` $\rightarrow$ `auth.users(id)` |
+| `supplier_categories` | Kategori klasifikasi supplier (misal: *Pasar Basah*, *Packaging*, *Dry Goods*). | `user_id` $\rightarrow$ `profiles(id)` |
+| `suppliers` | Direktori pemasok bahan baku lengkap dengan kontak dan minimal order. | `user_id` $\rightarrow$ `profiles(id)`<br>`category_id` $\rightarrow$ `supplier_categories(id)` |
+| `supplier_riwayat` | Catatan riwayat pembayaran/transaksi historis kepada supplier. | `user_id` $\rightarrow$ `profiles(id)`<br>`supplier_id` $\rightarrow$ `suppliers(id)` |
+
+#### 2. Inventori Bahan Baku & Resep Menu (Bill of Materials)
+| Entitas | Deskripsi & Tujuan | Foreign Key & Relasi Kunci |
+| :--- | :--- | :--- |
+| `bahan` | Master bahan baku gudang, harga beli pokok per satuan, stok aktual, & safety stock. | `user_id` $\rightarrow$ `profiles(id)`<br>`supplier_id` $\rightarrow$ `suppliers(id)` (Opsional) |
+| `menus` | Katalog menu makanan/minuman, harga jual, estimasi HPP, dan status aktif. | `user_id` $\rightarrow$ `profiles(id)` |
+| `resep_items` | Rincian bahan baku per menu porsi (BOM) untuk pemotongan stok otomatis. | `user_id` $\rightarrow$ `profiles(id)`<br>`menu_id` $\rightarrow$ `menus(id)`<br>`bahan_id` $\rightarrow$ `bahan(id)` |
+| `stok_logs` | Jejak audit mutasi kartu stok keluar-masuk (sumber: penjualan, PO, koreksi/waste). | `user_id` $\rightarrow$ `profiles(id)`<br>`bahan_id` $\rightarrow$ `bahan(id)` |
+
+#### 3. Penjualan POS, Antrean Dapur & Self-Order Meja
+| Entitas | Deskripsi & Tujuan | Foreign Key & Relasi Kunci |
+| :--- | :--- | :--- |
+| `store_tables` | Master nomor meja, kapasitas kursi, zona meja, dan penghitung scan QR. | `user_id` $\rightarrow$ `auth.users(id)` |
+| `customers` | Buku data kontak pelanggan setia toko (nama, telepon, email, alamat). | `user_id` $\rightarrow$ `profiles(id)` |
+| `orders` | Induk transaksi penjualan (nota invoice, status pesanan, pembayaran tunai/QRIS, nomor meja). | `user_id` $\rightarrow$ `profiles(id)`<br>`customer_id` $\rightarrow$ `customers(id)` (Opsional) |
+| `order_items` | Baris rincian menu yang dipesan, kuantitas porsi, harga jual, dan snapshot HPP. | `user_id` $\rightarrow$ `profiles(id)`<br>`order_id` $\rightarrow$ `orders(id)`<br>`menu_id` $\rightarrow$ `menus(id)` |
+
+#### 4. Pengadaan (Purchasing), AI Vision & Sistem
+| Entitas | Deskripsi & Tujuan | Foreign Key & Relasi Kunci |
+| :--- | :--- | :--- |
+| `purchase_orders` | Dokumen pesanan pengadaan bahan ke supplier (Draft, Terkirim, Diterima). | `user_id` $\rightarrow$ `profiles(id)`<br>`supplier_id` $\rightarrow$ `suppliers(id)` |
+| `po_items` | Baris bahan yang dipesan dalam PO (harga estimasi vs aktual diterima di gudang). | `user_id` $\rightarrow$ `profiles(id)`<br>`po_id` $\rightarrow$ `purchase_orders(id)`<br>`bahan_id` $\rightarrow$ `bahan(id)` |
+| `ocr_receipts` | Arsip pemindaian AI Vision terhadap foto struk fisik pasar/supermarket. | `user_id` $\rightarrow$ `profiles(id)` |
+| `rekomendasi` | Hasil kalkulasi analitik AI untuk saran pengadaan bahan dan evaluasi menu lambat. | `user_id` $\rightarrow$ `profiles(id)` |
+| `notifications` | Notifikasi sistem, peringatan stok kritis, dan tagihan jatuh tempo ke user. | `user_id` $\rightarrow$ `auth.users(id)` |
+
+---
+
 ## 🚀 Panduan Instalasi Lokal
 
 ### 1. Prasyarat
