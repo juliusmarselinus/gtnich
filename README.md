@@ -137,77 +137,187 @@ src/
 
 ---
 
-## 🗄️ Skema Database & Relasi (Supabase PostgreSQL)
+## 🗄️ Struktur Database & Alur Data Dapur (Supabase)
 
-DapurTwin dirancang dengan arsitektur multi-tenant berbasis `user_id` yang terhubung ke `auth.users` dan tabel induk profil bisnis `public.profiles`. Seluruh tabel operasional menerapkan kontrol isolasi data menggunakan **Row Level Security (RLS)**.
+Agar operasional dapur berjalan lancar, DapurTwin mengelompokkan data ke dalam 4 pos utama: **Toko & Supplier**, **Gudang Bahan & Resep Menu**, **Meja & Kasir Penjualan**, serta **Belanja Bahan (PO) & Sistem**. 
 
-### Entity-Relationship Diagram (ERD)
+Setiap data toko terlindungi secara aman (*multi-tenant*) menggunakan `user_id`, sehingga data tiap pemilik usaha tidak akan pernah tertukar.
+
+### Diagram Relasi Tabel (ERD DapurTwin)
+
+Berikut gambaran bagaimana menu, stok bahan di gudang, meja makan, dan transaksi penjualan saling terhubung secara otomatis:
 
 ```mermaid
 erDiagram
-  PROFILES ||--o{ SUPPLIERS : "mengelola"
-  PROFILES ||--o{ SUPPLIER_CATEGORIES : "membuat"
-  PROFILES ||--o{ BAHAN : "memiliki inventori"
-  PROFILES ||--o{ MENUS : "memiliki katalog"
-  PROFILES ||--o{ CUSTOMERS : "mencatat pelanggan"
-  PROFILES ||--o{ ORDERS : "menerima transaksi"
-  PROFILES ||--o{ PURCHASE_ORDERS : "melakukan pengadaan"
-  PROFILES ||--o{ REKOMENDASI : "menerima insight"
-  PROFILES ||--o{ OCR_RECEIPTS : "memindai nota"
-  PROFILES ||--o{ STORE_TABLES : "mengatur meja QR"
+  PROFILES {
+    uuid id PK "ID Akun Toko"
+    text store_name "Nama Kedai / Usaha"
+    text phone "Nomor WhatsApp Toko"
+    text store_address "Alamat Dapur / Toko"
+    numeric tax_rate "Tarif Pajak Resto (%)"
+  }
 
-  SUPPLIER_CATEGORIES ||--o{ SUPPLIERS : "mengelompokkan"
-  SUPPLIERS ||--o{ BAHAN : "menyediakan bahan"
-  SUPPLIERS ||--o{ PURCHASE_ORDERS : "menerima PO"
-  SUPPLIERS ||--o{ SUPPLIER_RIWAYAT : "riwayat transaksi"
+  STORE_TABLES {
+    uuid id PK "ID Meja"
+    uuid user_id FK "Milik Toko"
+    text table_name "Nomor Meja (Meja 1)"
+    integer capacity "Kapasitas Kursi"
+    text location_zone "Area (Utama/Outdoor)"
+    integer scan_count "Berapa Kali Discan"
+  }
 
-  MENUS ||--|{ RESEP_ITEMS : "memiliki rincian resep"
-  BAHAN ||--o{ RESEP_ITEMS : "digunakan dalam resep"
-  BAHAN ||--o{ PO_ITEMS : "dipesan dalam PO"
-  BAHAN ||--o{ STOK_LOGS : "mencatat mutasi fisik"
+  CUSTOMERS {
+    uuid id PK "ID Pelanggan"
+    uuid user_id FK "Milik Toko"
+    text nama "Nama Pembeli"
+    text telepon "Nomor HP / WhatsApp"
+    text email "Email Penerima Struk"
+  }
 
-  PURCHASE_ORDERS ||--|{ PO_ITEMS : "memiliki item pengadaan"
-  CUSTOMERS ||--o{ ORDERS : "melakukan pemesanan"
-  ORDERS ||--|{ ORDER_ITEMS : "memiliki rincian item"
-  MENUS ||--o{ ORDER_ITEMS : "dijual dalam pesanan"
+  SUPPLIERS {
+    uuid id PK "ID Supplier"
+    uuid user_id FK "Milik Toko"
+    uuid category_id FK "Kategori Pemasok"
+    text nama "Nama Toko / Distributor"
+    text telepon "Kontak Pemesanan"
+    numeric minimal_order "Batas Minimal Order"
+  }
+
+  BAHAN {
+    uuid id PK "ID Bahan Baku"
+    uuid user_id FK "Milik Toko"
+    uuid supplier_id FK "Langganan Supplier"
+    text nama "Nama Bahan (misal: Beras)"
+    text satuan "Satuan Pokok (kg, liter, pcs)"
+    numeric stok "Sisa Stok di Gudang"
+    numeric stok_minimum "Batas Aman Stok Menipis"
+    numeric harga_per_satuan "Harga Beli per Satuan"
+  }
+
+  MENUS {
+    uuid id PK "ID Menu"
+    uuid user_id FK "Milik Toko"
+    text nama "Nama Masakan / Minuman"
+    text kategori "Makanan / Minuman"
+    numeric harga_jual "Harga ke Pelanggan"
+    numeric estimasi_hpp "Modal Bahan Baku per Porsi"
+    boolean is_active "Tersedia / Ditutup"
+  }
+
+  RESEP_ITEMS {
+    uuid id PK "ID Resep"
+    uuid menu_id FK "Untuk Menu Tertentu"
+    uuid bahan_id FK "Bahan yang Dipakai"
+    numeric qty "Takaran Masak per Porsi"
+  }
+
+  ORDERS {
+    uuid id PK "ID Pesanan"
+    uuid user_id FK "Milik Toko"
+    uuid customer_id FK "Data Pelanggan (opsional)"
+    text invoice_number "No. Nota Kasir (INV/...)"
+    text table_number "Asal Nomor Meja"
+    text customer_name "Nama Pemesan"
+    text customer_phone "No. Kontak / Email"
+    text status "menunggu / diproses / selesai"
+    text payment_method "Tunai / QRIS / Kasir"
+    text payment_status "Belum Dibayar / Lunas"
+    numeric total_price "Total Belanja"
+    numeric total_hpp "Total Modal Bahan"
+    numeric profit "Keuntungan Bersih Transaksi"
+  }
+
+  ORDER_ITEMS {
+    uuid id PK "ID Item Nota"
+    uuid order_id FK "Nomor Faktur Pesanan"
+    uuid menu_id FK "Menu yang Dipesan"
+    text nama_menu "Nama Menu saat Transaksi"
+    integer qty "Jumlah Porsi"
+    numeric harga_jual "Harga Satuan"
+    numeric hpp "Modal Satuan"
+    numeric subtotal "Subtotal Harga"
+  }
+
+  PURCHASE_ORDERS {
+    uuid id PK "ID PO Belanja"
+    uuid user_id FK "Milik Toko"
+    uuid supplier_id FK "Supplier Tujuan"
+    text no_po "Nomor PO Belanja"
+    text nama_supplier "Nama Toko Pembelian"
+    text status "draft / dikirim / diterima"
+    numeric total_estimasi "Rencana Anggaran"
+    numeric total_aktual "Total Belanja Riil Pasar"
+  }
+
+  PO_ITEMS {
+    uuid id PK "ID Baris Belanja"
+    uuid po_id FK "Nomor Surat PO"
+    uuid bahan_id FK "Bahan yang Dibeli"
+    numeric qty "Jumlah Pembelian"
+    numeric harga_aktual "Harga Beli Pasar Terakhir"
+    boolean diterima "Sudah Masuk Gudang"
+  }
+
+  STOK_LOGS {
+    uuid id PK "ID Mutasi Stok"
+    uuid bahan_id FK "Bahan yang Berubah"
+    numeric perubahan "Jumlah (+/-)"
+    numeric stok_sebelum "Stok Lama"
+    numeric stok_sesudah "Sisa Stok Baru"
+    text sumber "Penjualan / Belanja PO / Opname"
+    text catatan "Keterangan Alasan Berubah"
+  }
+
+  PROFILES ||--o{ STORE_TABLES : "memasang meja"
+  PROFILES ||--o{ CUSTOMERS : "mencatat langganan"
+  PROFILES ||--o{ SUPPLIERS : "punya rekanan belanja"
+  PROFILES ||--o{ BAHAN : "menyimpan persediaan"
+  PROFILES ||--o{ MENUS : "menjual menu racikan"
+  PROFILES ||--o{ ORDERS : "mencatat penjualan harian"
+  PROFILES ||--o{ PURCHASE_ORDERS : "menerbitkan PO belanja"
+
+  SUPPLIERS ||--o{ BAHAN : "memasok stok rutin"
+  SUPPLIERS ||--o{ PURCHASE_ORDERS : "menerima pesanan bahan"
+
+  MENUS ||--|{ RESEP_ITEMS : "membutuhkan racikan"
+  BAHAN ||--o{ RESEP_ITEMS : "ditakar dalam resep"
+  BAHAN ||--o{ PO_ITEMS : "dibelanjakan kembali"
+  BAHAN ||--o{ STOK_LOGS : "tercatat riwayatnya"
+
+  PURCHASE_ORDERS ||--|{ PO_ITEMS : "berisi daftar belanja"
+  CUSTOMERS ||--o{ ORDERS : "memesan makanan"
+  ORDERS ||--|{ ORDER_ITEMS : "merinci pesanan meja"
+  MENUS ||--o{ ORDER_ITEMS : "dipilih pembeli"
 ```
 
 ---
 
-### Kamus Data & Relasi Entitas
+### Panduan Tabel untuk Pengelola Dapur & Kasir
 
-#### 1. Core Akun & Master Supplier
-| Entitas | Deskripsi & Tujuan | Foreign Key & Relasi Kunci |
-| :--- | :--- | :--- |
-| `profiles` | Master profil toko/dapur, pengaturan pajak resto, dan status setup bisnis. | `id` $\rightarrow$ `auth.users(id)` |
-| `supplier_categories` | Kategori klasifikasi supplier (misal: *Pasar Basah*, *Packaging*, *Dry Goods*). | `user_id` $\rightarrow$ `profiles(id)` |
-| `suppliers` | Direktori pemasok bahan baku lengkap dengan kontak dan minimal order. | `user_id` $\rightarrow$ `profiles(id)`<br>`category_id` $\rightarrow$ `supplier_categories(id)` |
-| `supplier_riwayat` | Catatan riwayat pembayaran/transaksi historis kepada supplier. | `user_id` $\rightarrow$ `profiles(id)`<br>`supplier_id` $\rightarrow$ `suppliers(id)` |
+Biar gampang dipahami, berikut fungsi tiap tabel dalam operasional harian kedai atau resto Anda:
 
-#### 2. Inventori Bahan Baku & Resep Menu (Bill of Materials)
-| Entitas | Deskripsi & Tujuan | Foreign Key & Relasi Kunci |
-| :--- | :--- | :--- |
-| `bahan` | Master bahan baku gudang, harga beli pokok per satuan, stok aktual, & safety stock. | `user_id` $\rightarrow$ `profiles(id)`<br>`supplier_id` $\rightarrow$ `suppliers(id)` (Opsional) |
-| `menus` | Katalog menu makanan/minuman, harga jual, estimasi HPP, dan status aktif. | `user_id` $\rightarrow$ `profiles(id)` |
-| `resep_items` | Rincian bahan baku per menu porsi (BOM) untuk pemotongan stok otomatis. | `user_id` $\rightarrow$ `profiles(id)`<br>`menu_id` $\rightarrow$ `menus(id)`<br>`bahan_id` $\rightarrow$ `bahan(id)` |
-| `stok_logs` | Jejak audit mutasi kartu stok keluar-masuk (sumber: penjualan, PO, koreksi/waste). | `user_id` $\rightarrow$ `profiles(id)`<br>`bahan_id` $\rightarrow$ `bahan(id)` |
+#### 1. Toko, Pelanggan, & Rekanan Belanja
+* **`profiles` (Profil Kedai/Dapur)**: Menyimpan nama usaha Anda, alamat kedai, WhatsApp, dan aturan pajak resto (misal: PB1 10%).
+* **`store_tables` (Meja Makan QR)**: Mengatur nomor meja, kapasitas kursi, dan area makan (misal: *Lantai 1*, *Outdoor*). Setiap meja punya kode QR unik yang discan pelanggan.
+* **`customers` (Buku Tamu Pelanggan)**: Menyimpan nama dan email pelanggan agar struk digital bisa langsung terkirim otomatis saat bayar.
+* **`suppliers` & `supplier_categories` (Kontak Supplier)**: Buku kontak langganan tempat Anda belanja (toko daging, pasar sayur, distributor packaging) beserta info minimal order.
+* **`supplier_riwayat` (Catatan Bayar Supplier)**: Rekam jejak bukti transfer atau pembayaran nota ke pihak supplier.
 
-#### 3. Penjualan POS, Antrean Dapur & Self-Order Meja
-| Entitas | Deskripsi & Tujuan | Foreign Key & Relasi Kunci |
-| :--- | :--- | :--- |
-| `store_tables` | Master nomor meja, kapasitas kursi, zona meja, dan penghitung scan QR. | `user_id` $\rightarrow$ `auth.users(id)` |
-| `customers` | Buku data kontak pelanggan setia toko (nama, telepon, email, alamat). | `user_id` $\rightarrow$ `profiles(id)` |
-| `orders` | Induk transaksi penjualan (nota invoice, status pesanan, pembayaran tunai/QRIS, nomor meja). | `user_id` $\rightarrow$ `profiles(id)`<br>`customer_id` $\rightarrow$ `customers(id)` (Opsional) |
-| `order_items` | Baris rincian menu yang dipesan, kuantitas porsi, harga jual, dan snapshot HPP. | `user_id` $\rightarrow$ `profiles(id)`<br>`order_id` $\rightarrow$ `orders(id)`<br>`menu_id` $\rightarrow$ `menus(id)` |
+#### 2. Dapur: Bahan Baku, Resep Menu, & Stok Otomatis
+* **`bahan` (Gudang Bahan Baku)**: Mencatat stok fisik bumbu, sayur, daging, atau cup minuman di gudang lengkap dengan batas peringatan bahan mau habis (*safety stock*).
+* **`menus` (Daftar Menu & Harga)**: Daftar makanan dan minuman yang Anda jual beserta harga ke pembeli dan modal per porsinya.
+* **`resep_items` (Buku Resep / Takaran Masak)**: Menghubungkan menu dengan bahan bakunya. Misal 1 porsi *Ayam Geprek Sambal Bawang* butuh 1 potong ayam, 50 gram tepung, dan 5 butir cabai. Saat ada pesanan, stok bahan ini yang otomatis dipotong sistem.
+* **`stok_logs` (Buku Catatan Keluar-Masuk Stok)**: Catatan riwayat mutasi barang: kapan bahan berkurang karena dimasak, kapan bertambah karena baru belanja dari pasar, atau jika ada bahan yang terbuang (*waste*).
 
-#### 4. Pengadaan (Purchasing), AI Vision & Sistem
-| Entitas | Deskripsi & Tujuan | Foreign Key & Relasi Kunci |
-| :--- | :--- | :--- |
-| `purchase_orders` | Dokumen pesanan pengadaan bahan ke supplier (Draft, Terkirim, Diterima). | `user_id` $\rightarrow$ `profiles(id)`<br>`supplier_id` $\rightarrow$ `suppliers(id)` |
-| `po_items` | Baris bahan yang dipesan dalam PO (harga estimasi vs aktual diterima di gudang). | `user_id` $\rightarrow$ `profiles(id)`<br>`po_id` $\rightarrow$ `purchase_orders(id)`<br>`bahan_id` $\rightarrow$ `bahan(id)` |
-| `ocr_receipts` | Arsip pemindaian AI Vision terhadap foto struk fisik pasar/supermarket. | `user_id` $\rightarrow$ `profiles(id)` |
-| `rekomendasi` | Hasil kalkulasi analitik AI untuk saran pengadaan bahan dan evaluasi menu lambat. | `user_id` $\rightarrow$ `profiles(id)` |
-| `notifications` | Notifikasi sistem, peringatan stok kritis, dan tagihan jatuh tempo ke user. | `user_id` $\rightarrow$ `auth.users(id)` |
+#### 3. Kasir: Transaksi Penjualan & Antrean Dapur
+* **`orders` (Nota Penjualan Kasir & Meja)**: Induk setiap transaksi. Mencatat nomor nota (`INV/...`), asal meja, total bayar, metode bayar (Tunai atau QRIS), dan status pembayaran (*Belum Dibayar* atau *Lunas*).
+* **`order_items` (Rincian Menu yang Dipesan)**: Merinci menu apa saja yang dibeli di tiap nota pesanan beserta jumlah porsi dan harga saat transaksi berlangsung.
+
+#### 4. Pengadaan Bahan (PO), Bantuan AI, & Notifikasi
+* **`purchase_orders` & `po_items` (Surat Belanja Bahan)**: Daftar belanja bahan saat stok menipis. Mencatat perkiraan biaya vs harga pasar aktual saat belanjaan tiba di dapur. Saat status diubah jadi *"Diterima"*, stok di gudang langsung bertambah otomatis.
+* **`ocr_receipts` (Pindai Struk Pasar)**: Tempat arsip hasil foto struk belanja pasar fisik yang dibaca otomatis oleh AI agar Anda tidak perlu mengetik satu per satu.
+* **`rekomendasi` (Saran Pintar Dapur)**: Analisis pintar yang memberi tahu Anda menu mana yang paling laris dan bahan apa yang wajib segera dibelanjakan sebelum jam buka kedai.
+* **`notifications` (Pemberitahuan Cepat)**: Pesan pengingat yang langsung muncul saat ada bahan yang hampir habis atau tagihan tempo supplier yang mendekati jatuh tempo.
 
 ---
 
