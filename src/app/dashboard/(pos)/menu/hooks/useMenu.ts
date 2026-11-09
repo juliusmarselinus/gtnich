@@ -150,6 +150,21 @@ export function useMenu() {
     }
   }
 
+  // Toggle Active
+  const toggleMenuStatus = async (id: string, currentStatus: boolean) => {
+    const nextStatus = !currentStatus
+    setError(null)
+    try {
+      await menuService.toggleActive(id, nextStatus)
+      setList(prev => prev.map(m => (m.id === id ? { ...m, isActive: nextStatus } : m)))
+      return nextStatus
+    } catch (err: unknown) {
+      const e = err as Error
+      setError(e.message)
+      throw e
+    }
+  }
+
   return {
     list: filteredList,
     rawList: list,
@@ -168,6 +183,7 @@ export function useMenu() {
     stats,
     saveMenu,
     deleteMenu,
+    toggleMenuStatus,
     refresh: fetchAll,
   }
 }

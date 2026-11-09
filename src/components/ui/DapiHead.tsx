@@ -10,6 +10,41 @@ interface DapiHeadProps {
   className?: string
 }
 
+export const DAPI_HEAD_SVG_MARKUP = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="44 26 152 182" width="152" height="182">
+  <defs>
+    <radialGradient id="dapi-head-fur" cx="40%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#FFB565" />
+      <stop offset="55%" stop-color="#FF8F28" />
+      <stop offset="100%" stop-color="#E2700F" />
+    </radialGradient>
+    <radialGradient id="dapi-head-cream" cx="50%" cy="25%" r="80%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#FFE4BF" />
+    </radialGradient>
+  </defs>
+  <path d="M58 132 L56 56 Q90 68 112 104 Z" fill="url(#dapi-head-fur)" stroke="#C9620C" stroke-width="2" />
+  <path d="M68 116 L66 74 Q86 84 100 104 Z" fill="#FFD9C2" />
+  <path d="M182 132 L184 56 Q150 68 128 104 Z" fill="url(#dapi-head-fur)" stroke="#C9620C" stroke-width="2" />
+  <path d="M172 116 L174 74 Q154 84 140 104 Z" fill="#FFD9C2" />
+  <path d="M56 74 L56 56 L72 62 Z" fill="#2B221C" />
+  <path d="M184 74 L184 56 L168 62 Z" fill="#2B221C" />
+  <path d="M120 86 C164 86 192 114 194 148 C195 166 187 180 174 188 L186 198 L160 198 C148 204 134 206 120 206 C106 206 92 204 80 198 L54 198 L66 188 C53 180 45 166 46 148 C48 114 76 86 120 86 Z" fill="url(#dapi-head-fur)" stroke="#C9620C" stroke-width="2" />
+  <path d="M120 144 C138 144 158 158 164 176 C156 196 138 204 120 204 C102 204 84 196 76 176 C82 158 102 144 120 144 Z" fill="url(#dapi-head-cream)" />
+  <ellipse cx="76" cy="170" rx="10" ry="6" fill="#FF775D" opacity=".45" />
+  <ellipse cx="164" cy="170" rx="10" ry="6" fill="#FF775D" opacity=".45" />
+  <ellipse cx="96" cy="148" rx="10" ry="13" fill="#2B221C" />
+  <ellipse cx="144" cy="148" rx="10" ry="13" fill="#2B221C" />
+  <circle cx="99" cy="143" r="3.5" fill="#FFFFFF" />
+  <circle cx="147" cy="143" r="3.5" fill="#FFFFFF" />
+  <path d="M110 166 Q120 161 130 166 Q126 176 120 177 Q114 176 110 166 Z" fill="#2B221C" />
+  <path d="M108 183 Q114 191 120 183 Q126 191 132 183" stroke="#2B221C" stroke-width="3.5" stroke-linecap="round" fill="none" />
+  <circle cx="98" cy="64" r="19" fill="#FFFFFF" />
+  <circle cx="142" cy="64" r="19" fill="#FFFFFF" />
+  <circle cx="120" cy="52" r="24" fill="#FFFFFF" />
+  <rect x="88" y="64" width="64" height="30" rx="8" fill="#FFFFFF" />
+  <rect x="88" y="82" width="64" height="12" rx="6" fill="#F1E4D3" />
+</svg>`
+
 /** Kepala Dapi (statis) untuk logo sidebar, ikon, dan empty state. */
 export default function DapiHead({ size = 64, mood = 'senang', className }: DapiHeadProps) {
   const uid = useId().replace(/:/g, '')

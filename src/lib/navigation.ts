@@ -14,6 +14,7 @@ import {
   Lightbulb,
   Wrench,
   Settings,
+  QrCode,
 } from 'lucide-react'
 import TwinIcon from '@/components/ui/TwinIcon'
 
@@ -44,6 +45,7 @@ export const navSections: NavSection[] = [
     items: [
       { href: '/dashboard/penjualan', label: 'Kasir Penjualan', desc: 'Catat pesanan & potong stok otomatis', icon: ShoppingCart },
       { href: '/dashboard/proses-pesanan', label: 'Proses Pesanan', desc: 'Antrean pesanan & pre-order dapur', icon: CookingPot },
+      { href: '/dashboard/qr-meja', label: 'QR Meja Pelanggan', desc: 'Generate & cetak QR pemesanan meja mandiri', icon: QrCode },
       { href: '/dashboard/purchase-order', label: 'Belanja Stok', desc: 'Pesan bahan & cek belanjaan datang', icon: ClipboardList },
       { href: '/dashboard/tagihan', label: 'Tagihan Supplier', desc: 'Catatan nota tempo & jatuh tempo', icon: Receipt },
     ],

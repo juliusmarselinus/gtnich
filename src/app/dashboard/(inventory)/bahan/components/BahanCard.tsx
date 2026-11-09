@@ -9,39 +9,44 @@ import { useState, useMemo } from 'react'
 import { useToast } from '@/context/ToastContext'
 import Pagination from '@/components/ui/Pagination'
 
-// Peta kata kunci -> foto Unsplash berkualitas tinggi
-const FOTO_MAP: { keywords: string[]; url: string }[] = [
-  { keywords: ['tepung', 'terigu', 'tapioka', 'maizena', 'sagu'], url: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=500&q=80' },
-  { keywords: ['gula', 'gula pasir', 'gula merah', 'palm sugar'], url: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&q=80' },
-  { keywords: ['minyak', 'margarin', 'shortening', 'kelapa'], url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=500&q=80' },
-  { keywords: ['mentega', 'butter'], url: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=500&q=80' },
-  { keywords: ['telur', 'egg'], url: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=500&q=80' },
-  { keywords: ['susu', 'krim', 'cream', 'whipping', 'evaporasi'], url: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=500&q=80' },
-  { keywords: ['coklat', 'chocolate', 'kakao', 'cocoa'], url: 'https://images.unsplash.com/photo-1481391243133-f96216dcb5d2?w=500&q=80' },
-  { keywords: ['keju', 'cheese', 'cheddar', 'mozzarella'], url: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=500&q=80' },
-  { keywords: ['garam', 'salt'], url: 'https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80' },
-  { keywords: ['bawang putih', 'garlic'], url: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=500&q=80' },
-  { keywords: ['bawang merah', 'bawang', 'onion'], url: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=500&q=80' },
-  { keywords: ['tomat', 'tomato'], url: 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=500&q=80' },
-  { keywords: ['cabai', 'cabe', 'chili', 'lombok'], url: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=500&q=80' },
-  { keywords: ['wortel', 'carrot'], url: 'https://images.unsplash.com/photo-1447175008436-054170c2e979?w=500&q=80' },
-  { keywords: ['beras', 'nasi', 'rice'], url: 'https://images.unsplash.com/photo-1536304993881-ff86d42818f7?w=500&q=80' },
-  { keywords: ['ayam', 'chicken', 'fillet'], url: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=500&q=80' },
-  { keywords: ['daging', 'sapi', 'beef', 'kambing', 'babi', 'meat'], url: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=500&q=80' },
-  { keywords: ['ikan', 'fish', 'udang', 'cumi', 'seafood', 'laut'], url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80' },
-  { keywords: ['vanili', 'vanilla', 'ekstrak'], url: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=500&q=80' },
-  { keywords: ['kopi', 'coffee', 'espresso', 'bean'], url: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=500&q=80' },
-  { keywords: ['teh', 'tea', 'matcha', 'daun'], url: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&q=80' },
-  { keywords: ['lemon', 'jeruk', 'citrus', 'lime'], url: 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=500&q=80' },
-  { keywords: ['stroberi', 'strawberry', 'buah', 'blueberry', 'berry'], url: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=500&q=80' },
+// Peta kata kunci -> emoji bahan dapur F&B yang seragam, stabil & bebas error network
+const EMOJI_BAHAN_MAP: { keywords: string[]; emoji: string }[] = [
+  { keywords: ['tepung', 'terigu', 'tapioka', 'maizena', 'sagu', 'gandum', 'baking', 'ragi'], emoji: '🌾' },
+  { keywords: ['gula', 'gula pasir', 'gula merah', 'palm sugar', 'brown sugar', 'pemanis', 'sirup', 'syrup'], emoji: '🍯' },
+  { keywords: ['minyak', 'margarin', 'shortening', 'kelapa', 'olive', 'oil'], emoji: '🫒' },
+  { keywords: ['mentega', 'butter'], emoji: '🧈' },
+  { keywords: ['telur', 'egg'], emoji: '🥚' },
+  { keywords: ['susu', 'krim', 'cream', 'whipping', 'evaporasi', 'milk', 'uht', 'skm', 'condensed'], emoji: '🥛' },
+  { keywords: ['coklat', 'chocolate', 'kakao', 'cocoa', 'chocochip'], emoji: '🍫' },
+  { keywords: ['keju', 'cheese', 'cheddar', 'mozzarella', 'parmesan'], emoji: '🧀' },
+  { keywords: ['garam', 'salt', 'micin', 'msg', 'penyedap', 'kaldu'], emoji: '🧂' },
+  { keywords: ['bawang putih', 'garlic'], emoji: '🧄' },
+  { keywords: ['bawang merah', 'bawang', 'onion', 'bombay'], emoji: '🧅' },
+  { keywords: ['tomat', 'tomato'], emoji: '🍅' },
+  { keywords: ['cabai', 'cabe', 'chili', 'lombok', 'pedas', 'sambal'], emoji: '🌶️' },
+  { keywords: ['wortel', 'carrot'], emoji: '🥕' },
+  { keywords: ['kentang', 'potato'], emoji: '🥔' },
+  { keywords: ['beras', 'nasi', 'rice', 'ketan'], emoji: '🍚' },
+  { keywords: ['ayam', 'chicken', 'fillet', 'sayap', 'paha', 'dada'], emoji: '🍗' },
+  { keywords: ['daging', 'sapi', 'beef', 'kambing', 'babi', 'meat'], emoji: '🥩' },
+  { keywords: ['ikan', 'fish', 'udang', 'cumi', 'seafood', 'laut', 'salmon', 'tuna'], emoji: '🐟' },
+  { keywords: ['vanili', 'vanilla', 'ekstrak', 'pasta', 'flavor', 'perisa'], emoji: '✨' },
+  { keywords: ['kopi', 'coffee', 'espresso', 'bean', 'bubuk kopi'], emoji: '☕' },
+  { keywords: ['teh', 'tea', 'matcha', 'daun'], emoji: '🍵' },
+  { keywords: ['lemon', 'jeruk', 'citrus', 'lime'], emoji: '🍋' },
+  { keywords: ['stroberi', 'strawberry', 'buah', 'blueberry', 'berry', 'mangga', 'pisang'], emoji: '🍓' },
+  { keywords: ['sayur', 'selada', 'bayam', 'kangkung', 'kubis', 'sawi', 'daun bawang'], emoji: '🥬' },
+  { keywords: ['mie', 'noodle', 'pasta', 'spaghetti', 'bihun'], emoji: '🍜' },
+  { keywords: ['roti', 'bread', 'bun', 'toast'], emoji: '🍞' },
+  { keywords: ['air', 'aqua', 'mineral', 'es', 'ice'], emoji: '🧊' },
 ]
 
-function getDefaultFoto(nama: string): string | null {
+function getBahanEmoji(nama: string): string {
   const lowerNama = nama.toLowerCase()
-  for (const { keywords, url } of FOTO_MAP) {
-    if (keywords.some(k => lowerNama.includes(k))) return url
+  for (const { keywords, emoji } of EMOJI_BAHAN_MAP) {
+    if (keywords.some(k => lowerNama.includes(k))) return emoji
   }
-  return null
+  return '📦'
 }
 
 const statusConfig: Record<
@@ -206,68 +211,60 @@ export default function BahanCard({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
         {paginatedList.map(b => {
           const st = getStockCondition(b)
-        const cfg = statusConfig[st]
-        const Icon = cfg.icon
-        const fotoUrl = b.foto || getDefaultFoto(b.nama)
+          const cfg = statusConfig[st]
+          const Icon = cfg.icon
+          const bahanEmoji = getBahanEmoji(b.nama)
 
-        // Nilai total persediaan bahan ini di gudang
-        const totalNilaiStok = b.stok * b.hargaPerSatuan
+          // Nilai total persediaan bahan ini di gudang
+          const totalNilaiStok = b.stok * b.hargaPerSatuan
 
-        // Hitung persentase kapasitas stok terhadap batas aman
-        const maxStok = Math.max(b.stokMinimum * 2.5, b.stok, 1)
-        const pct = Math.min(100, Math.round((b.stok / maxStok) * 100))
+          // Hitung persentase kapasitas stok terhadap batas aman
+          const maxStok = Math.max(b.stokMinimum * 2.5, b.stok, 1)
+          const pct = Math.min(100, Math.round((b.stok / maxStok) * 100))
 
-        return (
-          <div
-            key={b.id}
-            className={clsx(
-              'bg-white rounded-[26px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] border border-[#EBE3D7]/80 overflow-hidden flex flex-col sm:flex-col group hover:-translate-y-1 hover:shadow-[0_10px_26px_rgba(140,100,30,0.12)] transition-all duration-200',
-              cfg.cardRing
-            )}
-          >
-            {/* Wrapper Mobile Horizontal / Desktop Vertical */}
-            <div className="flex flex-row sm:flex-col flex-1">
-              {/* Foto Bahan: Di mobile foto di sebelah kiri fixed, di desktop di atas aspect 4/3 */}
-              <div className="relative w-32 sm:w-full flex-shrink-0 sm:aspect-[4/3] bg-gradient-to-br from-[#FFF9EC] to-[#F7F5F0] overflow-hidden flex items-center justify-center">
-                {fotoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={fotoUrl}
-                    alt={b.nama}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-1 text-slate-300">
-                    <ImageOff className="w-8 h-8 sm:w-9 sm:h-9" />
-                    <span className="text-[10px] font-semibold text-slate-400">Belum ada foto</span>
+          return (
+            <div
+              key={b.id}
+              className={clsx(
+                'bg-white rounded-[26px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] border border-[#EBE3D7]/80 overflow-hidden flex flex-col sm:flex-col group hover:-translate-y-1 hover:shadow-[0_10px_26px_rgba(140,100,30,0.12)] transition-all duration-200',
+                cfg.cardRing
+              )}
+            >
+              {/* Wrapper Mobile Horizontal / Desktop Vertical */}
+              <div className="flex flex-row sm:flex-col flex-1">
+                {/* Visual Bahan: Kotak emoji seragam & bersih khas DapurTwin (seperti pada Menu) */}
+                <div className="relative w-28 sm:w-full flex-shrink-0 sm:aspect-[16/9] bg-gradient-to-br from-[#FFF9EC] via-[#FDF6E2] to-[#F7F2E7] sm:border-b border-r sm:border-r-0 border-[#F0E8D8] flex items-center justify-center overflow-hidden">
+                  <div className="flex flex-col items-center gap-1 select-none p-2 sm:p-0">
+                    <span className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-2xs border border-[#EFE5D0] flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-110 transition-transform duration-200">
+                      {bahanEmoji}
+                    </span>
                   </div>
-                )}
 
-                {/* Status Badge Overlay (Desktop) */}
-                <div className="hidden sm:block absolute top-2.5 right-2.5">
-                  <span
-                    className={clsx(
-                      'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border shadow-xs backdrop-blur-xs',
-                      cfg.badgeBg,
-                      cfg.badgeText,
-                      cfg.badgeBorder
-                    )}
-                  >
-                    <Icon className="w-3 h-3" />
-                    {cfg.label}
-                  </span>
+                  {/* Status Badge Overlay (Desktop) */}
+                  <div className="hidden sm:block absolute top-2.5 right-2.5">
+                    <span
+                      className={clsx(
+                        'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border shadow-xs backdrop-blur-xs',
+                        cfg.badgeBg,
+                        cfg.badgeText,
+                        cfg.badgeBorder
+                      )}
+                    >
+                      <Icon className="w-3 h-3" />
+                      {cfg.label}
+                    </span>
+                  </div>
+
+                  {/* Kode / ID Badge Overlay */}
+                  <div className="absolute bottom-2 left-2.5">
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-mono font-bold text-slate-600 shadow-xs border border-white">
+                      {b.code || b.id.slice(0, 6).toUpperCase()}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Kode / ID Badge Overlay */}
-                <div className="absolute bottom-2 left-2.5">
-                  <span className="px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-mono font-bold text-slate-600 shadow-xs border border-white">
-                    {b.code || b.id.slice(0, 6).toUpperCase()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Isi Konten Card: Di mobile sebelah kanan */}
-              <div className="p-3 sm:p-4 flex flex-col gap-2 flex-1 min-w-0">
+                {/* Isi Konten Card: Di mobile sebelah kanan */}
+                <div className="p-3 sm:p-4 flex flex-col gap-2 flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-1.5">
                   <div className="min-w-0 flex-1">
                     <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2">

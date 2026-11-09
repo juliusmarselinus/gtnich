@@ -26,6 +26,7 @@ interface PesananCardProps {
   order: PesananWithKebutuhan
   busy?: boolean
   onUpdateStatus: (order: PesananWithKebutuhan, statusBaru: OrderStatus) => Promise<void>
+  onTandaiLunas?: (order: PesananWithKebutuhan) => Promise<void>
   onViewReceipt: (order: PesananWithKebutuhan) => void
 }
 
@@ -61,6 +62,7 @@ export default function PesananCard({
   order,
   busy = false,
   onUpdateStatus,
+  onTandaiLunas,
   onViewReceipt,
 }: PesananCardProps) {
   const [showDetail, setShowDetail] = useState(false)
@@ -81,6 +83,9 @@ export default function PesananCard({
     }
   }
 
+  // Helper normalisasi cek lunas
+  const isLunas = String(order.paymentStatus || '').toLowerCase() === 'lunas'
+
   // Teks catatan bersih tanpa tag [PREORDER]
   const cleanNotes = (order.notes || '').replace(/\[PREORDER\]/g, '').trim()
 
@@ -98,13 +103,18 @@ export default function PesananCard({
         {/* Header Nota & Status Badge */}
         <div className="flex items-start justify-between gap-2">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono font-black text-sm text-slate-900 tracking-tight">
                 {order.invoiceNumber}
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#F4EFE6] font-extrabold text-kopi">
                 {order.channel}
               </span>
+              {order.tableNumber && (
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500 text-white font-black tracking-wide shadow-2xs">
+                  {order.tableNumber}
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-slate-400 font-medium flex items-center gap-1 mt-1">
               <Clock className="w-3 h-3 text-slate-400" /> {formatTanggal(order.createdAt)}
@@ -148,12 +158,22 @@ export default function PesananCard({
               {order.paymentMethod} •{' '}
               <span
                 className={clsx(
-                  order.paymentStatus === 'lunas' ? 'text-emerald-600 font-extrabold' : 'text-amber-600 font-extrabold'
+                  isLunas ? 'text-emerald-600 font-extrabold' : 'text-amber-600 font-extrabold'
                 )}
               >
-                {order.paymentStatus === 'lunas' ? 'Lunas' : 'Belum Lunas'}
+                {isLunas ? 'Lunas' : 'Belum Lunas'}
               </span>
             </span>
+            {!isLunas && onTandaiLunas && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onTandaiLunas(order)}
+                className="mt-1.5 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs hover:shadow-xs transition-all active:scale-95 cursor-pointer ml-auto disabled:opacity-50"
+              >
+                <Check className="w-3.5 h-3.5 stroke-[3]" /> Terima Kasir (Lunas)
+              </button>
+            )}
           </div>
         </div>
 

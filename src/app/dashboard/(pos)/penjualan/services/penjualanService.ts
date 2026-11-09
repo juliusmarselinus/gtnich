@@ -110,10 +110,18 @@ export const penjualanService = {
     return menus.filter(m => m.isActive)
   },
 
-  // Stok semua bahan: { [bahanId]: stok }
+  // Stok semua bahan milik user login: { [bahanId]: stok }
   async getStokBahan(): Promise<Record<string, number>> {
     const supabase = createClient()
-    const { data, error } = await supabase.from('bahan').select('id, stok')
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase.from('bahan').select('id, stok')
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
     if (error) {
       console.warn('Error fetching stok bahan:', error)
       return {}
@@ -139,11 +147,20 @@ export const penjualanService = {
 
   async getRecentOrders(limit = 10): Promise<OrderRecord[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('orders')
       .select('*, order_items(*)')
       .order('created_at', { ascending: false })
       .limit(limit)
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.warn('Error fetching orders:', error)
@@ -174,7 +191,7 @@ export const penjualanService = {
     }
   },
 
-  // Potong stok untuk pesanan pre-order saat mulai diproses (berdasarkan resep menu saat ini)
+  // Potong stok untuk pesanan pre-order atau pesanan baru saat mulai diproses (berdasarkan resep menu saat ini)
   async potongStokPesanan(order: OrderRecord): Promise<void> {
     const supabase = createClient()
     const menus = await menuService.getAll()
@@ -192,27 +209,64 @@ export const penjualanService = {
     const stokNow = await penjualanService.getStokBahan()
     for (const [id, { namaBahan, qty }] of Array.from(need.entries())) {
       if ((stokNow[id] ?? 0) + 1e-9 < qty) {
-        throw new Error(`Stok ${namaBahan} tidak cukup untuk memproses pre-order ini.`)
+        throw new Error(`Stok ${namaBahan} tidak cukup untuk memproses pesanan ini.`)
       }
     }
 
+    const { data: sessionData } = await supabase.auth.getSession()
+    const effectiveUserId = order.userId || sessionData?.session?.user?.id
+
     for (const [bahanId, { qty }] of Array.from(need.entries())) {
-      const { data: bhn } = await supabase.from('bahan').select('stok, satuan').eq('id', bahanId).single()
-      if (!bhn) continue
-      const currentStock = Number(bhn.stok) || 0
-      const deduct = Number(qty.toFixed(3))
-      const newStock = Number((currentStock - deduct).toFixed(3))
-      await supabase.from('bahan').update({ stok: newStock, updated_at: new Date().toISOString() }).eq('id', bahanId)
-      await supabase.from('stok_logs').insert({
-        user_id: order.userId,
-        bahan_id: bahanId,
-        perubahan: -deduct,
-        stok_sebelum: currentStock,
-        stok_sesudah: newStock,
-        sumber: 'Penjualan',
-        reference_id: order.id,
-        catatan: `Pre-order ${order.invoiceNumber} diproses: Terpakai ${deduct} ${bhn.satuan}`,
+      const roundedDeduct = Number(qty.toFixed(3))
+
+      // 1. Coba eksekusi atomic mutation jika RPC tersedia
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('mutate_stok_bahan', {
+        p_bahan_id: bahanId,
+        p_delta: -roundedDeduct,
       })
+
+      if (!rpcErr && rpcRes && rpcRes.success) {
+        const stokSebelum = Number(rpcRes.stok_sebelum) || 0
+        const stokSesudah = Number(rpcRes.stok_sesudah) || 0
+        const satuanBahan = rpcRes.satuan || ''
+
+        await supabase.from('stok_logs').insert({
+          user_id: effectiveUserId,
+          bahan_id: bahanId,
+          perubahan: -roundedDeduct,
+          stok_sebelum: stokSebelum,
+          stok_sesudah: stokSesudah,
+          sumber: 'Penjualan',
+          reference_id: order.id,
+          catatan: `Pesanan ${order.invoiceNumber} diproses: Terpakai ${roundedDeduct} ${satuanBahan}`,
+        })
+      } else {
+        const { data: bhn } = await supabase.from('bahan').select('stok, satuan').eq('id', bahanId).single()
+        if (!bhn) continue
+        const currentStock = Number(bhn.stok) || 0
+        const newStock = Math.max(0, Number((currentStock - roundedDeduct).toFixed(3)))
+        const { error: updateErr } = await supabase
+          .from('bahan')
+          .update({ stok: newStock, updated_at: new Date().toISOString() })
+          .eq('id', bahanId)
+          .gte('stok', roundedDeduct)
+
+        // Jika update gagal karena stok berubah secara konkuren di bawah batas yang dibutuhkan
+        if (updateErr) {
+          console.warn(`[Stok] Gagal memotong bahan ${bahanId} secara aman:`, updateErr.message)
+        }
+
+        await supabase.from('stok_logs').insert({
+          user_id: effectiveUserId,
+          bahan_id: bahanId,
+          perubahan: -roundedDeduct,
+          stok_sebelum: currentStock,
+          stok_sesudah: newStock,
+          sumber: 'Penjualan',
+          reference_id: order.id,
+          catatan: `Pesanan ${order.invoiceNumber} diproses: Terpakai ${roundedDeduct} ${bhn.satuan}`,
+        })
+      }
     }
   },
 
@@ -225,6 +279,9 @@ export const penjualanService = {
       .eq('reference_id', order.id)
       .eq('sumber', 'Penjualan')
 
+    const { data: sessionData } = await supabase.auth.getSession()
+    const effectiveUserId = order.userId || sessionData?.session?.user?.id
+
     for (const log of logs || []) {
       const qtyBack = -Number(log.perubahan) || 0
       if (qtyBack <= 0) continue
@@ -234,7 +291,7 @@ export const penjualanService = {
       const newStock = Number((currentStock + qtyBack).toFixed(3))
       await supabase.from('bahan').update({ stok: newStock, updated_at: new Date().toISOString() }).eq('id', log.bahan_id)
       await supabase.from('stok_logs').insert({
-        user_id: order.userId,
+        user_id: effectiveUserId,
         bahan_id: log.bahan_id,
         perubahan: qtyBack,
         stok_sebelum: currentStock,
@@ -257,10 +314,12 @@ export const penjualanService = {
       throw new Error(`Status "${dari}" tidak bisa diubah ke "${statusBaru}".`)
     }
 
-    if (dari === 'preorder' && statusBaru === 'diproses') {
+    // Jika pesanan beralih dari 'preorder' atau 'menunggu' menjadi 'diproses', potong stok bahan dan catat di stok_logs
+    if ((dari === 'preorder' || dari === 'menunggu') && statusBaru === 'diproses') {
       await penjualanService.potongStokPesanan(order)
     }
-    if (statusBaru === 'batal' && dari !== 'preorder') {
+    // Jika pesanan dibatalkan setelah stok pernah terpotong (misal saat diproses atau selesai), kembalikan stok
+    if (statusBaru === 'batal' && dari !== 'preorder' && dari !== 'menunggu') {
       await penjualanService.kembalikanStokPesanan(order)
     }
 
@@ -450,12 +509,13 @@ export const penjualanService = {
 
         if (bhn) {
           const currentStock = Number(bhn.stok) || 0
-          const newStock = Number((currentStock - roundedDeduct).toFixed(3))
+          const newStock = Math.max(0, Number((currentStock - roundedDeduct).toFixed(3)))
 
           await supabase
             .from('bahan')
             .update({ stok: newStock, updated_at: new Date().toISOString() })
             .eq('id', bahanId)
+            .gte('stok', roundedDeduct)
 
           await supabase.from('stok_logs').insert({
             user_id: userId,

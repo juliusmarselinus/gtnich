@@ -80,6 +80,7 @@ export default function MenuPage() {
     stats,
     saveMenu,
     deleteMenu,
+    toggleMenuStatus,
     refresh,
   } = useMenu()
 
@@ -139,6 +140,20 @@ export default function MenuPage() {
       toast.error('Gagal Menghapus Menu', err.message || 'Terjadi kesalahan sistem')
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  async function handleToggleStatus(m: MenuItem) {
+    try {
+      const nextStatus = await toggleMenuStatus(m.id, m.isActive !== false)
+      toast.success(
+        nextStatus ? 'Menu Diaktifkan' : 'Menu Dinonaktifkan',
+        nextStatus
+          ? `"${m.nama}" kini aktif dan dapat dipesan pelanggan.`
+          : `"${m.nama}" dinonaktifkan dari katalog pemesanan.`
+      )
+    } catch (err: any) {
+      toast.error('Gagal Mengubah Status Menu', err.message || 'Terjadi kesalahan sistem')
     }
   }
 
@@ -376,6 +391,7 @@ export default function MenuPage() {
               bahanList={bahanList}
               onEdit={openEdit}
               onDelete={openDelete}
+              onToggleActive={handleToggleStatus}
               onOpenAdd={openAdd}
             />
           </div>

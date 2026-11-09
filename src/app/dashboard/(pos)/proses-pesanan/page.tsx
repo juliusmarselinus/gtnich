@@ -39,6 +39,7 @@ export default function ProsesPesananPage() {
     setSearchQuery,
     busyOrderId,
     handleUpdateStatus,
+    handleTandaiLunas,
     refresh,
   } = useProsesPesanan()
 
@@ -189,14 +190,6 @@ export default function ProsesPesananPage() {
             </div>
           </div>
 
-          {/* Kartu status antrean miring (dekorasi) */}
-          <div aria-hidden className="hidden lg:flex absolute right-[300px] -top-8 w-36 -rotate-[8deg] flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_18px_30px_rgba(120,60,0,0.25)]">
-            <span className="text-[11px] font-black text-koral-gelap tracking-wider">ANTREAN</span>
-            <span className="h-2 rounded bg-krim-garis" />
-            <span className="h-2 w-[70%] rounded bg-krim-garis" />
-            <span className="h-2 w-[85%] rounded bg-krim-garis" />
-          </div>
-
           {/* Dapi menyembul keluar */}
           <div aria-hidden className="hidden md:block absolute right-8 lg:right-14 bottom-0 leading-[0] drop-shadow-[0_18px_22px_rgba(120,50,0,0.35)]">
             <DapiHead size={220} />
@@ -312,6 +305,7 @@ export default function ProsesPesananPage() {
                 order={order}
                 busy={busyOrderId === order.id}
                 onUpdateStatus={handleUpdateStatus}
+                onTandaiLunas={handleTandaiLunas}
                 onViewReceipt={o => setReceiptOrder(o)}
               />
             ))}

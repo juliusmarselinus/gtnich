@@ -11,6 +11,7 @@ interface RawOrderDB {
   invoice_number: string
   customer_name: string
   customer_phone?: string | null
+  table_number?: string | null
   channel: string
   status: string
   payment_method: string
@@ -68,6 +69,7 @@ function mapOrderFromDB(row: RawOrderDB): OrderRecord {
     invoiceNumber: row.invoice_number,
     customerName: row.customer_name,
     customerPhone: row.customer_phone,
+    tableNumber: row.table_number || null,
     channel: row.channel,
     status: mappedStatus,
     paymentMethod: row.payment_method,
@@ -120,9 +122,15 @@ export const prosesPesananService = {
       penjualanService.getStokBahan(),
     ])
 
-    const { data: allBahanData } = await supabase
+    let bahanQuery = supabase
       .from('bahan')
       .select('id, nama, satuan')
+
+    if (userId) {
+      bahanQuery = bahanQuery.eq('user_id', userId)
+    }
+
+    const { data: allBahanData } = await bahanQuery
 
     const bahanMetaMap = new Map<string, { nama: string; satuan: string }>()
     for (const b of allBahanData || []) {
@@ -178,5 +186,31 @@ export const prosesPesananService = {
    */
   async updateStatus(order: OrderRecord, statusBaru: OrderStatus): Promise<void> {
     await penjualanService.updateStatusPesanan(order, statusBaru)
+  },
+
+  /**
+   * Menandai pembayaran lunas untuk pesanan 'Bayar di Kasir'
+   */
+  async tandaiLunasDiKasir(orderId: string): Promise<void> {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        payment_status: 'Lunas',
+        payment_method: 'Tunai di Kasir',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+
+    if (error) {
+      console.warn('Direct update payment_status failed, trying RPC fallback:', error.message)
+      // Coba fallback dengan RPC jika direct update terhalang enum atau trigger
+      const { error: rpcErr } = await supabase.rpc('mark_order_paid_at_cashier', {
+        p_order_id: orderId,
+      })
+      if (rpcErr) {
+        throw new Error(`Gagal menandai lunas: ${error.message || rpcErr.message}`)
+      }
+    }
   },
 }

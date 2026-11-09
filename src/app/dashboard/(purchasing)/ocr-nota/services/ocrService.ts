@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { ParsedItem, OCRScanResult, SupplierOption, BahanOption } from '../types'
 import { parseReceiptRawText } from './tesseractParser'
-import Tesseract from 'tesseract.js'
 
 // Mock fallback jika tidak ada teks terbaca sama sekali
 const FALLBACK_ITEMS: ParsedItem[] = [
@@ -103,9 +102,11 @@ export const ocrService = {
       console.warn('AI Vision network error, fallback ke OCR lokal Tesseract:', apiErr)
     }
 
-    // 2. Fallback otomatis ke Tesseract.js (Langsung jalan di browser tanpa server timeout / error 524)
+    // 2. Fallback otomatis ke Tesseract.js via Dynamic Import (Hanya dimuat saat dibutuhkan agar bundle awal ringan)
     try {
-      if (onProgress) onProgress(35, 'AI Router sibuk, beralih ke Pemindai Lokal...')
+      if (onProgress) onProgress(35, 'AI Router sibuk, memuat modul Pemindai Lokal...')
+
+      const { default: Tesseract } = await import('tesseract.js')
 
       let rawText = ''
       try {

@@ -27,8 +27,8 @@ import {
   ReceiptText,
 } from 'lucide-react'
 
-// Lokasi API route
-const QRIS_API = '/dashboard/menu/api/payments/qris'
+// Lokasi API route QRIS standar terpadu
+const QRIS_API = '/api/payments/qris'
 
 interface CartPOSProps {
   cart: CartItem[]

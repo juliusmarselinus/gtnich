@@ -131,6 +131,25 @@ export function useProsesPesanan() {
     }
   }
 
+  // Handler aksi terima pembayaran kasir untuk pesanan meja self-order
+  const handleTandaiLunas = async (order: PesananWithKebutuhan) => {
+    setBusyOrderId(order.id)
+    try {
+      await prosesPesananService.tandaiLunasDiKasir(order.id)
+      toast.success(
+        `Pembayaran ${order.invoiceNumber} Diterima`,
+        `Pesanan dari ${order.tableNumber ? `Meja ${order.tableNumber}` : 'pelanggan'} telah ditandai Lunas.`
+      )
+      await fetchPesanan()
+    } catch (err: unknown) {
+      const e = err as Error
+      toast.error('Gagal Memperbarui Pembayaran', e.message || 'Terjadi kesalahan sistem.')
+      throw e
+    } finally {
+      setBusyOrderId(null)
+    }
+  }
+
   return {
     pesananList: filteredPesanan,
     allPesanan: pesananList,
@@ -144,6 +163,7 @@ export function useProsesPesanan() {
     setSearchQuery,
     busyOrderId,
     handleUpdateStatus,
+    handleTandaiLunas,
     refresh: fetchPesanan,
   }
 }

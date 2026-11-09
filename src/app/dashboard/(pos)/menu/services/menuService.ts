@@ -84,13 +84,22 @@ function mapMenuFromDB(row: RawMenuDB): MenuItem {
 }
 
 export const menuService = {
-  // Ambil semua bahan baku aktif
+  // Ambil semua bahan baku aktif milik user yang sedang login
   async getBahanList(): Promise<BahanOption[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('bahan')
       .select('id, nama, satuan, harga_per_satuan, stok')
       .order('nama', { ascending: true })
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching bahan for menu resep:', error)
@@ -106,13 +115,22 @@ export const menuService = {
     }))
   },
 
-  // Ambil semua menu
+  // Ambil semua menu milik user yang sedang login
   async getAll(): Promise<MenuItem[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    let query = supabase
       .from('menus')
       .select('*, resep_items(*, bahan(id, nama, satuan, harga_per_satuan, stok))')
       .order('created_at', { ascending: false })
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching menus:', error)
@@ -284,6 +302,25 @@ export const menuService = {
     if (error) {
       console.error('Error deleting menu:', error)
       throw new Error(error.message || 'Gagal menghapus menu.')
+    }
+  },
+
+  /**
+   * Mengubah status aktif / nonaktif menu hidangan
+   */
+  async toggleActive(id: string, isActive: boolean): Promise<void> {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('menus')
+      .update({
+        is_active: isActive,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error toggling menu active status:', error)
+      throw new Error(error.message || 'Gagal mengubah status aktif menu.')
     }
   },
 
