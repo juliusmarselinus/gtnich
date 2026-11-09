@@ -53,7 +53,6 @@ export function MascotSkeleton({
         <span className="text-xs font-bold text-kopi">
           {message || 'Dapi lagi memuat data...'}
         </span>
-        <span className="h-1.5 w-1.5 rounded-full bg-koral animate-ping shrink-0" />
       </div>
     )
   }
@@ -103,7 +102,7 @@ export function MascotSkeleton({
         )}
       >
         <div className="relative">
-          <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-kuning/30 to-koral/15 blur-xl animate-pulse" />
+          <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-kuning/30 to-koral/15 blur-xl" />
           <DapiMascot
             width={160}
             mood="senang"
@@ -146,7 +145,6 @@ export function MascotSkeleton({
               <h2 className="text-2xl font-extrabold tracking-tight text-kopi">
                 {message || 'Dapi cek dapur dulu…'}
               </h2>
-              <span className="h-2.5 w-2.5 rounded-full bg-white animate-ping" />
             </div>
             <p className="text-xs text-[#5A3E05]/90 font-medium">
               {submessage || 'Sedang menghitung sisa bahan & transaksi hari ini'}
@@ -189,7 +187,6 @@ export function MascotSkeleton({
       <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="space-y-3 flex-1 text-center sm:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFE49A]/80 text-[#8A5A00] text-xs font-bold border border-[#FFD25F]">
-            <span className="h-2 w-2 rounded-full bg-koral animate-ping" />
             <span>Asisten Dapi Sedang Bekerja</span>
           </div>
 

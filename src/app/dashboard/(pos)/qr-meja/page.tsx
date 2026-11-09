@@ -19,6 +19,7 @@ import {
   Store,
   Layers,
   Check,
+  X,
   Search,
   RefreshCw,
   UtensilsCrossed,
@@ -57,6 +58,7 @@ export default function QrMejaPage() {
   const [tables, setTables] = useState<TableInfo[]>(DEFAULT_TABLES)
 
   // Form tambah meja
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [newTableName, setNewTableName] = useState<string>('')
   const [newZone, setNewZone] = useState<string>('Area Utama')
   const [newCapacity, setNewCapacity] = useState<number>(4)
@@ -215,6 +217,7 @@ export default function QrMejaPage() {
           const updated = [...tables, newItem]
           saveLocalFallback(updated)
           setNewTableName('')
+          setIsModalOpen(false)
           toast.success('Meja Ditambahkan', `${trimmed} berhasil dibuat dan siap dicetak QR Code-nya.`)
           return
         }
@@ -231,6 +234,7 @@ export default function QrMejaPage() {
       const updated = [...tables, newItem]
       saveLocalFallback(updated)
       setNewTableName('')
+      setIsModalOpen(false)
       toast.success('Meja Ditambahkan', `${trimmed} berhasil ditambahkan ke daftar meja.`)
     } finally {
       setIsAdding(false)
@@ -516,6 +520,14 @@ export default function QrMejaPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="flex h-9 sm:h-10 px-3 sm:px-4 items-center gap-1.5 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] text-[#2B1D00] text-xs font-bold transition-all shadow-xs active:scale-95 whitespace-nowrap flex-shrink-0 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 flex-shrink-0" />
+                <span>Tambah Meja</span>
+              </button>
+              <button
+                type="button"
                 onClick={handlePrintAll}
                 disabled={tables.length === 0}
                 className="flex h-9 sm:h-10 px-3 sm:px-4 items-center gap-1.5 rounded-full bg-[#FF8F2B] hover:bg-[#E57A18] text-white text-xs font-bold transition-all shadow-xs active:scale-95 whitespace-nowrap flex-shrink-0 cursor-pointer disabled:opacity-50"
@@ -583,14 +595,6 @@ export default function QrMejaPage() {
             </div>
           </div>
 
-          {/* Kartu dekorasi QR miring seperti di proses-pesanan */}
-          <div aria-hidden className="hidden lg:flex absolute right-[300px] -top-8 w-36 -rotate-[8deg] flex-col gap-2 rounded-2xl bg-white p-4 shadow-[0_18px_30px_rgba(120,60,0,0.25)]">
-            <span className="text-[11px] font-black text-koral-gelap tracking-wider">SCAN MEJA</span>
-            <span className="h-2 rounded bg-krim-garis" />
-            <span className="h-2 w-[70%] rounded bg-krim-garis" />
-            <span className="h-2 w-[85%] rounded bg-krim-garis" />
-          </div>
-
           {/* Maskot Dapi menyembul keluar */}
           <div aria-hidden className="hidden md:block absolute right-8 lg:right-14 bottom-0 leading-[0] drop-shadow-[0_18px_22px_rgba(120,50,0,0.35)]">
             <DapiHead size={220} />
@@ -626,66 +630,6 @@ export default function QrMejaPage() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Panel Form Tambah Meja Baru (Gaya Putih Bulat Kasir Penjualan) */}
-        <div className="bg-white rounded-[28px] p-4 sm:p-5 border border-[#EBE6DC] shadow-[0_4px_20px_rgba(120,80,30,0.06)]">
-          <form onSubmit={handleAddTable} className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <label className="text-[11px] font-extrabold text-kopi-muted uppercase tracking-wider block mb-1 px-1">
-                Nama / Nomor Meja Baru
-              </label>
-              <input
-                type="text"
-                value={newTableName}
-                onChange={e => setNewTableName(e.target.value)}
-                placeholder="Contoh: Meja 3, Meja VIP 1, Lesehan A..."
-                className="w-full h-11 px-4 rounded-full bg-[#FFF9EC] text-xs font-bold text-kopi placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FFB800]/70 border border-[#F2E5D0] transition"
-              />
-            </div>
-
-            <div className="w-full md:w-44">
-              <label className="text-[11px] font-extrabold text-kopi-muted uppercase tracking-wider block mb-1 px-1">
-                Area / Zona
-              </label>
-              <select
-                value={newZone}
-                onChange={e => setNewZone(e.target.value)}
-                className="w-full h-11 px-4 rounded-full bg-[#FFF9EC] text-xs font-bold text-kopi outline-none focus:ring-2 focus:ring-[#FFB800]/70 border border-[#F2E5D0] cursor-pointer"
-              >
-                <option value="Area Utama">Area Utama</option>
-                <option value="Indoor AC">Indoor AC</option>
-                <option value="Outdoor / Teras">Outdoor / Teras</option>
-                <option value="Lantai 2">Lantai 2</option>
-                <option value="VIP / Lesehan">VIP / Lesehan</option>
-              </select>
-            </div>
-
-            <div className="w-full md:w-32">
-              <label className="text-[11px] font-extrabold text-kopi-muted uppercase tracking-wider block mb-1 px-1">
-                Kapasitas Kursi
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={50}
-                value={newCapacity}
-                onChange={e => setNewCapacity(Math.max(1, Number(e.target.value) || 2))}
-                className="w-full h-11 px-4 rounded-full bg-[#FFF9EC] text-xs font-bold font-mono text-kopi outline-none focus:ring-2 focus:ring-[#FFB800]/70 border border-[#F2E5D0]"
-              />
-            </div>
-
-            <div className="md:pt-5 flex-shrink-0">
-              <button
-                type="submit"
-                disabled={!newTableName.trim() || isAdding}
-                className="w-full md:w-auto h-11 px-6 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] text-[#2B1D00] font-extrabold text-xs flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(255,184,36,0.35)] active:scale-95 transition-all cursor-pointer disabled:opacity-50"
-              >
-                <Plus className="w-4 h-4 stroke-[3]" />
-                <span>Tambah QR Meja</span>
-              </button>
-            </div>
-          </form>
         </div>
 
         {/* Search & Filter Zona Bar (Persis seperti /dashboard/proses-pesanan) */}
@@ -1001,6 +945,99 @@ export default function QrMejaPage() {
           )}
         </div>
       </div>
+
+      {/* Modal Tambah Meja Baru (Modal Bersih & Rapi, Tidak Membebani Tampilan Utama) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md bg-white rounded-[28px] border border-[#EBE6DC] shadow-[0_20px_50px_rgba(43,29,0,0.25)] p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-full bg-[#FFF0DB] text-[#D8431F] flex items-center justify-center font-bold">
+                  <Plus className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 leading-tight">Tambah Meja Baru</h3>
+                  <p className="text-[11px] text-slate-400 font-medium">Buat nomor meja dan tentukan kapasitas kursi</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddTable} className="space-y-4">
+              <div>
+                <label className="text-[11px] font-extrabold text-kopi-muted uppercase tracking-wider block mb-1 px-1">
+                  Nama / Nomor Meja
+                </label>
+                <input
+                  type="text"
+                  value={newTableName}
+                  onChange={e => setNewTableName(e.target.value)}
+                  placeholder="Contoh: Meja 3, Meja VIP 1..."
+                  autoFocus
+                  className="w-full h-11 px-4 rounded-2xl bg-[#FFF9EC] text-xs font-bold text-kopi placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FFB800]/70 border border-[#F2E5D0]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-extrabold text-kopi-muted uppercase tracking-wider block mb-1 px-1">
+                    Area / Zona
+                  </label>
+                  <select
+                    value={newZone}
+                    onChange={e => setNewZone(e.target.value)}
+                    className="w-full h-11 px-3.5 rounded-2xl bg-[#FFF9EC] text-xs font-bold text-kopi outline-none focus:ring-2 focus:ring-[#FFB800]/70 border border-[#F2E5D0] cursor-pointer"
+                  >
+                    <option value="Area Utama">Area Utama</option>
+                    <option value="Indoor AC">Indoor AC</option>
+                    <option value="Outdoor / Teras">Outdoor / Teras</option>
+                    <option value="Lantai 2">Lantai 2</option>
+                    <option value="VIP / Lesehan">VIP / Lesehan</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-extrabold text-kopi-muted uppercase tracking-wider block mb-1 px-1">
+                    Kapasitas Kursi
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={newCapacity}
+                    onChange={e => setNewCapacity(Math.max(1, Number(e.target.value) || 2))}
+                    className="w-full h-11 px-4 rounded-2xl bg-[#FFF9EC] text-xs font-bold font-mono text-kopi outline-none focus:ring-2 focus:ring-[#FFB800]/70 border border-[#F2E5D0]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="h-10 px-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newTableName.trim() || isAdding}
+                  className="h-10 px-5 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] text-[#2B1D00] font-extrabold text-xs flex items-center gap-1.5 shadow-[0_4px_14px_rgba(255,184,36,0.35)] active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>Simpan Meja</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

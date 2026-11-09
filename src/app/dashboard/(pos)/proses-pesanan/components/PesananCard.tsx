@@ -42,7 +42,7 @@ const STATUS_BADGE: Record<string, { label: string; cls: string; dot: string }> 
     dot: 'bg-[#D97706]',
   },
   diproses: {
-    label: 'Sedang Dimasak / Diproses',
+    label: 'Sedang Dimasak',
     cls: 'bg-[#F2D9CC] text-[#C2502F] border-[#E8C2B0]',
     dot: 'bg-[#C2502F]',
   },
@@ -101,9 +101,9 @@ export default function PesananCard({
     >
       <div className="space-y-3.5">
         {/* Header Nota & Status Badge */}
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-mono font-black text-sm text-slate-900 tracking-tight">
                 {order.invoiceNumber}
               </span>
@@ -123,7 +123,7 @@ export default function PesananCard({
 
           <span
             className={clsx(
-              'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border flex-shrink-0 shadow-2xs',
+              'self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border flex-shrink-0 shadow-2xs',
               statusInfo.cls
             )}
           >

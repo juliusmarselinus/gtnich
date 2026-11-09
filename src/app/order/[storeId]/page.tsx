@@ -414,17 +414,17 @@ export default function PublicOrderPage({
 
             <div className="relative space-y-3 pr-28 sm:pr-48">
               <p className="text-xs sm:text-sm font-bold text-[#5C3D00]">
-                Pemesanan Mandiri • {tableParam}
+                Pesan Langsung dari {tableParam}
               </p>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#2B1D00] tracking-tight">
                 {cartTotalQty > 0
-                  ? `${cartTotalQty} porsi siap dipesan ke dapur`
-                  : 'Pilih hidangan favorit dari meja Anda'}
+                  ? `${cartTotalQty} menu siap dikirim ke dapur`
+                  : 'Pilih hidangan, pesanan langsung dimasak'}
               </h2>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#2B1D00]">
                   <span className="w-2 h-2 rounded-full bg-[#D8431F]" />
-                  {menus.length} menu tersedia
+                  {menus.length} menu siap saji
                 </span>
                 <span className="inline-flex items-center rounded-full bg-white/75 px-4 py-1.5 text-xs font-bold text-[#2B1D00]">
                   Total {formatRupiah(cartSubtotal)}
@@ -915,10 +915,10 @@ export default function PublicOrderPage({
             <div className="flex items-center justify-between pb-4 border-b border-[#F4EFE6]">
               <div>
                 <h2 className="text-lg sm:text-xl font-black text-slate-900">
-                  Konfirmasi Pembayaran ({tableParam})
+                  Konfirmasi Pesanan ({tableParam})
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Lengkapi data pemesan dan selesaikan transaksi meja
+                  Pesanan langsung masuk ke antrean koki setelah dikonfirmasi
                 </p>
               </div>
               <span className="px-3 py-1 rounded-full bg-[#FFEDB3] text-[#8A5A00] font-extrabold text-xs font-mono">
@@ -1015,7 +1015,7 @@ export default function PublicOrderPage({
                   </div>
                   <div>
                     <h5 className="font-extrabold text-xs text-slate-900">Bayar di Kasir</h5>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Menuju kasir untuk melunasi</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Bayar tunai atau debit di kasir</p>
                   </div>
                 </button>
 
