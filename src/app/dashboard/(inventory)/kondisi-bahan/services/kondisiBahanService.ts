@@ -142,15 +142,21 @@ export const kondisiBahanService = {
                 kl => kl.catatan && kl.catatan.includes(`Batch #${batchNo}`)
               )
 
+              // Cek apakah ada pemusnahan massal/global (tanpa spesifik nomor batch) yang dilakukan untuk bahan ini
+              const hasBulkPemusnahan = bahanKadaluarsaLogs.some(
+                kl => kl.catatan && (kl.catatan.includes('Pemusnahan seluruh batch') || kl.catatan.includes('Pengurangan stok kadaluarsa'))
+              )
+
               // KONDISI SUDAH DIMUSNAHKAN:
               // 1. Stok bahan saat ini sudah 0 / habis -> SEMUA batch kadaluarsa otomatis sudah dimusnahkan/habis
               // 2. Catatan mutasi eksplisit menyebutkan nomor batch ini
-              // 3. Ada pool pengurangan kadaluarsa/pemusnahan yang pernah dilakukan untuk bahan ini
+              // 3. Ada pemusnahan massal batch kadaluarsa
+              // 4. Ada pool pengurangan kadaluarsa/pemusnahan yang pernah dilakukan untuk bahan ini
               let isDibuang = false
               if (isBahanHabis) {
                 isDibuang = true
               } else if (rawExpired) {
-                if (isSpecificBatchDibuang) {
+                if (isSpecificBatchDibuang || hasBulkPemusnahan) {
                   isDibuang = true
                 } else if (sisaDibuangPool > 0) {
                   isDibuang = true

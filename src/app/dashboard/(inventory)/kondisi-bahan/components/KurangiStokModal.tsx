@@ -43,7 +43,11 @@ export default function KurangiStokModal({
 
   const defaultAlasan = batch
     ? `Pemusnahan seluruh stok batch #${batch.batchNo} yang telah melewati masa kadaluarsa`
-    : `Pemusnahan seluruh batch kadaluarsa (${bahan.expiredBatchesCount || 1} batch) agar menjaga keamanan pangan dapur`
+    : `Pemusnahan seluruh batch kadaluarsa (${bahan.expiredBatchesCount || 1} batch) agar menjaga keamanan pangan dapur${
+        bahan.batches.filter(b => b.isExpired).length > 0
+          ? ` (Batch #${bahan.batches.filter(b => b.isExpired).map(b => b.batchNo).join(', #')})`
+          : ''
+      }`
 
   const [alasan, setAlasan] = useState<string>(defaultAlasan)
   const [submitting, setSubmitting] = useState(false)

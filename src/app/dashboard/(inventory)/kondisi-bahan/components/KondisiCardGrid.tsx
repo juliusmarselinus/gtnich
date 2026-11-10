@@ -479,7 +479,23 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
           batch={selectedBatchForAction}
           onClose={handleCloseKurangiModal}
           onSuccess={() => {
-            handleSuccessAction(selectedBahanForAction.id, selectedBatchForAction?.batchNo)
+            const expiredBatchNos = selectedBatchForAction
+              ? [selectedBatchForAction.batchNo]
+              : selectedBahanForAction.batches.filter(bt => bt.isExpired).map(bt => bt.batchNo)
+
+            setDimusnahkanMap(prev => {
+              const updated = { ...prev, [`bahan-${selectedBahanForAction.id}`]: true }
+              expiredBatchNos.forEach(bNo => {
+                if (bNo) updated[`batch-${selectedBahanForAction.id}-${bNo}`] = true
+              })
+              return updated
+            })
+
+            if (onRefresh) {
+              setTimeout(() => {
+                onRefresh()
+              }, 300)
+            }
           }}
           onProcess={onKurangiStok}
         />
