@@ -31,12 +31,20 @@ export default function FeatureHighlightTour() {
 
   // Track ukuran jendela browser
   useEffect(() => {
+    let resizeTimer: NodeJS.Timeout
     function updateSize() {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight })
     }
     updateSize()
-    window.addEventListener('resize', updateSize)
-    return () => window.removeEventListener('resize', updateSize)
+    function onResizeThrottled() {
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(updateSize, 100)
+    }
+    window.addEventListener('resize', onResizeThrottled, { passive: true })
+    return () => {
+      clearTimeout(resizeTimer)
+      window.removeEventListener('resize', onResizeThrottled)
+    }
   }, [])
 
   // Cari posisi elemen target saat step berganti
@@ -67,11 +75,20 @@ export default function FeatureHighlightTour() {
 
     // Beri sedikit jeda agar accordion sidebar atau drawer mobile sempat terbuka
     const timer = setTimeout(locateTarget, 220)
-    window.addEventListener('scroll', locateTarget, true)
+    let scrollAnimId: number | null = null
+    const onScrollThrottled = () => {
+      if (scrollAnimId) return
+      scrollAnimId = window.requestAnimationFrame(() => {
+        scrollAnimId = null
+        locateTarget()
+      })
+    }
+    window.addEventListener('scroll', onScrollThrottled, { capture: true, passive: true })
 
     return () => {
       clearTimeout(timer)
-      window.removeEventListener('scroll', locateTarget, true)
+      window.removeEventListener('scroll', onScrollThrottled, true)
+      if (scrollAnimId) window.cancelAnimationFrame(scrollAnimId)
     }
   }, [isTourOpen, currentStepIndex, currentStep])
 

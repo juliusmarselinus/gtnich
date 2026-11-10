@@ -146,7 +146,11 @@ export function useNotifications() {
     }
 
     poll()
-    const interval = setInterval(poll, 30000)
+    // Polling hanya berjalan jika dokumen sedang aktif (tab terlihat) untuk hemat CPU di low spec device
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return
+      poll()
+    }, 30000)
     return () => {
       ignore = true
       clearInterval(interval)

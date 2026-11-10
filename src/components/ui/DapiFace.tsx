@@ -49,18 +49,26 @@ export default function DapiFace({ mood, typingProgress = 0, size = 'card', hide
   const uid = useId().replace(/:/g, '')
   const [pointer, setPointer] = useState({ x: 0, y: 0 })
 
-  // Saat idle, mata mengikuti kursor
+  // Saat idle, mata mengikuti kursor (throttled dengan requestAnimationFrame untuk low spec devices)
   useEffect(() => {
     if (mood !== 'idle') return
+    let animId: number | null = null
     const onMove = (e: PointerEvent) => {
-      const r = ref.current?.getBoundingClientRect()
-      if (!r) return
-      const dx = (e.clientX - (r.left + r.width / 2)) / (window.innerWidth / 2)
-      const dy = (e.clientY - (r.top + r.height / 2)) / (window.innerHeight / 2)
-      setPointer({ x: Math.max(-1, Math.min(1, dx)), y: Math.max(-1, Math.min(1, dy)) })
+      if (animId) return
+      animId = window.requestAnimationFrame(() => {
+        animId = null
+        const r = ref.current?.getBoundingClientRect()
+        if (!r) return
+        const dx = (e.clientX - (r.left + r.width / 2)) / (window.innerWidth / 2)
+        const dy = (e.clientY - (r.top + r.height / 2)) / (window.innerHeight / 2)
+        setPointer({ x: Math.max(-1, Math.min(1, dx)), y: Math.max(-1, Math.min(1, dy)) })
+      })
     }
-    window.addEventListener('pointermove', onMove)
-    return () => window.removeEventListener('pointermove', onMove)
+    window.addEventListener('pointermove', onMove, { passive: true })
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      if (animId) window.cancelAnimationFrame(animId)
+    }
   }, [mood])
 
   let look = { x: 0, y: 0 }

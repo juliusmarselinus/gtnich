@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Topbar from '@/components/Topbar'
 import { useProsesPesanan } from './hooks/useProsesPesanan'
 import PesananCard from './components/PesananCard'
 import { ReceiptModal, orderToReceipt } from '@/app/dashboard/(pos)/penjualan/components/Receipt'
 import { PesananWithKebutuhan } from './types'
 import DapiHead from '@/components/ui/DapiHead'
+import Pagination from '@/components/ui/Pagination'
 import {
   Clock,
   CheckCircle,
@@ -44,6 +45,12 @@ export default function ProsesPesananPage() {
   } = useProsesPesanan()
 
   const [receiptOrder, setReceiptOrder] = useState<PesananWithKebutuhan | null>(null)
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const pageSize = 9
+
+  const paginatedPesanan = useMemo(() => {
+    return pesananList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  }, [pesananList, currentPage, pageSize])
 
   const STATUS_CARDS = [
     {
@@ -249,7 +256,10 @@ export default function ProsesPesananPage() {
             <Search className="w-4 h-4 text-kopi-muted absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => {
+                setSearchQuery(e.target.value)
+                setCurrentPage(1)
+              }}
               placeholder="Cari no. nota, pelanggan, menu..."
               className="w-full h-12 pl-11 pr-4 rounded-full bg-white text-sm text-kopi placeholder:text-kopi-muted/70 shadow-[0_4px_14px_rgba(120,80,30,0.08)] outline-none focus:ring-2 focus:ring-kuning border border-transparent focus:border-kuning"
             />
@@ -265,7 +275,10 @@ export default function ProsesPesananPage() {
                 <button
                   key={tab.key}
                   type="button"
-                  onClick={() => setActiveTab(tab.key as any)}
+                  onClick={() => {
+                    setActiveTab(tab.key as any)
+                    setCurrentPage(1)
+                  }}
                   className={clsx(
                     'h-10 pl-4 pr-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer flex items-center gap-2 active:scale-95 flex-shrink-0 whitespace-nowrap',
                     isActive
@@ -298,18 +311,34 @@ export default function ProsesPesananPage() {
             <p className="text-[11px]">Coba pilih filter lain atau buat transaksi penjualan / pre-order baru.</p>
           </div>
         ) : (
-          <div data-tour="proses-order-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {pesananList.map(order => (
-              <PesananCard
-                key={order.id}
-                order={order}
-                busy={Boolean(busyOrderId)}
-                onUpdateStatus={handleUpdateStatus}
-                onTandaiLunas={handleTandaiLunas}
-                onViewReceipt={o => setReceiptOrder(o)}
-              />
-            ))}
-          </div>
+          <>
+            <div data-tour="proses-order-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {paginatedPesanan.map(order => (
+                <PesananCard
+                  key={order.id}
+                  order={order}
+                  busy={Boolean(busyOrderId)}
+                  onUpdateStatus={handleUpdateStatus}
+                  onTandaiLunas={handleTandaiLunas}
+                  onViewReceipt={o => setReceiptOrder(o)}
+                />
+              ))}
+            </div>
+
+            {pesananList.length > pageSize && (
+              <div className="pt-2">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={pesananList.length}
+                  pageSize={pageSize}
+                  onPageChange={page => {
+                    setCurrentPage(page)
+                    window.scrollTo({ top: 350, behavior: 'smooth' })
+                  }}
+                />
+              </div>
+            )}
+          </>
         )}
       </main>
 

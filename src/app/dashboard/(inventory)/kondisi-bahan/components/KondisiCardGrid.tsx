@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { BahanKondisi, BatchMasukItem } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
+import Pagination from '@/components/ui/Pagination'
 import {
   Package,
   Clock,
@@ -62,6 +63,12 @@ const FRESHNESS_BADGE = {
 export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: KondisiCardGridProps) {
   // State untuk expand/collapse rincian batch per card bahan
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const pageSize = 9
+
+  const paginatedList = useMemo(() => {
+    return list.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  }, [list, currentPage, pageSize])
 
   // State untuk modal pengurangan stok kadaluarsa
   const [selectedBahanForAction, setSelectedBahanForAction] = useState<BahanKondisi | null>(null)
@@ -99,8 +106,9 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      {list.map(b => {
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {paginatedList.map(b => {
         const isLocallyDimusnahkan = !!dimusnahkanMap[`bahan-${b.id}`]
         const effectiveExpiredCount = isLocallyDimusnahkan ? 0 : b.expiredBatchesCount
         const isBahanEmpty = b.totalStok <= 0
@@ -397,9 +405,24 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
         )
       })}
 
-      {list.length === 0 && (
-        <div className="col-span-full rounded-[32px] bg-white border border-[#EBE6DC] shadow-xs p-16 text-center text-[#8C8275] text-sm font-medium">
-          Tidak ada bahan yang sesuai filter.
+        {list.length === 0 && (
+          <div className="col-span-full rounded-[32px] bg-white border border-[#EBE6DC] shadow-xs p-16 text-center text-[#8C8275] text-sm font-medium">
+            Tidak ada bahan yang sesuai filter.
+          </div>
+        )}
+      </div>
+
+      {list.length > pageSize && (
+        <div className="pt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={list.length}
+            pageSize={pageSize}
+            onPageChange={page => {
+              setCurrentPage(page)
+              window.scrollTo({ top: 350, behavior: 'smooth' })
+            }}
+          />
         </div>
       )}
 
@@ -416,6 +439,6 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
           onProcess={onKurangiStok}
         />
       )}
-    </div>
+    </>
   )
 }
