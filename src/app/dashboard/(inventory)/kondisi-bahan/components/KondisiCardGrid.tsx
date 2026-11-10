@@ -17,6 +17,9 @@ import {
   Trash2,
   Hourglass,
   Tag,
+  TrendingDown,
+  Flame,
+  CheckCircle2,
 } from 'lucide-react'
 import clsx from 'clsx'
 import KurangiStokModal from './KurangiStokModal'
@@ -245,6 +248,54 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                 {b.aiAnalysis?.tipsPenyimpanan && (
                   <p className="text-[10px] text-[#7A7062] italic pt-1 border-t border-[#F0EBE1]">
                     💡 {b.aiAnalysis.tipsPenyimpanan}
+                  </p>
+                )}
+              </div>
+
+              {/* Estimasi Kebutuhan / Kehabisan Bahan Berdasarkan Penjualan */}
+              <div className="p-3.5 rounded-2xl bg-[#FCFAF6] border border-[#EFE8DC] space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[11px] font-bold text-[#5A3A00] flex items-center gap-1.5">
+                    <TrendingDown className="w-3.5 h-3.5 text-[#D8431F]" />
+                    <span>Laju Konsumsi Penjualan:</span>
+                  </span>
+                  <span className="font-mono font-bold text-[#2B1D00]">
+                    {b.penjualan?.lajuHarian ? `~${b.penjualan.lajuHarian} ${b.satuan}/hari` : 'Belum ada konsumsi'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-[#8C8275] font-medium">Perkiraan Stok Habis:</span>
+                  <span
+                    className={clsx(
+                      'font-mono font-black text-xs px-2.5 py-0.5 rounded-lg',
+                      b.penjualan?.statusHabis === 'habis'
+                        ? 'bg-[#FDE8E4] text-[#D8431F]'
+                        : b.penjualan?.statusHabis === 'kritis'
+                        ? 'bg-[#FDE8E4] text-[#D8431F]'
+                        : b.penjualan?.statusHabis === 'waspada'
+                        ? 'bg-[#FFF6D6] text-[#8A5A00]'
+                        : b.penjualan?.statusHabis === 'aman'
+                        ? 'bg-[#E8F5E4] text-[#2D7A1F]'
+                        : 'bg-[#F5F2EB] text-[#8C8275]'
+                    )}
+                  >
+                    {b.penjualan?.statusHabis === 'habis'
+                      ? 'Stok Habis'
+                      : b.penjualan?.estimasiHariHabis !== null && b.penjualan?.estimasiHariHabis !== undefined
+                      ? b.penjualan.estimasiHariHabis <= 0
+                        ? 'Habis Hari Ini'
+                        : `~${b.penjualan.estimasiHariHabis} Hari Lagi`
+                      : b.totalStok <= b.stokMinimum
+                      ? 'Di Bawah Minimum'
+                      : 'Stok Masih Banyak'}
+                  </span>
+                </div>
+
+                {b.penjualan && b.penjualan.totalTerjual30Hari > 0 && (
+                  <p className="text-[10px] text-[#7A7062] pt-1 border-t border-[#F0EBE1] flex items-center justify-between">
+                    <span>Pemakaian 30 hari terakhir:</span>
+                    <strong className="font-mono text-[#2B1D00]">{b.penjualan.totalTerjual30Hari} {b.satuan}</strong>
                   </p>
                 )}
               </div>

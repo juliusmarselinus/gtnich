@@ -48,8 +48,8 @@ const STATUS_CARDS = [
   },
   {
     key: 'low_stock',
-    label: 'Stok Kritis',
-    hint: 'Stok ≤ batas minimum',
+    label: 'Stok Kritis / Mau Habis',
+    hint: 'Berdasarkan penjualan & min. stok',
     Icon: Package2,
     tint: 'bg-[#F2D9CC]',
     on: 'bg-[#C2502F] text-white',
@@ -90,6 +90,7 @@ export default function KondisiBahanPage() {
 
   const FILTER_TABS = [
     { key: 'all', label: `Semua (${counts.total})` },
+    { key: 'low_stock', label: `Mau Habis (${counts.akanHabis})` },
     { key: 'segar', label: `Segar (${counts.segar})` },
     { key: 'mendekati_expire', label: `Mendekati Expire (${counts.mendekati})` },
     { key: 'kadaluarsa', label: `Kadaluarsa (${counts.expired})` },
@@ -199,14 +200,13 @@ export default function KondisiBahanPage() {
                 ? counts.mendekati
                 : st.key === 'kadaluarsa'
                 ? counts.expired
-                : counts.lowStock
+                : counts.akanHabis
 
             return (
               <button
                 key={st.key}
                 type="button"
                 onClick={() => {
-                  if (st.key === 'low_stock') return
                   setFilterFreshness(filterFreshness === st.key ? 'all' : st.key)
                 }}
                 className={clsx(

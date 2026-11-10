@@ -85,7 +85,18 @@ export function useKondisiBahan() {
       const matchSearch =
         item.nama.toLowerCase().includes(search.toLowerCase()) ||
         (item.namaSupplier && item.namaSupplier.toLowerCase().includes(search.toLowerCase()))
-      const matchFresh = filterFreshness === 'all' || item.aiStatusFreshness === filterFreshness
+      
+      let matchFresh = true
+      if (filterFreshness === 'all') {
+        matchFresh = true
+      } else if (filterFreshness === 'low_stock') {
+        matchFresh = item.totalStok <= item.stokMinimum || item.penjualan?.statusHabis === 'kritis' || item.penjualan?.statusHabis === 'habis'
+      } else if (filterFreshness === 'akan_habis') {
+        matchFresh = item.penjualan?.statusHabis === 'kritis' || item.penjualan?.statusHabis === 'waspada'
+      } else {
+        matchFresh = item.aiStatusFreshness === filterFreshness
+      }
+
       return matchSearch && matchFresh
     })
   }, [list, search, filterFreshness])
@@ -97,6 +108,7 @@ export function useKondisiBahan() {
     const expired = list.filter(b => b.aiStatusFreshness === 'kadaluarsa' || b.expiredBatchesCount > 0).length
     const dimusnahkan = list.filter(b => b.aiStatusFreshness === 'sudah_dimusnahkan' || (b.expiredBatchesCount === 0 && b.batches.some(bt => bt.isDibuang))).length
     const lowStock = list.filter(b => b.totalStok <= b.stokMinimum).length
+    const akanHabis = list.filter(b => b.penjualan?.statusHabis === 'kritis' || b.penjualan?.statusHabis === 'waspada' || b.penjualan?.statusHabis === 'habis').length
 
     return {
       total: list.length,
@@ -105,6 +117,7 @@ export function useKondisiBahan() {
       expired,
       dimusnahkan,
       lowStock,
+      akanHabis,
     }
   }, [list])
 

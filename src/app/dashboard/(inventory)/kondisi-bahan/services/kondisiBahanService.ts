@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import { BahanKondisi, BatchMasukItem, FreshnessStatus } from '../types'
+import { BahanKondisi, BatchMasukItem, FreshnessStatus, PenjualanKondisi, RunoutStatus } from '../types'
 import { analyzeShelfLife } from './expiryAIService'
 
 interface RawBahanDB {
@@ -77,6 +77,27 @@ export const kondisiBahanService = {
         s === 'kadaluarsa' ||
         (isNeg && (c.includes('kadaluarsa') || c.includes('pemusnahan') || c.includes('rusak') || c.includes('buang')))
       )
+    })
+
+    // 3. Analisis konsumsi dari riwayat stok keluar (Penjualan / Dapur) dalam 30 hari terakhir
+    const dateLimit = new Date()
+    dateLimit.setDate(dateLimit.getDate() - 30)
+    const recentLogs = allLogs.filter(l => new Date(l.created_at) >= dateLimit)
+
+    const salesConsumptionMap: Record<string, number> = {}
+    recentLogs.forEach(l => {
+      const bId = l.bahan_id
+      const delta = Number(l.perubahan) || 0
+      const s = String(l.sumber || '').toLowerCase()
+      const isPemusnahan =
+        s === 'kadaluarsa' ||
+        String(l.catatan || '').toLowerCase().includes('kadaluarsa') ||
+        String(l.catatan || '').toLowerCase().includes('pemusnahan')
+
+      // Hitung pengeluaran operasional nyata (penjualan menu / pemakaian resep dapur)
+      if (bId && delta < 0 && !isPemusnahan) {
+        salesConsumptionMap[bId] = (salesConsumptionMap[bId] || 0) + Math.abs(delta)
+      }
     })
 
     // 3. Bangun daftar bahan terkonsolidasi dengan rincian batch barang masuk
@@ -206,6 +227,43 @@ export const kondisiBahanService = {
         const finalEstimasiExpire = earliestBatch?.aiEstimasiExpire ?? (isBahanHabis ? null : baseAiResult.aiEstimasiExpire)
         const finalSisaHari = earliestBatch?.aiSisaHari ?? (isBahanHabis ? null : (baseAiResult.aiSisaHari && baseAiResult.aiSisaHari > 0 ? baseAiResult.aiSisaHari : null))
 
+        // Hitung estimasi habis berdasarkan data pemakaian riil penjualan 30 hari
+        const totalKonsumsi30 = salesConsumptionMap[b.id] || 0
+        const lajuHarian = Math.round((totalKonsumsi30 / 30) * 100) / 100
+        const currentStock = Number(b.stok) || 0
+        const minStock = Number(b.stok_minimum) || 0
+
+        let estimasiHariHabis: number | null = null
+        let statusHabis: RunoutStatus = 'aman'
+
+        if (currentStock <= 0) {
+          statusHabis = 'habis'
+          estimasiHariHabis = 0
+        } else if (lajuHarian > 0) {
+          estimasiHariHabis = Math.round((currentStock / lajuHarian) * 10) / 10
+          if (estimasiHariHabis <= 2 || currentStock <= minStock) {
+            statusHabis = 'kritis'
+          } else if (estimasiHariHabis <= 5) {
+            statusHabis = 'waspada'
+          } else {
+            statusHabis = 'aman'
+          }
+        } else {
+          // Belum ada penjualan/konsumsi dalam 30 hari terakhir
+          if (currentStock <= minStock) {
+            statusHabis = 'kritis'
+          } else {
+            statusHabis = 'tidak_aktif'
+          }
+        }
+
+        const penjualanKondisi: PenjualanKondisi = {
+          lajuHarian,
+          estimasiHariHabis,
+          statusHabis,
+          totalTerjual30Hari: totalKonsumsi30,
+        }
+
         return {
           id: b.id,
           userId: b.user_id,
@@ -224,6 +282,9 @@ export const kondisiBahanService = {
           aiSisaHari: finalSisaHari,
           aiEstimasiExpire: finalEstimasiExpire,
           aiAnalysis: baseAiResult.aiAnalysis,
+
+          // Estimasi konsumsi & kehabisan bahan
+          penjualan: penjualanKondisi,
 
           // Rincian batch dalam 1 card
           batches,

@@ -1,4 +1,12 @@
 export type FreshnessStatus = 'segar' | 'mendekati_expire' | 'kadaluarsa' | 'sudah_dimusnahkan' | 'tidak_diketahui'
+export type RunoutStatus = 'habis' | 'kritis' | 'waspada' | 'aman' | 'tidak_aktif'
+
+export interface PenjualanKondisi {
+  lajuHarian: number // konsumsi rata-rata per hari
+  estimasiHariHabis: number | null // stok / lajuHarian, null jika tidak ada penjualan
+  statusHabis: RunoutStatus
+  totalTerjual30Hari: number
+}
 
 export interface AIExpiryAnalysis {
   perkiraanUmurHari: number
@@ -40,6 +48,9 @@ export interface BahanKondisi {
   aiSisaHari?: number | null // Sisa hari terdekat
   aiEstimasiExpire?: string | null // Expire batch terdekat
   aiAnalysis?: AIExpiryAnalysis | null
+
+  // Estimasi Kebutuhan / Kehabisan Bahan Berdasarkan Penjualan
+  penjualan?: PenjualanKondisi
 
   // Rincian Riwayat Batch Barang Masuk (PO / Mutasi) di dalam satu card
   batches: BatchMasukItem[]
