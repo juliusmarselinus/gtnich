@@ -93,8 +93,12 @@ export function useKondisiBahan() {
         matchFresh = item.totalStok <= item.stokMinimum || item.penjualan?.statusHabis === 'kritis' || item.penjualan?.statusHabis === 'habis'
       } else if (filterFreshness === 'akan_habis') {
         matchFresh = item.penjualan?.statusHabis === 'kritis' || item.penjualan?.statusHabis === 'waspada'
+      } else if (filterFreshness === 'sudah_dimusnahkan') {
+        matchFresh = item.totalStok <= 0 || item.aiStatusFreshness === 'sudah_dimusnahkan' || (item.expiredBatchesCount === 0 && item.batches.some(bt => bt.isDibuang))
+      } else if (filterFreshness === 'kadaluarsa') {
+        matchFresh = item.totalStok > 0 && (item.aiStatusFreshness === 'kadaluarsa' || item.expiredBatchesCount > 0)
       } else {
-        matchFresh = item.aiStatusFreshness === filterFreshness
+        matchFresh = item.totalStok > 0 && item.aiStatusFreshness === filterFreshness
       }
 
       return matchSearch && matchFresh
@@ -103,10 +107,11 @@ export function useKondisiBahan() {
 
   // Summary counts
   const counts = useMemo(() => {
-    const segar = list.filter(b => b.aiStatusFreshness === 'segar').length
-    const mendekati = list.filter(b => b.aiStatusFreshness === 'mendekati_expire').length
-    const expired = list.filter(b => b.aiStatusFreshness === 'kadaluarsa' || b.expiredBatchesCount > 0).length
-    const dimusnahkan = list.filter(b => b.aiStatusFreshness === 'sudah_dimusnahkan' || (b.expiredBatchesCount === 0 && b.batches.some(bt => bt.isDibuang))).length
+    // Bahan yang stoknya 0 otomatis masuk kategori sudah_dimusnahkan dan BUKAN kadaluarsa aktif
+    const segar = list.filter(b => b.totalStok > 0 && b.aiStatusFreshness === 'segar').length
+    const mendekati = list.filter(b => b.totalStok > 0 && b.aiStatusFreshness === 'mendekati_expire').length
+    const expired = list.filter(b => b.totalStok > 0 && (b.aiStatusFreshness === 'kadaluarsa' || b.expiredBatchesCount > 0)).length
+    const dimusnahkan = list.filter(b => b.totalStok <= 0 || b.aiStatusFreshness === 'sudah_dimusnahkan' || (b.expiredBatchesCount === 0 && b.batches.some(bt => bt.isDibuang))).length
     const lowStock = list.filter(b => b.totalStok <= b.stokMinimum).length
     const akanHabis = list.filter(b => b.penjualan?.statusHabis === 'kritis' || b.penjualan?.statusHabis === 'waspada' || b.penjualan?.statusHabis === 'habis').length
 

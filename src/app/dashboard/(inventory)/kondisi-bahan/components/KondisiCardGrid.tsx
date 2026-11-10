@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { BahanKondisi, BatchMasukItem } from '../types'
+import { BahanKondisi, BatchMasukItem, FreshnessStatus } from '../types'
 import { formatRupiah } from '@/lib/mock-data'
 import Pagination from '@/components/ui/Pagination'
 import {
@@ -113,35 +113,29 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {paginatedList.map(b => {
         const isLocallyDimusnahkan = !!dimusnahkanMap[`bahan-${b.id}`]
-        const effectiveExpiredCount = isLocallyDimusnahkan ? 0 : b.expiredBatchesCount
-        const isBahanEmpty = b.totalStok <= 0
+        const isBahanEmpty = b.totalStok <= 0 || isLocallyDimusnahkan
+        const effectiveExpiredCount = isBahanEmpty ? 0 : b.expiredBatchesCount
 
         const isLowStock = b.totalStok <= b.stokMinimum
         const pct = b.stokMinimum > 0 ? Math.min(100, (b.totalStok / (b.stokMinimum * 3)) * 100) : 100
         const isExpanded = !!expandedCards[b.id]
 
         const hasDestroyedBatches = b.batches.some(bt => bt.isDibuang) || isLocallyDimusnahkan
-        const rawFreshnessKey =
-          isLocallyDimusnahkan || (isBahanEmpty && (b.aiStatusFreshness === 'kadaluarsa' || hasDestroyedBatches))
-            ? 'sudah_dimusnahkan'
-            : effectiveExpiredCount === 0 && (b.aiStatusFreshness === 'kadaluarsa' || hasDestroyedBatches)
-            ? hasDestroyedBatches && (isBahanEmpty || b.batches.every(bt => bt.isDibuang))
-              ? 'sudah_dimusnahkan'
-              : 'segar'
-            : b.aiStatusFreshness
+        const rawFreshnessKey: FreshnessStatus = isBahanEmpty
+          ? 'sudah_dimusnahkan'
+          : effectiveExpiredCount > 0
+          ? 'kadaluarsa'
+          : hasDestroyedBatches && b.batches.every(bt => bt.isDibuang)
+          ? 'sudah_dimusnahkan'
+          : b.aiStatusFreshness || 'segar'
 
         const freshness = rawFreshnessKey ? FRESHNESS_BADGE[rawFreshnessKey] : FRESHNESS_BADGE.tidak_diketahui
         const FreshIcon = freshness.icon
 
-        const effectiveSisaHari =
-          isLocallyDimusnahkan || isBahanEmpty
-            ? null
-            : b.aiSisaHari !== null && b.aiSisaHari !== undefined && b.aiSisaHari <= 0 && effectiveExpiredCount === 0
-            ? null
-            : b.aiSisaHari
+        const effectiveSisaHari = isBahanEmpty ? null : b.aiSisaHari
 
         const tglExpireStr =
-          isLocallyDimusnahkan || isBahanEmpty
+          isBahanEmpty
             ? '-'
             : b.aiEstimasiExpire
             ? new Date(b.aiEstimasiExpire).toLocaleDateString('id-ID', {
@@ -343,7 +337,7 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                         isBahanEmpty ||
                         !!dimusnahkanMap[`batch-${b.id}-${batch.batchNo}`]
 
-                      const isBatchExpired = batch.isExpired && !isBatchDibuang
+                      const isBatchExpired = !isBahanEmpty && batch.isExpired && !isBatchDibuang
 
                       const tglBatchMasuk = new Date(batch.tanggalMasuk).toLocaleDateString('id-ID', {
                         day: '2-digit',
