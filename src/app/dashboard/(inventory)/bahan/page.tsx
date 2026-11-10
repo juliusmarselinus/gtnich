@@ -182,7 +182,7 @@ export default function BahanPage() {
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 text-[#D98B00]" />
               <span>
-                Anda belum login ke Supabase Auth. Silakan login terlebih dahulu untuk membaca dan menyimpan data bahan ke database.
+                Sesi akun belum terhubung. Silakan masuk ke akun DapurTwin Anda untuk mengelola inventori bahan baku.
               </span>
             </div>
             <Link

@@ -30,7 +30,7 @@ export default function OpnameTable({
         setStatusMsg({ text: 'Tidak ada perbedaan stok. Seluruh data fisik sudah sesuai.', type: 'info' })
       } else {
         setStatusMsg({
-          text: `Berhasil menyesuaikan ${count} bahan ke database dan mencatat jejak audit Opname!`,
+          text: `Berhasil menyesuaikan ${count} bahan dan mencatat jejak opname stok!`,
           type: 'success',
         })
       }
@@ -82,7 +82,7 @@ export default function OpnameTable({
             <thead>
               <tr className="border-b border-[#F0EBE1] bg-[#FCFAF6] text-[#8C8275] text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
                 <th className="text-left px-6 py-4">Bahan Baku</th>
-                <th className="text-right px-6 py-4">Stok Database</th>
+                <th className="text-right px-6 py-4">Stok di Sistem</th>
                 <th className="text-right px-6 py-4">Hitungan Fisik Nyata</th>
                 <th className="text-right px-6 py-4">Disparitas / Selisih</th>
               </tr>
@@ -202,7 +202,7 @@ export default function OpnameTable({
 
         {entries.length === 0 && (
           <div className="text-center py-16 text-[#8C8275] text-sm font-medium">
-            Belum ada bahan baku yang terdaftar di database.
+            Belum ada bahan baku yang terdaftar di dapur.
           </div>
         )}
       </div>
@@ -219,7 +219,7 @@ export default function OpnameTable({
           className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-xs font-bold shadow-xs hover:shadow-md hover:brightness-105 active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
         >
           {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-          <span>Simpan & Rekonsiliasi Opname</span>
+          <span>Simpan & Sesuaikan Stok Fisik</span>
         </button>
       </div>
     </div>

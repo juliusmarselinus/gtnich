@@ -424,7 +424,7 @@ export function generateLaporanPrintHTML(data: LaporanData, rangeLabel: string):
         <div>
           <strong style="color: #2B1D00; font-size: 11px;">DapurTwin - Sistem Manajemen Operasional Dapur</strong>
           <div style="font-size: 10px; color: #7A623C; margin-top: 2px;">
-            Dokumen finansial ini digenerate secara otomatis dari database transaksi real-time.
+            Dokumen ini dibuat otomatis dari rekap transaksi penjualan DapurTwin.
           </div>
         </div>
         <div class="ttd-box">

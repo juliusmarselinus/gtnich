@@ -547,7 +547,7 @@ export default function QrMejaPage() {
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600" />
               <span>
-                Anda belum login ke Supabase Auth. Silakan login terlebih dahulu agar QR Code terhubung dengan ID outlet Anda.
+                Sesi akun belum terhubung. Silakan masuk ke akun DapurTwin Anda agar kartu meja terhubung dengan gerai Anda.
               </span>
             </div>
             <Link

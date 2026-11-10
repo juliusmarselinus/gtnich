@@ -391,7 +391,7 @@ export default function POTable({
 
       {list.length === 0 && (
         <div className="text-center py-12 text-kopi-muted text-sm font-medium">
-          Belum ada data Pembelian Stok di database.
+          Belum ada data Pembelian Stok tersimpan.
         </div>
       )}
 

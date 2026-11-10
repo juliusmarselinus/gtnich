@@ -133,7 +133,7 @@ export default function ScanResultView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-wider text-[#7A7062] mb-1.5">
-                Pilih / Hubungkan Supplier di Database
+                Pilih Kontak Supplier Toko
               </label>
               <CustomSelect
                 value={
@@ -199,7 +199,7 @@ export default function ScanResultView({
                 Rincian Item Bahan Hasil Scan
               </h4>
               <p className="text-[11px] text-[#8C8275]">
-                Sesuaikan nama, kuantitas, satuan, dan harga bila ada hasil ekstraksi yang kurang pas
+                Sesuaikan nama, jumlah, satuan, dan harga bila ada hasil bacaan nota yang kurang pas
               </p>
             </div>
           </div>
@@ -219,7 +219,7 @@ export default function ScanResultView({
             <thead>
               <tr className="border-b border-[#F0EBE1] bg-[#FCFAF6] text-[#8C8275] text-[11px] font-bold uppercase tracking-wider">
                 <th className="text-left px-5 py-3.5 w-[28%]">Nama Bahan Baku</th>
-                <th className="text-left px-4 py-3.5 w-[24%]">Cocokkan Ke DB</th>
+                <th className="text-left px-4 py-3.5 w-[24%]">Cocokkan Bahan Dapur</th>
                 <th className="text-right px-4 py-3.5 w-[14%]">Kuantitas</th>
                 <th className="text-left px-4 py-3.5 w-[14%]">Satuan</th>
                 <th className="text-right px-4 py-3.5 w-[18%]">Harga Satuan (Rp)</th>
@@ -368,7 +368,7 @@ export default function ScanResultView({
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-[#7A7062] mb-1">
-                    Cocokkan Ke Bahan Database
+                    Cocokkan ke Bahan Dapur
                   </label>
                   <CustomSelect
                     value={matchedBahan?.nama || '(Buat Baru / Belum Ada)'}
@@ -517,7 +517,7 @@ export default function ScanResultView({
             className="flex-1 py-3 rounded-full bg-gradient-to-r from-[#FF8F2B] to-[#FF6B00] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs hover:shadow-md hover:brightness-105 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-            <span>{isSaving ? 'Menyimpan ke Database...' : 'Konfirmasi & Masukkan ke Database PO'}</span>
+            <span>{isSaving ? 'Menyimpan Belanjaan...' : 'Konfirmasi & Masukkan ke Daftar Belanja'}</span>
           </button>
         </div>
       )}

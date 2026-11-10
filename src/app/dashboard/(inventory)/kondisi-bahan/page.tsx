@@ -85,7 +85,7 @@ export default function KondisiBahanPage() {
       ? 'Ada stok bahan yang melewati batas kedaluwarsa. Segera musnahkan atau sesuaikan stok agar kualitas masakan terjaga.'
       : hasWarning
       ? 'Beberapa persediaan dapur mendekati batas kadaluarsa (< 3 hari). Prioritaskan untuk menu hari ini.'
-      : 'Sistem memantau shelf-life dan estimasi tanggal kedaluwarsa secara otomatis untuk setiap batch masuk.',
+      : 'Sistem memantau kesegaran dan perkiraan tanggal kedaluwarsa secara otomatis untuk setiap belanjaan masuk.',
   }
 
   const FILTER_TABS = [
@@ -110,7 +110,7 @@ export default function KondisiBahanPage() {
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600" />
               <span>
-                Anda belum login ke Supabase Auth. Silakan login terlebih dahulu untuk mengakses data bahan baku.
+                Sesi akun belum terhubung. Silakan masuk ke akun DapurTwin Anda untuk melihat kondisi bahan baku.
               </span>
             </div>
             <Link

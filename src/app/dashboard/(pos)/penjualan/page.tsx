@@ -152,7 +152,7 @@ export default function PenjualanPage() {
           <div className="p-4 rounded-[24px] bg-[#FFF6D6] flex flex-wrap items-center justify-between gap-3 text-[#6B4A00] text-xs">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 text-[#D98B00]" />
-              <span>Anda belum masuk ke Supabase Auth. Silakan login dulu untuk mencatat penjualan.</span>
+              <span>Sesi akun belum terhubung. Silakan masuk ke akun DapurTwin Anda untuk mencatat penjualan kasir.</span>
             </div>
             <Link
               href="/login"

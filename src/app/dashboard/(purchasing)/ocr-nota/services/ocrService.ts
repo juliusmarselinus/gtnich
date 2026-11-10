@@ -56,7 +56,7 @@ export const ocrService = {
   ): Promise<OCRScanResult> {
     try {
       if (onProgress) {
-        onProgress(20, 'Menganalisis dokumen nota via 9Router AI Vision...')
+        onProgress(20, 'Membaca foto nota belanja...')
       }
 
       const formData = new FormData()

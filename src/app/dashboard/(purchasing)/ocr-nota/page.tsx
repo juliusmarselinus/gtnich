@@ -139,7 +139,7 @@ export default function OCRNotaPage() {
                 <ScanLine className="w-3.5 h-3.5" />
               </span>
               <p className="text-xs font-bold uppercase tracking-wider text-[#5C3D00]">
-                Ekstraksi Pembelian Dapur
+                Catat Otomatis Belanja Dapur
               </p>
             </div>
 
@@ -157,7 +157,7 @@ export default function OCRNotaPage() {
               </span>
 
               <span className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xs px-3.5 py-1.5 text-xs font-bold text-[#2B1D00]">
-                Otomatis Cocokkan Satuan & DB
+                Otomatis Cocokkan Bahan Dapur
               </span>
             </div>
           </div>

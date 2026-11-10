@@ -411,7 +411,7 @@ export const PAGE_GUIDES: Record<string, TourStepInfo[]> = {
     {
       targetSelector: '[data-tour="ocr-hero-info"]',
       title: 'Pindai Struk Belanja Otomatis',
-      subtitle: 'Ekstraksi nama bahan dan nominal belanja',
+      subtitle: 'Membaca nama bahan dan total belanja',
       description: 'Fitur pintar untuk membaca foto struk belanjaan pasar, nota minimarket, atau faktur supplier tanpa perlu mengetik ulang satu per satu.',
       tip: 'Sistem dapat mengenali nama bahan, takaran satuan, dan total harga belanja.',
       mood: 'senang',

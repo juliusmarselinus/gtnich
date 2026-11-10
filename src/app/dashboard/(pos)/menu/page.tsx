@@ -194,7 +194,7 @@ export default function MenuPage() {
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600" />
               <span>
-                Anda belum login ke Supabase Auth. Silakan login terlebih dahulu untuk mengelola menu dan resep.
+                Sesi akun belum terhubung. Silakan masuk ke akun DapurTwin Anda untuk mengelola menu dan resep.
               </span>
             </div>
             <Link

@@ -171,7 +171,7 @@ export default function BahanCard({
       await onUpdateHarga(pendingConfirm.bahan, pendingConfirm.hargaBaru)
       toast.success(
         'Harga Bahan Diperbarui',
-        `${pendingConfirm.bahan.nama}: Rp ${pendingConfirm.hargaBaru.toLocaleString('id-ID')} / ${pendingConfirm.bahan.satuan} berhasil disimpan ke database.`
+        `${pendingConfirm.bahan.nama}: Rp ${pendingConfirm.hargaBaru.toLocaleString('id-ID')} / ${pendingConfirm.bahan.satuan} berhasil diperbarui.`
       )
       setPendingConfirm(null)
     } catch (err: any) {

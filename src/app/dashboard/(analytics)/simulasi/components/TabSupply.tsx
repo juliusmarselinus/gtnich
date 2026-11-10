@@ -47,7 +47,7 @@ export default function TabSupply({
         <div className="w-12 h-12 rounded-2xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center mx-auto mb-3">
           <AlertTriangle className="w-6 h-6" />
         </div>
-        <p className="text-sm font-bold text-[#2B261F]">Belum ada menu di database</p>
+        <p className="text-sm font-bold text-[#2B261F]">Belum ada menu masakan yang terdaftar</p>
       </div>
     )
   }

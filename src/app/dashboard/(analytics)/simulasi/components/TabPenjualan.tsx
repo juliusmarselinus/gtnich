@@ -41,7 +41,7 @@ export default function TabPenjualan({
         <div className="w-12 h-12 rounded-2xl bg-[#FFF6D6] text-[#8A5A00] flex items-center justify-center mx-auto mb-3">
           <AlertTriangle className="w-6 h-6" />
         </div>
-        <p className="text-sm font-bold text-[#2B261F]">Belum ada menu yang terdaftar di database</p>
+        <p className="text-sm font-bold text-[#2B261F]">Belum ada menu yang terdaftar di dapur</p>
         <p className="text-xs text-[#8C8275] mt-1 max-w-sm mx-auto">
           Tambahkan menu & resep terlebih dahulu di menu dashboard untuk menjalankan simulasi penjualan.
         </p>

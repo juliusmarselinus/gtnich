@@ -217,7 +217,7 @@ export default function MenuCardGrid({
 
         {list.length === 0 && (
           <div className="col-span-full rounded-[32px] bg-white border border-[#EBE6DC] shadow-xs py-16 text-center text-slate-400 text-sm font-medium">
-            Tidak ada menu masakan yang ditemukan di database.
+            Tidak ada menu masakan yang ditemukan.
           </div>
         )}
       </div>

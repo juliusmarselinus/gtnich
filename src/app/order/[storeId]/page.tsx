@@ -659,7 +659,7 @@ export default function PublicOrderPage({
                     </h4>
                     <p className="text-xs text-slate-500">
                       {menus.length === 0
-                        ? 'Outlet kuliner belum memiliki menu aktif di database.'
+                        ? 'Kedai belum memiliki menu aktif yang dapat dipesan.'
                         : 'Kata kunci atau kategori yang dipilih tidak menghasilkan menu.'}
                     </p>
                   </div>
