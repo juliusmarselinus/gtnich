@@ -149,38 +149,36 @@ export function useProsesPesanan() {
         }
       }
 
-      // Jika pelanggan menyertakan email, kirimkan struk lunas kasir resmi via Resend
+      // Jika pelanggan menyertakan email, kirimkan struk lunas kasir resmi via Resend (fire-and-forget, non-blocking)
       if (targetEmail) {
-        try {
-          await fetch('/api/notify-sale', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              customerEmail: targetEmail,
-              invoiceNumber: order.invoiceNumber,
-              customerName: order.customerName,
-              customerPhone: order.customerPhone,
-              paymentMethod: 'Tunai di Kasir',
-              paymentStatus: 'Lunas',
-              subtotal: order.subtotal,
-              discount: order.discount || 0,
-              totalPrice: order.totalPrice,
-              cashReceived: order.totalPrice,
-              changeAmount: 0,
-              cashierName: order.cashierName || 'Kasir',
-              notes: order.notes,
-              items: (order.items || []).map(it => ({
-                namaMenu: it.namaMenu,
-                qty: it.qty,
-                hargaJual: it.hargaJual,
-                subtotal: it.subtotal || it.hargaJual * it.qty,
-              })),
-              createdAt: order.createdAt,
-            }),
-          })
-        } catch (mailErr) {
+        fetch('/api/notify-sale', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerEmail: targetEmail,
+            invoiceNumber: order.invoiceNumber,
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            paymentMethod: 'Tunai di Kasir',
+            paymentStatus: 'Lunas',
+            subtotal: order.subtotal,
+            discount: order.discount || 0,
+            totalPrice: order.totalPrice,
+            cashReceived: order.totalPrice,
+            changeAmount: 0,
+            cashierName: order.cashierName || 'Kasir',
+            notes: order.notes,
+            items: (order.items || []).map(it => ({
+              namaMenu: it.namaMenu,
+              qty: it.qty,
+              hargaJual: it.hargaJual,
+              subtotal: it.subtotal || it.hargaJual * it.qty,
+            })),
+            createdAt: order.createdAt,
+          }),
+        }).catch(mailErr => {
           console.warn('[handleTandaiLunas] Gagal mengirim struk pelunasan kasir:', mailErr)
-        }
+        })
       }
 
       toast.success(

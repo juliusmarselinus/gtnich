@@ -165,107 +165,113 @@ export const ocrService = {
       throw new Error(`Gagal menyimpan Purchase Order: ${poErr?.message || 'Database error'}`)
     }
 
-    // 2. Simpan PO Items & Sinkronisasi Bahan
-    for (const item of payload.items) {
-      let bahanId = item.matchedBahanId || null
+    // 2. Simpan PO Items & Sinkronisasi Bahan secara paralel
+    const poItemsRows = await Promise.all(
+      payload.items.map(async item => {
+        let bahanId = item.matchedBahanId || null
 
-      // Jika update stok langsung dicentang, kita update atau insert bahan
-      if (payload.updateStokDirectly) {
-        if (!bahanId) {
-          // Cari bahan berdasarkan nama
-          const { data: existingBahan } = await supabase
-            .from('bahan')
-            .select('id, stok, satuan')
-            .eq('user_id', user.id)
-            .ilike('nama', item.nama.trim())
-            .maybeSingle()
-
-          if (existingBahan) {
-            bahanId = existingBahan.id
-            const stokBaru = (Number(existingBahan.stok) || 0) + item.qty
-            await supabase.from('bahan').update({ stok: stokBaru }).eq('id', existingBahan.id)
-
-            // Catat ke stok_logs
-            await supabase.from('stok_logs').insert({
-              user_id: user.id,
-              bahan_id: existingBahan.id,
-              perubahan: item.qty,
-              stok_sebelum: Number(existingBahan.stok) || 0,
-              stok_sesudah: stokBaru,
-              sumber: 'PO',
-              reference_id: po.id,
-              catatan: `Impor OCR Nota ${payload.nomorPO}: Masuk ${item.qty} ${item.satuan}`,
-            })
-          } else {
-            // Buat bahan baru otomatis
-            const { data: newBahan } = await supabase
+        // Jika update stok langsung dicentang, kita update atau insert bahan
+        if (payload.updateStokDirectly) {
+          if (!bahanId) {
+            // Cari bahan berdasarkan nama
+            const { data: existingBahan } = await supabase
               .from('bahan')
-              .insert({
-                user_id: user.id,
-                nama: item.nama.trim(),
-                satuan: item.satuan,
-                harga_per_satuan: item.harga,
-                stok: item.qty,
-                stok_minimum: 5,
-                supplier_id: payload.supplierId || null,
-              })
-              .select('id')
-              .single()
+              .select('id, stok, satuan')
+              .eq('user_id', user.id)
+              .ilike('nama', item.nama.trim())
+              .maybeSingle()
 
-            if (newBahan) {
-              bahanId = newBahan.id
-              // Catat stok_logs bahan baru
+            if (existingBahan) {
+              bahanId = existingBahan.id
+              const stokBaru = (Number(existingBahan.stok) || 0) + item.qty
+              await supabase.from('bahan').update({ stok: stokBaru }).eq('id', existingBahan.id)
+
+              // Catat ke stok_logs
               await supabase.from('stok_logs').insert({
                 user_id: user.id,
-                bahan_id: newBahan.id,
+                bahan_id: existingBahan.id,
                 perubahan: item.qty,
-                stok_sebelum: 0,
-                stok_sesudah: item.qty,
+                stok_sebelum: Number(existingBahan.stok) || 0,
+                stok_sesudah: stokBaru,
                 sumber: 'PO',
                 reference_id: po.id,
-                catatan: `Bahan baru dari OCR Nota ${payload.nomorPO}: ${item.qty} ${item.satuan}`,
+                catatan: `Impor OCR Nota ${payload.nomorPO}: Masuk ${item.qty} ${item.satuan}`,
+              })
+            } else {
+              // Buat bahan baru otomatis
+              const { data: newBahan } = await supabase
+                .from('bahan')
+                .insert({
+                  user_id: user.id,
+                  nama: item.nama.trim(),
+                  satuan: item.satuan,
+                  harga_per_satuan: item.harga,
+                  stok: item.qty,
+                  stok_minimum: 5,
+                  supplier_id: payload.supplierId || null,
+                })
+                .select('id')
+                .single()
+
+              if (newBahan) {
+                bahanId = newBahan.id
+                // Catat stok_logs bahan baru
+                await supabase.from('stok_logs').insert({
+                  user_id: user.id,
+                  bahan_id: newBahan.id,
+                  perubahan: item.qty,
+                  stok_sebelum: 0,
+                  stok_sesudah: item.qty,
+                  sumber: 'PO',
+                  reference_id: po.id,
+                  catatan: `Bahan baru dari OCR Nota ${payload.nomorPO}: ${item.qty} ${item.satuan}`,
+                })
+              }
+            }
+          } else {
+            // Update stok dari bahan yang sudah dipilih
+            const { data: existingBahan } = await supabase
+              .from('bahan')
+              .select('id, stok')
+              .eq('id', bahanId)
+              .single()
+
+            if (existingBahan) {
+              const stokBaru = (Number(existingBahan.stok) || 0) + item.qty
+              await supabase.from('bahan').update({ stok: stokBaru }).eq('id', bahanId)
+
+              await supabase.from('stok_logs').insert({
+                user_id: user.id,
+                bahan_id: bahanId,
+                perubahan: item.qty,
+                stok_sebelum: Number(existingBahan.stok) || 0,
+                stok_sesudah: stokBaru,
+                sumber: 'PO',
+                reference_id: po.id,
+                catatan: `Penerimaan OCR Nota ${payload.nomorPO}: Masuk ${item.qty} ${item.satuan}`,
               })
             }
           }
-        } else {
-          // Update stok dari bahan yang sudah dipilih
-          const { data: existingBahan } = await supabase
-            .from('bahan')
-            .select('id, stok')
-            .eq('id', bahanId)
-            .single()
-
-          if (existingBahan) {
-            const stokBaru = (Number(existingBahan.stok) || 0) + item.qty
-            await supabase.from('bahan').update({ stok: stokBaru }).eq('id', bahanId)
-
-            await supabase.from('stok_logs').insert({
-              user_id: user.id,
-              bahan_id: bahanId,
-              perubahan: item.qty,
-              stok_sebelum: Number(existingBahan.stok) || 0,
-              stok_sesudah: stokBaru,
-              sumber: 'PO',
-              reference_id: po.id,
-              catatan: `Penerimaan OCR Nota ${payload.nomorPO}: Masuk ${item.qty} ${item.satuan}`,
-            })
-          }
         }
-      }
 
-      // Masukkan ke po_items
-      await supabase.from('po_items').insert({
-        po_id: po.id,
-        user_id: user.id,
-        bahan_id: bahanId,
-        nama_bahan: item.nama,
-        qty: item.qty,
-        satuan: item.satuan,
-        harga_estimasi: item.harga,
-        harga_aktual: payload.updateStokDirectly ? item.harga : 0,
-        stok_sebelum: 0,
-        diterima: payload.updateStokDirectly,
+        return {
+          po_id: po.id,
+          user_id: user.id,
+          bahan_id: bahanId,
+          nama_bahan: item.nama,
+          qty: item.qty,
+          satuan: item.satuan,
+          harga_estimasi: item.harga,
+          harga_aktual: payload.updateStokDirectly ? item.harga : 0,
+          stok_sebelum: 0,
+          diterima: payload.updateStokDirectly,
+        }
       })
+    )
+
+    // Masukkan ke po_items dalam 1 batch insert
+    if (poItemsRows.length > 0) {
+      await supabase.from('po_items').insert(poItemsRows)
     }
 
     return { poId: po.id, noPO: po.no_po }

@@ -488,7 +488,7 @@ export const penjualanService = {
       throw new Error(`Gagal mencatat rincian pesanan (${itemsErr.message}). Transaksi dibatalkan.`)
     }
 
-    // 3. Potong stok + stok_logs
+    // 3. Potong stok + stok_logs secara paralel dan efisien
     const bahanDeductionMap = new Map<string, { namaBahan: string; qtyToDeduct: number }>()
     for (const item of cart) {
       for (const r of item.resep || []) {
@@ -499,60 +499,64 @@ export const penjualanService = {
       }
     }
 
-    for (const [bahanId, { qtyToDeduct }] of form.isPreOrder ? [] : Array.from(bahanDeductionMap.entries())) {
-      const roundedDeduct = Number(qtyToDeduct.toFixed(3))
+    if (!form.isPreOrder && bahanDeductionMap.size > 0) {
+      await Promise.all(
+        Array.from(bahanDeductionMap.entries()).map(async ([bahanId, { qtyToDeduct }]) => {
+          const roundedDeduct = Number(qtyToDeduct.toFixed(3))
 
-      // 1. Coba eksekusi atomic via RPC mutate_stok_bahan jika tersedia di database
-      const { data: rpcRes, error: rpcErr } = await supabase.rpc('mutate_stok_bahan', {
-        p_bahan_id: bahanId,
-        p_delta: -roundedDeduct,
-      })
-
-      if (!rpcErr && rpcRes && rpcRes.success) {
-        const stokSebelum = Number(rpcRes.stok_sebelum) || 0
-        const stokSesudah = Number(rpcRes.stok_sesudah) || 0
-        const satuanBahan = rpcRes.satuan || ''
-
-        await supabase.from('stok_logs').insert({
-          user_id: userId,
-          bahan_id: bahanId,
-          perubahan: -roundedDeduct,
-          stok_sebelum: stokSebelum,
-          stok_sesudah: stokSesudah,
-          sumber: 'Penjualan',
-          reference_id: orderId,
-          catatan: `Penjualan ${invoiceNumber}: Terpakai ${roundedDeduct} ${satuanBahan}`,
-        })
-      } else {
-        // Fallback langsung ke query jika RPC belum dimigrasi di Postgres
-        const { data: bhn } = await supabase
-          .from('bahan')
-          .select('stok, satuan')
-          .eq('id', bahanId)
-          .single()
-
-        if (bhn) {
-          const currentStock = Number(bhn.stok) || 0
-          const newStock = Math.max(0, Number((currentStock - roundedDeduct).toFixed(3)))
-
-          await supabase
-            .from('bahan')
-            .update({ stok: newStock, updated_at: new Date().toISOString() })
-            .eq('id', bahanId)
-            .gte('stok', roundedDeduct)
-
-          await supabase.from('stok_logs').insert({
-            user_id: userId,
-            bahan_id: bahanId,
-            perubahan: -roundedDeduct,
-            stok_sebelum: currentStock,
-            stok_sesudah: newStock,
-            sumber: 'Penjualan',
-            reference_id: orderId,
-            catatan: `Penjualan ${invoiceNumber}: Terpakai ${roundedDeduct} ${bhn.satuan}`,
+          // 1. Coba eksekusi atomic via RPC mutate_stok_bahan jika tersedia di database
+          const { data: rpcRes, error: rpcErr } = await supabase.rpc('mutate_stok_bahan', {
+            p_bahan_id: bahanId,
+            p_delta: -roundedDeduct,
           })
-        }
-      }
+
+          if (!rpcErr && rpcRes && rpcRes.success) {
+            const stokSebelum = Number(rpcRes.stok_sebelum) || 0
+            const stokSesudah = Number(rpcRes.stok_sesudah) || 0
+            const satuanBahan = rpcRes.satuan || ''
+
+            await supabase.from('stok_logs').insert({
+              user_id: userId,
+              bahan_id: bahanId,
+              perubahan: -roundedDeduct,
+              stok_sebelum: stokSebelum,
+              stok_sesudah: stokSesudah,
+              sumber: 'Penjualan',
+              reference_id: orderId,
+              catatan: `Penjualan ${invoiceNumber}: Terpakai ${roundedDeduct} ${satuanBahan}`,
+            })
+          } else {
+            // Fallback langsung ke query jika RPC belum dimigrasi di Postgres
+            const { data: bhn } = await supabase
+              .from('bahan')
+              .select('stok, satuan')
+              .eq('id', bahanId)
+              .single()
+
+            if (bhn) {
+              const currentStock = Number(bhn.stok) || 0
+              const newStock = Math.max(0, Number((currentStock - roundedDeduct).toFixed(3)))
+
+              await supabase
+                .from('bahan')
+                .update({ stok: newStock, updated_at: new Date().toISOString() })
+                .eq('id', bahanId)
+                .gte('stok', roundedDeduct)
+
+              await supabase.from('stok_logs').insert({
+                user_id: userId,
+                bahan_id: bahanId,
+                perubahan: -roundedDeduct,
+                stok_sebelum: currentStock,
+                stok_sesudah: newStock,
+                sumber: 'Penjualan',
+                reference_id: orderId,
+                catatan: `Penjualan ${invoiceNumber}: Terpakai ${roundedDeduct} ${bhn.satuan}`,
+              })
+            }
+          }
+        })
+      )
     }
 
     // 4. Kirim notifikasi transaksi & struk via Email Resend (non-blocking)
@@ -597,8 +601,8 @@ export const penjualanService = {
         createdAt: orderData.created_at,
       }
 
-      // Panggil endpoint internal notify-sale (await agar request selesai sebelum navigasi/unmount)
-      await fetch('/api/notify-sale', {
+      // Panggil endpoint internal notify-sale secara fire-and-forget (tanpa memblokir respons UI)
+      fetch('/api/notify-sale', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(emailPayload),

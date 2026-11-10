@@ -358,50 +358,52 @@ export const purchaseOrderService = {
       throw new Error(`Gagal update status PO: ${poUpdateErr.message}`)
     }
 
-    // 3. JIKA DITERIMA: Tambahkan stok bahan & catat log mutasi
+    // 3. JIKA DITERIMA: Tambahkan stok bahan & catat log mutasi secara paralel
     if (newStatus === 'diterima' && currentPO.status !== 'diterima') {
       const items = currentPO.po_items as RawPOItemDB[]
-      for (const item of items) {
-        // Ambil stok dan satuan master terkini
-        const { data: bhn } = await supabase
-          .from('bahan')
-          .select('stok, satuan')
-          .eq('id', item.bahan_id)
-          .single()
+      await Promise.all(
+        items.map(async item => {
+          // Ambil stok dan satuan master terkini
+          const { data: bhn } = await supabase
+            .from('bahan')
+            .select('stok, satuan')
+            .eq('id', item.bahan_id)
+            .single()
 
-        const currentStock = bhn ? Number(bhn.stok) || 0 : 0
-        const baseUnit = bhn?.satuan || item.satuan
-        const itemQty = Number(item.qty) || 0
+          const currentStock = bhn ? Number(bhn.stok) || 0 : 0
+          const baseUnit = bhn?.satuan || item.satuan
+          const itemQty = Number(item.qty) || 0
 
-        // Konversi kuantitas order ke satuan master bahan jika berbeda
-        const factor = getUnitConversionFactor(item.satuan, baseUnit)
-        const addedStock = Number((itemQty * factor).toFixed(3))
-        const newStock = Number((currentStock + addedStock).toFixed(3))
+          // Konversi kuantitas order ke satuan master bahan jika berbeda
+          const factor = getUnitConversionFactor(item.satuan, baseUnit)
+          const addedStock = Number((itemQty * factor).toFixed(3))
+          const newStock = Number((currentStock + addedStock).toFixed(3))
 
-        // Update stok fisik di tabel bahan
-        await supabase
-          .from('bahan')
-          .update({ stok: newStock, updated_at: new Date().toISOString() })
-          .eq('id', item.bahan_id)
+          // Update stok fisik di tabel bahan
+          await supabase
+            .from('bahan')
+            .update({ stok: newStock, updated_at: new Date().toISOString() })
+            .eq('id', item.bahan_id)
 
-        // Catat ke tabel stok_logs (sumber: 'PO')
-        await supabase.from('stok_logs').insert({
-          user_id: userId,
-          bahan_id: item.bahan_id,
-          perubahan: addedStock,
-          stok_sebelum: currentStock,
-          stok_sesudah: newStock,
-          sumber: 'PO',
-          reference_id: poId,
-          catatan: `Penerimaan barang PO: ${currentPO.no_po} (${itemQty} ${item.satuan}${factor !== 1 ? ` = ${addedStock} ${baseUnit}` : ''}) dari ${currentPO.nama_supplier}`,
+          // Catat ke tabel stok_logs (sumber: 'PO')
+          await supabase.from('stok_logs').insert({
+            user_id: userId,
+            bahan_id: item.bahan_id,
+            perubahan: addedStock,
+            stok_sebelum: currentStock,
+            stok_sesudah: newStock,
+            sumber: 'PO',
+            reference_id: poId,
+            catatan: `Penerimaan barang PO: ${currentPO.no_po} (${itemQty} ${item.satuan}${factor !== 1 ? ` = ${addedStock} ${baseUnit}` : ''}) dari ${currentPO.nama_supplier}`,
+          })
+
+          // Tandai item diterima
+          await supabase
+            .from('po_items')
+            .update({ diterima: true })
+            .eq('id', item.id)
         })
-
-        // Tandai item diterima
-        await supabase
-          .from('po_items')
-          .update({ diterima: true })
-          .eq('id', item.id)
-      }
+      )
 
       // Catat ke supplier_riwayat jika supplier_id ada
       if (currentPO.supplier_id) {
@@ -456,114 +458,116 @@ export const purchaseOrderService = {
       throw new Error(`Gagal memperbarui status PO: ${poErr.message}`)
     }
 
-    // 3. Update setiap item PO & mutasi stok bahan
-    for (const vItem of input.items) {
-      // Perbarui item PO dengan harga & kuantitas aktual yang diterima
-      await supabase
-        .from('po_items')
-        .update({
-          qty: vItem.qtyDiterima,
-          harga_aktual: vItem.hargaAktual,
-          diterima: true,
-        })
-        .eq('id', vItem.itemId)
-
-      // Ambil stok & satuan master bahan terkini
-      const { data: bhn } = await supabase
-        .from('bahan')
-        .select('id, nama, stok, satuan, harga_per_satuan')
-        .eq('id', vItem.bahanId)
-        .single()
-
-      const currentStock = bhn ? Number(bhn.stok) || 0 : 0
-      const currentPrice = bhn ? Number(bhn.harga_per_satuan) || 0 : 0
-      const baseUnit = bhn?.satuan || vItem.satuan
-      const factor = getUnitConversionFactor(vItem.satuan, baseUnit)
-      const addedStock = Number((vItem.qtyDiterima * factor).toFixed(3))
-      const newStock = Number((currentStock + addedStock).toFixed(3))
-
-      const itemHargaAktual = Number(vItem.hargaAktual) || 0
-      const newPricePerBaseUnit = factor > 0 ? Math.round(itemHargaAktual / factor) : itemHargaAktual
-
-      const hasPriceChange = newPricePerBaseUnit > 0 && newPricePerBaseUnit !== currentPrice
-      const shouldAutoUpdate = !!input.autoUpdateHargaMaster && hasPriceChange
-
-      // 1. Coba eksekusi atomic via RPC mutate_stok_bahan
-      const { data: rpcRes, error: rpcErr } = await supabase.rpc('mutate_stok_bahan', {
-        p_bahan_id: vItem.bahanId,
-        p_delta: addedStock,
-        p_new_price: shouldAutoUpdate ? newPricePerBaseUnit : null,
-      })
-
-      if (rpcErr || !rpcRes?.success) {
-        // Fallback update langsung jika RPC belum terpasang di database
-        const bahanUpdatePayload: Record<string, unknown> = {
-          stok: newStock,
-          updated_at: todayIso,
-        }
-        if (shouldAutoUpdate) {
-          bahanUpdatePayload.harga_per_satuan = newPricePerBaseUnit
-        }
-
+    // 3. Update setiap item PO & mutasi stok bahan secara paralel
+    await Promise.all(
+      input.items.map(async vItem => {
+        // Perbarui item PO dengan harga & kuantitas aktual yang diterima
         await supabase
-          .from('bahan')
-          .update(bahanUpdatePayload)
-          .eq('id', vItem.bahanId)
-      }
-
-      // Jika ada perubahan harga, catat notifikasi dengan opsi update HPP/harga master
-      if (hasPriceChange) {
-        try {
-          await supabase.from('notifications').insert({
-            user_id: userId,
-            title: shouldAutoUpdate
-              ? `Harga Bahan Terupdate: ${bhn?.nama || vItem.namaBahan}`
-              : `Perubahan Harga PO: ${bhn?.nama || vItem.namaBahan}`,
-            detail: shouldAutoUpdate
-              ? `Harga master & HPP otomatis diperbarui ke ${formatRupiah(newPricePerBaseUnit)}/${baseUnit} (sebelumnya ${formatRupiah(currentPrice)}/${baseUnit}) sesuai penerimaan PO ${currentPO.no_po}.`
-              : `Terdeteksi harga beli baru ${formatRupiah(newPricePerBaseUnit)}/${baseUnit} di PO ${currentPO.no_po} (harga master saat ini: ${formatRupiah(currentPrice)}/${baseUnit}). Klik untuk memperbarui harga master & HPP.`,
-            type: 'po',
-            link: '/dashboard/purchase-order',
-            metadata: {
-              isPriceUpdate: true,
-              applied: !!shouldAutoUpdate,
-              bahanId: vItem.bahanId,
-              namaBahan: bhn?.nama || vItem.namaBahan,
-              oldPrice: currentPrice,
-              newPrice: newPricePerBaseUnit,
-              satuan: baseUnit,
-              noPO: currentPO.no_po,
-              poId: input.poId,
-            },
+          .from('po_items')
+          .update({
+            qty: vItem.qtyDiterima,
+            harga_aktual: vItem.hargaAktual,
+            diterima: true,
           })
-        } catch (notifErr) {
-          console.warn('Gagal mencatat notifikasi perubahan harga ke DB:', notifErr)
+          .eq('id', vItem.itemId)
+
+        // Ambil stok & satuan master bahan terkini
+        const { data: bhn } = await supabase
+          .from('bahan')
+          .select('id, nama, stok, satuan, harga_per_satuan')
+          .eq('id', vItem.bahanId)
+          .single()
+
+        const currentStock = bhn ? Number(bhn.stok) || 0 : 0
+        const currentPrice = bhn ? Number(bhn.harga_per_satuan) || 0 : 0
+        const baseUnit = bhn?.satuan || vItem.satuan
+        const factor = getUnitConversionFactor(vItem.satuan, baseUnit)
+        const addedStock = Number((vItem.qtyDiterima * factor).toFixed(3))
+        const newStock = Number((currentStock + addedStock).toFixed(3))
+
+        const itemHargaAktual = Number(vItem.hargaAktual) || 0
+        const newPricePerBaseUnit = factor > 0 ? Math.round(itemHargaAktual / factor) : itemHargaAktual
+
+        const hasPriceChange = newPricePerBaseUnit > 0 && newPricePerBaseUnit !== currentPrice
+        const shouldAutoUpdate = !!input.autoUpdateHargaMaster && hasPriceChange
+
+        // 1. Coba eksekusi atomic via RPC mutate_stok_bahan
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc('mutate_stok_bahan', {
+          p_bahan_id: vItem.bahanId,
+          p_delta: addedStock,
+          p_new_price: shouldAutoUpdate ? newPricePerBaseUnit : null,
+        })
+
+        if (rpcErr || !rpcRes?.success) {
+          // Fallback update langsung jika RPC belum terpasang di database
+          const bahanUpdatePayload: Record<string, unknown> = {
+            stok: newStock,
+            updated_at: todayIso,
+          }
+          if (shouldAutoUpdate) {
+            bahanUpdatePayload.harga_per_satuan = newPricePerBaseUnit
+          }
+
+          await supabase
+            .from('bahan')
+            .update(bahanUpdatePayload)
+            .eq('id', vItem.bahanId)
         }
-      }
 
-      // Catat ke stok_logs
-      const noteParts = [
-        `Penerimaan diverifikasi: ${vItem.qtyDiterima} ${vItem.satuan}`,
-      ]
-      if (factor !== 1) noteParts.push(`(= ${addedStock} ${baseUnit})`)
-      if (vItem.qtyDiterima !== vItem.qtyPesan) {
-        noteParts.push(`[Selisih dr order ${vItem.qtyPesan} ${vItem.satuan}]`)
-      }
-      if (vItem.catatanItem) {
-        noteParts.push(`Ket: ${vItem.catatanItem}`)
-      }
+        // Jika ada perubahan harga, catat notifikasi dengan opsi update HPP/harga master
+        if (hasPriceChange) {
+          try {
+            await supabase.from('notifications').insert({
+              user_id: userId,
+              title: shouldAutoUpdate
+                ? `Harga Bahan Terupdate: ${bhn?.nama || vItem.namaBahan}`
+                : `Perubahan Harga PO: ${bhn?.nama || vItem.namaBahan}`,
+              detail: shouldAutoUpdate
+                ? `Harga master & HPP otomatis diperbarui ke ${formatRupiah(newPricePerBaseUnit)}/${baseUnit} (sebelumnya ${formatRupiah(currentPrice)}/${baseUnit}) sesuai penerimaan PO ${currentPO.no_po}.`
+                : `Terdeteksi harga beli baru ${formatRupiah(newPricePerBaseUnit)}/${baseUnit} di PO ${currentPO.no_po} (harga master saat ini: ${formatRupiah(currentPrice)}/${baseUnit}). Klik untuk memperbarui harga master & HPP.`,
+              type: 'po',
+              link: '/dashboard/purchase-order',
+              metadata: {
+                isPriceUpdate: true,
+                applied: !!shouldAutoUpdate,
+                bahanId: vItem.bahanId,
+                namaBahan: bhn?.nama || vItem.namaBahan,
+                oldPrice: currentPrice,
+                newPrice: newPricePerBaseUnit,
+                satuan: baseUnit,
+                noPO: currentPO.no_po,
+                poId: input.poId,
+              },
+            })
+          } catch (notifErr) {
+            console.warn('Gagal mencatat notifikasi perubahan harga ke DB:', notifErr)
+          }
+        }
 
-      await supabase.from('stok_logs').insert({
-        user_id: userId,
-        bahan_id: vItem.bahanId,
-        perubahan: addedStock,
-        stok_sebelum: currentStock,
-        stok_sesudah: newStock,
-        sumber: 'PO',
-        reference_id: input.poId,
-        catatan: `PO ${currentPO.no_po} dari ${currentPO.nama_supplier}: ${noteParts.join(' ')}`,
+        // Catat ke stok_logs
+        const noteParts = [
+          `Penerimaan diverifikasi: ${vItem.qtyDiterima} ${vItem.satuan}`,
+        ]
+        if (factor !== 1) noteParts.push(`(= ${addedStock} ${baseUnit})`)
+        if (vItem.qtyDiterima !== vItem.qtyPesan) {
+          noteParts.push(`[Selisih dr order ${vItem.qtyPesan} ${vItem.satuan}]`)
+        }
+        if (vItem.catatanItem) {
+          noteParts.push(`Ket: ${vItem.catatanItem}`)
+        }
+
+        await supabase.from('stok_logs').insert({
+          user_id: userId,
+          bahan_id: vItem.bahanId,
+          perubahan: addedStock,
+          stok_sebelum: currentStock,
+          stok_sesudah: newStock,
+          sumber: 'PO',
+          reference_id: input.poId,
+          catatan: `PO ${currentPO.no_po} dari ${currentPO.nama_supplier}: ${noteParts.join(' ')}`,
+        })
       })
-    }
+    )
 
     // 4. Catat riwayat pemasok
     if (currentPO.supplier_id) {

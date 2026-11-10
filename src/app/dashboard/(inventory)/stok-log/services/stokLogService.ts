@@ -268,31 +268,33 @@ export const stokLogService = {
     if (changed.length === 0) return 0
 
     let count = 0
-    for (const item of changed) {
-      // 1. Update stok bahan ke stok hitungan fisik aktual
-      const { error: updErr } = await supabase
-        .from('bahan')
-        .update({ stok: item.stokAktual, updated_at: new Date().toISOString() })
-        .eq('id', item.bahanId)
+    await Promise.all(
+      changed.map(async item => {
+        // 1. Update stok bahan ke stok hitungan fisik aktual
+        const { error: updErr } = await supabase
+          .from('bahan')
+          .update({ stok: item.stokAktual, updated_at: new Date().toISOString() })
+          .eq('id', item.bahanId)
 
-      if (updErr) {
-        console.error(`Gagal update opname bahan ${item.namaBahan}:`, updErr)
-        continue
-      }
+        if (updErr) {
+          console.error(`Gagal update opname bahan ${item.namaBahan}:`, updErr)
+          return
+        }
 
-      // 2. Masukkan jejak audit ke stok_logs
-      await supabase.from('stok_logs').insert({
-        user_id: userId,
-        bahan_id: item.bahanId,
-        perubahan: item.selisih,
-        stok_sebelum: item.stokSystem,
-        stok_sesudah: item.stokAktual,
-        sumber: 'Opname',
-        catatan: `Penyesuaian hasil Stock Opname Gudang (Selisih: ${item.selisih > 0 ? '+' : ''}${item.selisih} ${item.satuan})`,
+        // 2. Masukkan jejak audit ke stok_logs
+        await supabase.from('stok_logs').insert({
+          user_id: userId,
+          bahan_id: item.bahanId,
+          perubahan: item.selisih,
+          stok_sebelum: item.stokSystem,
+          stok_sesudah: item.stokAktual,
+          sumber: 'Opname',
+          catatan: `Penyesuaian hasil Stock Opname Gudang (Selisih: ${item.selisih > 0 ? '+' : ''}${item.selisih} ${item.satuan})`,
+        })
+
+        count++
       })
-
-      count++
-    }
+    )
 
     return count
   },

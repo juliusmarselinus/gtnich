@@ -245,15 +245,17 @@ export const bahanService = {
             .eq('bahan_id', id)
 
           if (!fetchResepErr && existingResepItems && existingResepItems.length > 0) {
-            for (const rItem of existingResepItems) {
-              const oldQty = Number(rItem.qty) || 0
-              const newQty = Number((oldQty * factor).toFixed(5))
+            await Promise.all(
+              existingResepItems.map(rItem => {
+                const oldQty = Number(rItem.qty) || 0
+                const newQty = Number((oldQty * factor).toFixed(5))
 
-              await supabase
-                .from('resep_items')
-                .update({ qty: newQty })
-                .eq('id', rItem.id)
-            }
+                return supabase
+                  .from('resep_items')
+                  .update({ qty: newQty })
+                  .eq('id', rItem.id)
+              })
+            )
           }
         } catch (err: unknown) {
           console.warn('Gagal sinkronisasi konversi resep_items:', err)
