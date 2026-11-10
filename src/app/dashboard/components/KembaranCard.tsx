@@ -23,7 +23,7 @@ export default function KembaranCard({ forecast }: { forecast?: DashboardForecas
       )}
       <Link
         href="/dashboard/simulasi"
-        className="relative mt-auto flex h-[38px] items-center self-start rounded-full bg-white px-4 text-[13px] font-bold text-kopi hover:bg-kuning-pucat"
+        className="relative mt-auto flex h-[38px] items-center self-start rounded-full bg-white px-4 text-[13px] font-bold text-kopi hover:bg-kuning-pucat transition-all duration-150 hover:-translate-y-0.5 active:scale-95 shadow-2xs hover:shadow-xs"
       >
         Coba skenario lain
       </Link>

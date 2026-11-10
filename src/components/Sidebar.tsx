@@ -81,15 +81,17 @@ export default function Sidebar() {
 
   const rowClass = (active: boolean) =>
     clsx(
-      'flex min-h-[42px] w-full items-center gap-2.5 rounded-2xl px-2.5 text-[13px] transition-colors cursor-pointer',
+      'flex min-h-[42px] w-full items-center gap-2.5 rounded-2xl px-2.5 text-[13px] transition-all duration-150 cursor-pointer active:scale-[0.98]',
       collapsed && 'lg:justify-center lg:px-0',
-      active ? 'bg-[#FFF1CC] font-bold text-kopi' : 'font-semibold text-[#3D3027] hover:bg-[#FFF7E3]'
+      active
+        ? 'bg-[#FFF1CC] font-bold text-kopi shadow-[0_2px_8px_rgba(255,184,0,0.18)]'
+        : 'font-semibold text-[#3D3027] hover:bg-[#FFF7E3] hover:translate-x-0.5'
     )
 
   const iconClass = (active: boolean) =>
     clsx(
-      'flex h-7.5 w-7.5 flex-shrink-0 items-center justify-center rounded-full transition-colors',
-      active ? 'bg-kuning text-kopi' : 'bg-[#FFF7E3] text-kuning-teks'
+      'flex h-7.5 w-7.5 flex-shrink-0 items-center justify-center rounded-full transition-transform duration-150',
+      active ? 'bg-kuning text-kopi scale-105 shadow-xs' : 'bg-[#FFF7E3] text-kuning-teks group-hover:scale-105'
     )
 
   return (
@@ -272,10 +274,10 @@ export default function Sidebar() {
                             tabIndex={expanded ? 0 : -1}
                             aria-current={active ? 'page' : undefined}
                             className={clsx(
-                              'flex min-h-[34px] items-center rounded-xl px-2.5 text-[12.5px] transition-colors',
+                              'flex min-h-[34px] items-center rounded-xl px-2.5 text-[12.5px] transition-all duration-150 active:scale-[0.98]',
                               active
-                                ? 'bg-white font-bold text-kopi ring-1.5 ring-kuning shadow-2xs'
-                                : 'text-[#3D3027] hover:bg-white/80'
+                                ? 'bg-white font-bold text-kopi ring-1.5 ring-kuning shadow-2xs translate-x-1'
+                                : 'text-[#3D3027] hover:bg-white/90 hover:translate-x-0.5'
                             )}
                           >
                             <span className="truncate">{label}</span>

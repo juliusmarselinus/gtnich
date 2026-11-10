@@ -344,8 +344,8 @@ export default function PurchaseOrderPage() {
                   </span>
                 </div>
                 <div className="relative">
-                  <p className="text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono truncate">{count}</p>
-                  <p className={clsx('text-xs mt-1.5 line-clamp-1', active ? 'opacity-85' : 'text-kopi-muted')}>{st.hint}</p>
+                  <p className="text-2xl xs:text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono break-words">{count}</p>
+                  <p className={clsx('text-[10px] xs:text-xs mt-1.5 break-words', active ? 'opacity-85' : 'text-kopi-muted')}>{st.hint}</p>
                 </div>
               </button>
             )

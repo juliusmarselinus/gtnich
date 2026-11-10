@@ -31,13 +31,13 @@ export default function ModuleCatalog() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="group flex items-center gap-2.5 rounded-2xl bg-white p-2.5 hover:ring-2 hover:ring-kuning"
+                  className="group flex items-center gap-2.5 rounded-2xl bg-white p-2.5 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-sm hover:ring-2 hover:ring-kuning active:scale-[0.98]"
                 >
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="text-sm font-bold text-kopi">{item.label}</span>
+                    <span className="text-sm font-bold text-kopi group-hover:text-koral-gelap transition-colors">{item.label}</span>
                     <span className="text-xs text-kopi-muted">{item.desc}</span>
                   </span>
-                  <ChevronRight className="h-4 w-4 flex-shrink-0 text-koral-gelap transition-transform group-hover:translate-x-0.5" />
+                  <ChevronRight className="h-4 w-4 flex-shrink-0 text-koral-gelap transition-transform duration-150 group-hover:translate-x-1" />
                 </Link>
               ))}
             </div>

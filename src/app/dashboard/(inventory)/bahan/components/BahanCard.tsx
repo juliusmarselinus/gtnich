@@ -267,10 +267,10 @@ export default function BahanCard({
                 <div className="p-3 sm:p-4 flex flex-col gap-2 flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-1.5">
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2">
+                    <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug break-words">
                       {b.nama}
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                    <p className="text-[9.5px] xs:text-[10px] sm:text-[11px] text-slate-400 font-medium break-words mt-0.5">
                       {b.supplier?.nama ? `Supplier: ${b.supplier.nama}` : 'Tanpa supplier'}
                     </p>
                   </div>
@@ -292,11 +292,11 @@ export default function BahanCard({
                 {/* Harga & Nilai Gudang */}
                 <div className="pt-1 border-t border-[#F7F2E9] space-y-1 sm:space-y-1.5">
                   <div className="flex flex-wrap items-baseline justify-between text-xs gap-1">
-                    <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Harga Beli</span>
-                    <div className="flex items-center gap-1 sm:gap-1.5">
-                      <span className="font-extrabold text-[#D98B00] text-xs">
+                    <span className="text-[9.5px] xs:text-[10px] sm:text-[11px] text-slate-500 font-medium">Harga Beli</span>
+                    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-end">
+                      <span className="font-extrabold text-[#D98B00] text-[11px] xs:text-xs">
                         {formatRupiah(b.hargaPerSatuan)}
-                        <span className="text-slate-400 font-normal text-[9px] sm:text-[10px]"> /{b.satuan}</span>
+                        <span className="text-slate-400 font-normal text-[8.5px] xs:text-[9px] sm:text-[10px]"> /{b.satuan}</span>
                       </span>
                       <button
                         type="button"
@@ -325,9 +325,9 @@ export default function BahanCard({
                       <span className="text-[#8A5A00] font-bold">Pasaran:</span> {priceNotes[b.id]}
                     </div>
                   )}
-                  <div className="flex items-baseline justify-between text-xs">
+                  <div className="flex items-baseline justify-between text-xs gap-1 flex-wrap">
                     <span className="text-[9px] sm:text-[10px] text-slate-400">Nilai Stok</span>
-                    <span className="font-bold text-slate-700 text-[10px] sm:text-[11px]">
+                    <span className="font-bold text-slate-700 text-[9.5px] xs:text-[10px] sm:text-[11px] font-mono">
                       {formatRupiah(totalNilaiStok)}
                     </span>
                   </div>
@@ -335,10 +335,10 @@ export default function BahanCard({
 
                 {/* Visual Stok & Progress Bar */}
                 <div className="mt-auto pt-1 sm:pt-2 space-y-1 sm:space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500">Stok</span>
-                    <span className="font-extrabold text-slate-900 text-xs">
-                      {b.stok} <span className="text-slate-500 font-medium text-[10px] sm:text-[11px]">{b.satuan}</span>
+                  <div className="flex items-center justify-between text-xs gap-1 flex-wrap">
+                    <span className="text-[9.5px] xs:text-[10px] sm:text-[11px] font-semibold text-slate-500">Stok</span>
+                    <span className="font-extrabold text-slate-900 text-[11px] xs:text-xs">
+                      {b.stok} <span className="text-slate-500 font-medium text-[9px] xs:text-[10px] sm:text-[11px]">{b.satuan}</span>
                     </span>
                   </div>
 
@@ -363,7 +363,7 @@ export default function BahanCard({
                 type="button"
                 onClick={() => onEdit(b)}
                 title="Edit data bahan"
-                className="py-3 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-600 hover:text-[#D8431F] hover:bg-white transition-colors cursor-pointer"
+                className="py-3 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-600 hover:text-[#D8431F] hover:bg-white active:scale-95 transition-all duration-150 cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Edit</span>
@@ -373,7 +373,7 @@ export default function BahanCard({
                 onClick={() => onDelete(b)}
                 disabled={checkingId === b.id}
                 title="Hapus bahan"
-                className="py-3 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-[#D8431F] hover:bg-[#FDE8E4]/50 transition-colors cursor-pointer disabled:opacity-60"
+                className="py-3 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-[#D8431F] hover:bg-[#FDE8E4]/50 active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-60"
               >
                 {checkingId === b.id ? (
                   <>

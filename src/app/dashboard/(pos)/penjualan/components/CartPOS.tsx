@@ -67,7 +67,7 @@ interface QrState {
 const INPUT =
   'w-full px-4 py-3 rounded-full bg-[#FFF9EC] text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FFB800]/60 transition'
 const STEP_BTN =
-  'rounded-full bg-white hover:bg-[#FFEBB0] text-slate-600 flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white'
+  'rounded-full bg-white hover:bg-[#FFEBB0] hover:shadow-xs hover:border-[#FFB800] text-slate-600 flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none'
 
 export default function CartPOS({
   cart,
@@ -343,7 +343,7 @@ export default function CartPOS({
           type="button"
           disabled={cart.length === 0 || isSubmitting}
           onClick={openCheckout}
-          className="w-full py-3.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] active:scale-[0.98] text-white text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all shadow-[0_4px_14px_rgba(216,67,31,0.25)] hover:shadow-[0_6px_20px_rgba(216,67,31,0.35)]"
+          className="w-full py-3.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] active:scale-[0.98] text-white text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all duration-150 shadow-[0_4px_14px_rgba(216,67,31,0.25)] hover:shadow-[0_6px_20px_rgba(216,67,31,0.35)] hover:-translate-y-0.5"
         >
           <CreditCard className="w-4 h-4" />
           <span>Proses Penjualan ({formatRupiah(totals.subtotal)})</span>
@@ -459,7 +459,7 @@ export default function CartPOS({
                     setIsDrawerOpen(false)
                     openCheckout()
                   }}
-                  className="w-full py-3.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] text-white text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  className="w-full py-3.5 rounded-full bg-[#D8431F] hover:bg-[#BF3818] active:scale-[0.98] text-white text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 shadow-[0_4px_14px_rgba(216,67,31,0.25)] hover:shadow-[0_6px_20px_rgba(216,67,31,0.35)] hover:-translate-y-0.5"
                 >
                   <CreditCard className="w-4 h-4" />
                   <span>Lanjut Pembayaran ({formatRupiah(totals.subtotal)})</span>

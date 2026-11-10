@@ -379,7 +379,7 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
                           </div>
 
                           {batch.nomorReferensi && (
-                            <p className="text-[10px] text-[#A69C8E] font-mono truncate">
+                            <p className="text-[9.5px] xs:text-[10px] text-[#A69C8E] font-mono break-all">
                               Ref: {batch.nomorReferensi}
                             </p>
                           )}
@@ -392,13 +392,13 @@ export default function KondisiCardGrid({ list, onKurangiStok, onRefresh }: Kond
             </div>
 
             {/* Footer Harga & Supplier */}
-            <div className="flex items-center justify-between gap-2 text-xs text-[#8C8275] pt-3 border-t border-[#F0EBE1] font-medium mt-2">
-              <span className="font-mono whitespace-nowrap text-[#2B261F] font-bold">
+            <div className="flex items-center justify-between gap-2 text-xs text-[#8C8275] pt-3 border-t border-[#F0EBE1] font-medium mt-2 flex-wrap">
+              <span className="font-mono text-[#2B261F] font-bold text-[11px] xs:text-xs">
                 {formatRupiah(b.hargaPerSatuan)}/{b.satuan}
               </span>
-              <span className="text-right text-[11px] text-[#8C8275] font-medium truncate flex items-center gap-1" title={b.namaSupplier}>
+              <span className="text-right text-[10px] xs:text-[11px] text-[#8C8275] font-medium flex items-center gap-1 min-w-0" title={b.namaSupplier}>
                 <Tag className="w-3 h-3 text-[#FF8F2B] flex-shrink-0" />
-                <span className="truncate">{b.namaSupplier || 'Supplier Umum'}</span>
+                <span className="break-words">{b.namaSupplier || 'Supplier Umum'}</span>
               </span>
             </div>
           </div>

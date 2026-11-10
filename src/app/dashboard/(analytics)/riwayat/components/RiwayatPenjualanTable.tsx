@@ -75,7 +75,7 @@ export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjuala
                   <button
                     type="button"
                     onClick={() => setExpandedId(exp ? null : t.id)}
-                    className="p-1 rounded-lg bg-[#F5EDD8] border border-[#E8D4A0] text-[#5A3A00]"
+                    className="p-1 rounded-lg bg-[#F5EDD8] border border-[#E8D4A0] text-[#5A3A00] transition-all duration-150 active:scale-90"
                   >
                     {exp ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   </button>
@@ -198,7 +198,7 @@ export default function RiwayatPenjualanTable({ penjualanList }: RiwayatPenjuala
                       <button
                         type="button"
                         onClick={() => setExpandedId(exp ? null : t.id)}
-                        className="p-2 rounded-xl bg-[#F5EDD8] border border-[#E8D4A0] text-[#5A3A00] hover:bg-[#FFE49A]/60 cursor-pointer inline-flex items-center justify-center transition-colors"
+                        className="p-2 rounded-xl bg-[#F5EDD8] border border-[#E8D4A0] text-[#5A3A00] hover:bg-[#FFE49A]/80 cursor-pointer inline-flex items-center justify-center transition-all duration-150 active:scale-90 hover:scale-105"
                         title={exp ? 'Tutup rincian' : 'Lihat rincian'}
                       >
                         {exp ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

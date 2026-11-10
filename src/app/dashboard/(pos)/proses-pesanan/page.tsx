@@ -238,10 +238,10 @@ export default function ProsesPesananPage() {
                   </span>
                 </div>
                 <div className="relative">
-                  <p className="text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono">
+                  <p className="text-2xl xs:text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono">
                     {st.count}
                   </p>
-                  <p className={clsx('text-xs mt-1.5', active ? 'opacity-85' : 'text-kopi-muted')}>
+                  <p className={clsx('text-[10px] xs:text-xs mt-1.5 break-words', active ? 'opacity-85' : 'text-kopi-muted')}>
                     {st.hint}
                   </p>
                 </div>

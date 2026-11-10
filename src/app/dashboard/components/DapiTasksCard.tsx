@@ -77,7 +77,7 @@ export default function DapiTasksCard({ tasks, lowStockItems, isLoading }: DapiT
                 {primary ? (
                   <Link
                     href={t.href}
-                    className="flex h-9 flex-shrink-0 items-center rounded-full bg-koral px-4 text-[13px] font-bold text-white hover:bg-koral-gelap"
+                    className="flex h-9 flex-shrink-0 items-center rounded-full bg-koral px-4 text-[13px] font-bold text-white hover:bg-koral-gelap transition-all duration-150 hover:-translate-y-0.5 active:scale-95 shadow-sm"
                   >
                     {t.actionLabel}
                   </Link>
@@ -85,7 +85,7 @@ export default function DapiTasksCard({ tasks, lowStockItems, isLoading }: DapiT
                   <Link
                     href={t.href}
                     aria-label={`${t.actionLabel}: ${t.title}`}
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-kuning text-kuning-teks hover:bg-kuning-muda"
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-kuning text-kuning-teks hover:bg-kuning-muda transition-all duration-150 active:scale-90 hover:scale-105"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Link>

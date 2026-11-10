@@ -253,7 +253,7 @@ export default function MenuKatalogGrid({
                 </div>
 
                 <h4
-                  className={`font-extrabold text-sm leading-snug line-clamp-2 break-words ${
+                  className={`font-extrabold text-xs xs:text-sm leading-snug break-words ${
                     habis ? 'text-slate-400' : 'text-slate-900'
                   }`}
                 >
@@ -261,9 +261,9 @@ export default function MenuKatalogGrid({
                 </h4>
 
                 {menu.resep && menu.resep.length > 0 && (
-                  <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-medium truncate">
+                  <p className="text-[10px] xs:text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-medium flex-wrap">
                     <Sparkles className="w-3 h-3 text-[#FFB800] flex-shrink-0" />
-                    <span className="truncate">{menu.resep.length} bahan resep</span>
+                    <span>{menu.resep.length} bahan resep</span>
                   </p>
                 )}
               </div>
@@ -271,13 +271,13 @@ export default function MenuKatalogGrid({
               <div className="mt-4 flex items-end justify-between gap-1.5">
                 <div className="min-w-0 flex-1">
                   <p
-                    className={`text-base sm:text-lg font-extrabold leading-tight truncate ${
+                    className={`text-sm xs:text-base sm:text-lg font-extrabold leading-tight break-words ${
                       habis ? 'text-slate-400' : 'text-slate-900'
                     }`}
                   >
                     {formatRupiah(menu.hargaJual)}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                  <p className="text-[9.5px] xs:text-[10px] text-slate-400 mt-0.5 break-words">
                     HPP {formatRupiah(menu.estimasiHPP)} · margin {marginPct}%
                   </p>
                 </div>

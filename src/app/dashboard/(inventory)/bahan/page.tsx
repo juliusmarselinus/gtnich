@@ -306,14 +306,14 @@ export default function BahanPage() {
                   </span>
                 </div>
                 <div className="relative pt-1 min-w-0">
-                  <p className="text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono">
+                  <p className="text-2xl xs:text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono">
                     {count}
                   </p>
-                  <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-current/10">
-                    <p className={clsx('text-xs font-bold whitespace-nowrap', active ? 'opacity-90' : 'text-kopi-muted')}>
+                  <div className="flex items-center justify-between gap-1 mt-2 pt-1 border-t border-current/10 flex-wrap">
+                    <p className={clsx('text-[10px] xs:text-xs font-bold whitespace-nowrap', active ? 'opacity-90' : 'text-kopi-muted')}>
                       Bahan Masak
                     </p>
-                    <span className={clsx('text-[11px] truncate', active ? 'opacity-75' : 'text-kopi-muted/80')}>
+                    <span className={clsx('text-[10px] xs:text-[11px] break-words', active ? 'opacity-75' : 'text-kopi-muted/80')}>
                       {st.hint}
                     </span>
                   </div>

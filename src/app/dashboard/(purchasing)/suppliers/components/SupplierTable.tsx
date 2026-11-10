@@ -132,7 +132,7 @@ export default function SupplierTable({
                         type="button"
                         onClick={() => onEdit(s)}
                         title="Edit Supplier"
-                        className="p-2 rounded-xl text-[#7A7062] hover:text-[#2B261F] hover:bg-[#FFF9EC] border border-transparent hover:border-[#FFE49A]/60 transition-all cursor-pointer"
+                        className="p-2 rounded-xl text-[#7A7062] hover:text-[#2B261F] hover:bg-[#FFF9EC] border border-transparent hover:border-[#FFE49A]/60 transition-all duration-150 active:scale-90 hover:scale-105 cursor-pointer"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -140,7 +140,7 @@ export default function SupplierTable({
                         type="button"
                         onClick={() => onDelete(s.id)}
                         title="Hapus Supplier"
-                        className="p-2 rounded-xl text-[#8C8275] hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+                        className="p-2 rounded-xl text-[#8C8275] hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all duration-150 active:scale-90 hover:scale-105 cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -178,14 +178,14 @@ export default function SupplierTable({
                   <button
                     type="button"
                     onClick={() => onEdit(s)}
-                    className="p-1.5 rounded-lg text-[#7A7062] hover:bg-[#FFF9EC]"
+                    className="p-1.5 rounded-lg text-[#7A7062] hover:bg-[#FFF9EC] transition-all duration-150 active:scale-90"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => onDelete(s.id)}
-                    className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50"
+                    className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-all duration-150 active:scale-90"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

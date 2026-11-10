@@ -227,16 +227,16 @@ export default function TagihanPage() {
                 </div>
                 <div className="relative pt-1 min-w-0">
                   <p
-                    className="text-lg sm:text-xl md:text-2xl font-black tracking-tight leading-tight font-mono whitespace-nowrap break-keep"
+                    className="text-base xs:text-lg sm:text-xl md:text-2xl font-black tracking-tight leading-tight font-mono break-words"
                     title={formatRupiah(amount)}
                   >
                     {formatRupiah(amount)}
                   </p>
-                  <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-current/10">
-                    <p className={clsx('text-xs font-bold whitespace-nowrap', active ? 'opacity-90' : 'text-kopi-muted')}>
+                  <div className="flex items-center justify-between gap-1 mt-2 pt-1 border-current/10 border-t flex-wrap">
+                    <p className={clsx('text-[10px] xs:text-xs font-bold whitespace-nowrap', active ? 'opacity-90' : 'text-kopi-muted')}>
                       {count} Tagihan PO
                     </p>
-                    <span className={clsx('text-[11px] whitespace-nowrap', active ? 'opacity-75' : 'text-kopi-muted/80')}>
+                    <span className={clsx('text-[9.5px] xs:text-[11px] break-words', active ? 'opacity-75' : 'text-kopi-muted/80')}>
                       {st.hint}
                     </span>
                   </div>

@@ -623,10 +623,10 @@ export default function QrMejaPage() {
                 </span>
               </div>
               <div className="relative">
-                <p className="text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono">
+                <p className="text-2xl xs:text-3xl sm:text-4xl font-black tracking-tight leading-none font-mono">
                   {st.count}
                 </p>
-                <p className="text-xs mt-1.5 text-kopi-muted">{st.hint}</p>
+                <p className="text-[10px] xs:text-xs mt-1.5 text-kopi-muted break-words">{st.hint}</p>
               </div>
             </div>
           ))}
@@ -809,7 +809,7 @@ export default function QrMejaPage() {
                         type="button"
                         disabled={!orderUrl || isDownloading}
                         onClick={() => handleDownloadPoster(table)}
-                        className="h-10 px-3 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] text-[#2B1D00] text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                        className="h-10 px-3 rounded-full bg-[#FFB800] hover:bg-[#F0AB00] text-[#2B1D00] text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-50"
                       >
                         <Download className="w-3.5 h-3.5 stroke-[2.5]" />
                         <span>{isDownloading ? 'Mengunduh...' : 'Unduh PNG'}</span>
@@ -819,7 +819,7 @@ export default function QrMejaPage() {
                         type="button"
                         disabled={!orderUrl}
                         onClick={() => handlePrintSingle(table)}
-                        className="h-10 px-3 rounded-full bg-kopi hover:bg-slate-800 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                        className="h-10 px-3 rounded-full bg-kopi hover:bg-slate-800 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-50"
                       >
                         <Printer className="w-3.5 h-3.5" />
                         <span>Cetak Meja</span>
@@ -832,7 +832,7 @@ export default function QrMejaPage() {
                         href={orderUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full h-9 rounded-full border border-[#EDD9B0] bg-white hover:bg-[#FFF6E0] text-kopi text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                        className="w-full h-9 rounded-full border border-[#EDD9B0] bg-white hover:bg-[#FFF6E0] text-kopi text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-150 hover:-translate-y-0.5 active:scale-95"
                       >
                         <span>Simulasi Buka Menu {table.name}</span>
                         <ExternalLink className="w-3.5 h-3.5 text-[#D98B00]" />

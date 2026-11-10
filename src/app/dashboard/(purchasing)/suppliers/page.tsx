@@ -285,10 +285,10 @@ export default function SuppliersPage() {
                   </span>
                 </div>
                 <div className="relative">
-                  <p className="text-3xl sm:text-4xl font-black font-mono tracking-tight leading-none">
+                  <p className="text-2xl xs:text-3xl sm:text-4xl font-black font-mono tracking-tight leading-none">
                     {val}
                   </p>
-                  <p className={clsx('text-xs mt-1.5 truncate', active ? 'opacity-85' : 'text-kopi-muted')}>
+                  <p className={clsx('text-[10px] xs:text-xs mt-1.5 break-words', active ? 'opacity-85' : 'text-kopi-muted')}>
                     {st.hint}
                   </p>
                 </div>

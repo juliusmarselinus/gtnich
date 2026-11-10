@@ -116,10 +116,10 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
 
             {/* Baris bawah: angka + sub-label */}
             <div className="relative min-w-0">
-              <p className={clsx('text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-tight truncate', c.textColor)}>
+              <p className={clsx('text-lg xs:text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-tight break-words font-mono', c.textColor)}>
                 {c.value}
               </p>
-              <p className={clsx('text-xs mt-1.5 line-clamp-1', c.mutedColor)}>{c.sub}</p>
+              <p className={clsx('text-[10px] xs:text-xs mt-1.5 break-words', c.mutedColor)}>{c.sub}</p>
             </div>
           </div>
         )

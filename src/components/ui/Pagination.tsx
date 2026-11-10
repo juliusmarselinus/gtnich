@@ -67,7 +67,7 @@ export default function Pagination({
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage <= 1}
           aria-label="Halaman sebelumnya"
-          className="h-8.5 w-8.5 rounded-full bg-white border border-[#EBE6DC] text-kopi flex items-center justify-center hover:bg-krim disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all active:scale-95 cursor-pointer"
+          className="h-8.5 w-8.5 rounded-full bg-white border border-[#EBE6DC] text-kopi flex items-center justify-center hover:bg-krim hover:border-[#FFB800] hover:shadow-xs disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all duration-150 active:scale-90 cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -94,10 +94,10 @@ export default function Pagination({
                 type="button"
                 onClick={() => onPageChange(pageNum)}
                 className={clsx(
-                  'h-8.5 min-w-[34px] px-2 rounded-full font-bold font-mono text-xs transition-all cursor-pointer shadow-2xs flex items-center justify-center',
+                  'h-8.5 min-w-[34px] px-2 rounded-full font-bold font-mono text-xs transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center',
                   isActive
-                    ? 'bg-kuning text-kopi shadow-xs scale-105 ring-1 ring-kuning-teks/30'
-                    : 'bg-white border border-[#EBE6DC] text-kopi hover:bg-krim active:scale-95'
+                    ? 'bg-kuning text-kopi shadow-[0_4px_10px_rgba(255,184,0,0.35)] scale-105 ring-1.5 ring-kuning-teks/30'
+                    : 'bg-white border border-[#EBE6DC] text-kopi hover:bg-krim hover:border-[#FFB800] hover:-translate-y-0.5 active:scale-95'
                 )}
               >
                 {pageNum}
@@ -111,7 +111,7 @@ export default function Pagination({
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage >= totalPages}
           aria-label="Halaman berikutnya"
-          className="h-8.5 w-8.5 rounded-full bg-white border border-[#EBE6DC] text-kopi flex items-center justify-center hover:bg-krim disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all active:scale-95 cursor-pointer"
+          className="h-8.5 w-8.5 rounded-full bg-white border border-[#EBE6DC] text-kopi flex items-center justify-center hover:bg-krim hover:border-[#FFB800] hover:shadow-xs disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all duration-150 active:scale-90 cursor-pointer"
         >
           <ChevronRight className="w-4 h-4" />
         </button>

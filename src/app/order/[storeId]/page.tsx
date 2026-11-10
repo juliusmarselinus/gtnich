@@ -595,7 +595,7 @@ export default function PublicOrderPage({
 
                             <h4
                               className={clsx(
-                                'font-extrabold text-sm leading-snug line-clamp-2 break-words',
+                                'font-extrabold text-xs xs:text-sm leading-snug break-words',
                                 isHabis ? 'text-slate-400' : 'text-slate-900'
                               )}
                             >
@@ -607,13 +607,13 @@ export default function PublicOrderPage({
                             <div className="min-w-0 flex-1">
                               <p
                                 className={clsx(
-                                  'text-base sm:text-lg font-extrabold leading-tight truncate',
+                                  'text-sm xs:text-base sm:text-lg font-extrabold leading-tight break-words',
                                   isHabis ? 'text-slate-400' : 'text-slate-900'
                                 )}
                               >
                                 {formatRupiah(menu.hargaJual)}
                               </p>
-                              <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                              <p className="text-[9.5px] xs:text-[10px] text-slate-400 mt-0.5 break-words">
                                 {isHabis ? 'Stok Habis' : 'Tersedia'}
                               </p>
                             </div>
@@ -737,7 +737,7 @@ export default function PublicOrderPage({
 
                                 <h4
                                   className={clsx(
-                                    'font-extrabold text-sm leading-snug line-clamp-2 break-words',
+                                    'font-extrabold text-xs xs:text-sm leading-snug break-words',
                                     isHabis ? 'text-slate-400' : 'text-slate-900'
                                   )}
                                 >
@@ -749,13 +749,13 @@ export default function PublicOrderPage({
                                 <div className="min-w-0 flex-1">
                                   <p
                                     className={clsx(
-                                      'text-base sm:text-lg font-extrabold leading-tight truncate',
+                                      'text-sm xs:text-base sm:text-lg font-extrabold leading-tight break-words',
                                       isHabis ? 'text-slate-400' : 'text-slate-900'
                                     )}
                                   >
                                     {formatRupiah(menu.hargaJual)}
                                   </p>
-                                  <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                                  <p className="text-[9.5px] xs:text-[10px] text-slate-400 mt-0.5 break-words">
                                     {isHabis ? 'Stok Tidak Tersedia' : 'Klik tombol tambah'}
                                   </p>
                                 </div>

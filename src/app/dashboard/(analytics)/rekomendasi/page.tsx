@@ -226,10 +226,10 @@ export default function RekomendasiPage() {
                   </span>
                 </div>
                 <div className="relative">
-                  <p className="text-3xl sm:text-4xl font-black font-mono tracking-tight leading-none">
+                  <p className="text-2xl xs:text-3xl sm:text-4xl font-black font-mono tracking-tight leading-none">
                     {val}
                   </p>
-                  <p className={clsx('text-xs mt-1.5 truncate', active ? 'opacity-85' : 'text-kopi-muted')}>
+                  <p className={clsx('text-[10px] xs:text-xs mt-1.5 break-words', active ? 'opacity-85' : 'text-kopi-muted')}>
                     {st.hint}
                   </p>
                 </div>
@@ -324,10 +324,10 @@ export default function RekomendasiPage() {
                       >
                         {r.tipe}
                       </span>
-                      <h4 className="text-xs sm:text-sm font-extrabold text-[#2B261F] group-hover:text-[#FF6B00] transition-colors line-clamp-2">
+                      <h4 className="text-xs sm:text-sm font-extrabold text-[#2B261F] group-hover:text-[#FF6B00] transition-colors break-words">
                         {r.judul}
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#7A7062] leading-snug mt-1.5 line-clamp-3 font-medium">
+                      <p className="text-[10px] xs:text-[11px] sm:text-xs text-[#7A7062] leading-snug mt-1.5 break-words font-medium">
                         {r.deskripsi}
                       </p>
                     </div>

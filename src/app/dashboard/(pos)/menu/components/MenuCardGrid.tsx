@@ -94,7 +94,7 @@ export default function MenuCardGrid({
                       type="button"
                       onClick={() => onEdit(m)}
                       title="Edit Menu"
-                      className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs text-slate-600 hover:text-amber-800 hover:bg-white shadow-2xs border border-[#EBE6DC] flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                      className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs text-slate-600 hover:text-amber-800 hover:bg-amber-50 hover:border-amber-300 shadow-2xs border border-[#EBE6DC] flex items-center justify-center cursor-pointer transition-all duration-150 hover:scale-110 active:scale-95"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
@@ -102,7 +102,7 @@ export default function MenuCardGrid({
                       type="button"
                       onClick={() => onDelete(m)}
                       title="Hapus Menu"
-                      className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs text-slate-600 hover:text-rose-600 hover:bg-rose-50 shadow-2xs border border-[#EBE6DC] flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                      className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs text-slate-600 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-300 shadow-2xs border border-[#EBE6DC] flex items-center justify-center cursor-pointer transition-all duration-150 hover:scale-110 active:scale-95"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -115,11 +115,11 @@ export default function MenuCardGrid({
                     <div className="flex items-start justify-between gap-1.5">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-extrabold text-sm sm:text-base text-slate-900 leading-snug line-clamp-1">
+                          <h3 className="font-extrabold text-xs xs:text-sm sm:text-base text-slate-900 leading-snug break-words">
                             {m.nama}
                           </h3>
                           {!isActive && (
-                            <span className="sm:hidden text-[9px] px-2 py-0.5 rounded-full bg-slate-700 text-white font-bold uppercase">
+                            <span className="sm:hidden text-[9px] px-2 py-0.5 rounded-full bg-slate-700 text-white font-bold uppercase flex-shrink-0">
                               Nonaktif
                             </span>
                           )}
@@ -170,18 +170,18 @@ export default function MenuCardGrid({
                   </div>
 
                   {/* Pricing Pods */}
-                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center">
-                    <div className="p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#FCFAF6] border border-[#F2ECE1]">
-                      <p className="text-[8.5px] sm:text-[9.5px] text-slate-400 font-bold uppercase tracking-wider">Est. HPP</p>
-                      <p className="text-[11px] sm:text-xs font-black text-slate-800 mt-0.5 font-mono truncate">{formatRupiah(m.estimasiHPP)}</p>
+                  <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center">
+                    <div className="p-1 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#FCFAF6] border border-[#F2ECE1] min-w-0">
+                      <p className="text-[8px] sm:text-[9.5px] text-slate-400 font-bold uppercase tracking-wider">Est. HPP</p>
+                      <p className="text-[9.5px] xs:text-[11px] sm:text-xs font-black text-slate-800 mt-0.5 font-mono break-all">{formatRupiah(m.estimasiHPP)}</p>
                     </div>
-                    <div className="p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#FCFAF6] border border-[#F2ECE1]">
-                      <p className="text-[8.5px] sm:text-[9.5px] text-slate-400 font-bold uppercase tracking-wider">Harga Jual</p>
-                      <p className="text-[11px] sm:text-xs font-black text-slate-800 mt-0.5 font-mono truncate">{formatRupiah(m.hargaJual)}</p>
+                    <div className="p-1 sm:p-2.5 rounded-xl sm:rounded-2xl bg-[#FCFAF6] border border-[#F2ECE1] min-w-0">
+                      <p className="text-[8px] sm:text-[9.5px] text-slate-400 font-bold uppercase tracking-wider">Harga Jual</p>
+                      <p className="text-[9.5px] xs:text-[11px] sm:text-xs font-black text-slate-800 mt-0.5 font-mono break-all">{formatRupiah(m.hargaJual)}</p>
                     </div>
-                    <div className="bg-[#FFF6EC] rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 border border-[#FFE2C2]">
-                      <p className="text-[8.5px] sm:text-[9.5px] text-[#FF8F2B] font-bold uppercase tracking-wider">Margin</p>
-                      <p className="text-[11px] sm:text-xs font-black text-[#C86400] mt-0.5 flex items-center justify-center gap-0.5 font-mono">
+                    <div className="bg-[#FFF6EC] rounded-xl sm:rounded-2xl p-1 sm:p-2.5 border border-[#FFE2C2] min-w-0">
+                      <p className="text-[8px] sm:text-[9.5px] text-[#FF8F2B] font-bold uppercase tracking-wider">Margin</p>
+                      <p className="text-[9.5px] xs:text-[11px] sm:text-xs font-black text-[#C86400] mt-0.5 flex items-center justify-center gap-0.5 font-mono">
                         <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" /> {m.profitPercent.toFixed(1)}%
                       </p>
                     </div>

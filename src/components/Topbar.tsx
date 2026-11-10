@@ -83,7 +83,7 @@ export default function Topbar({ title, subtitle, actions }: TopbarProps) {
   }
 
   const roundBtn =
-    'flex h-9 w-9 sm:h-11 sm:w-11 flex-shrink-0 items-center justify-center rounded-full bg-white text-kopi transition-colors hover:bg-kuning-muda cursor-pointer'
+    'flex h-9 w-9 sm:h-11 sm:w-11 flex-shrink-0 items-center justify-center rounded-full bg-white text-kopi transition-all duration-150 hover:bg-kuning-muda hover:shadow-[0_4px_12px_rgba(255,184,0,0.2)] active:scale-95 cursor-pointer'
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between gap-2 sm:gap-3 bg-krim/95 px-3 py-2.5 sm:px-6 md:px-8 sm:py-3 backdrop-blur-md border-b border-[#F0E6D8]/60 shadow-[0_1px_3px_rgba(43,34,28,0.04)]">
