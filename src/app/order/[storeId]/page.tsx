@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
 import { formatRupiah } from '@/lib/mock-data'
-import Pagination from '@/components/ui/Pagination'
 import DapiMascot from '@/components/ui/DapiMascot'
 import { useToast } from '@/context/ToastContext'
 import { useBusy } from '@/context/BusyContext'
@@ -33,6 +32,8 @@ import {
   ChevronDown,
   ChevronUp,
   Ban,
+  ThumbsUp,
+  Utensils,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -83,9 +84,7 @@ export default function PublicOrderPage({
   const [menus, setMenus] = useState<MenuItem[]>([])
   const [activeCategory, setActiveCategory] = useState<string>('Semua')
   const [searchMenu, setSearchMenu] = useState<string>('')
-  const [currentPage, setCurrentPage] = useState<number>(1)
   const [justAddedId, setJustAddedId] = useState<string | null>(null)
-  const pageSize = 9
 
   // Alur Halaman (Step View): 'catalog' (katalog menu) -> 'payment' (langkah checkout pembayaran)
   const [currentStep, setCurrentStep] = useState<'catalog' | 'payment'>('catalog')
@@ -163,21 +162,57 @@ export default function PublicOrderPage({
     return () => clearInterval(interval)
   }, [qrisData, paymentDone])
 
-  const categories = ['Semua', ...Array.from(new Set(menus.map(m => m.kategori)))]
+  const categories = useMemo(() => {
+    const rawCategories = Array.from(new Set(menus.map(m => m.kategori).filter(Boolean)))
+    // Prioritas: 'Makanan Berat' selalu pertama
+    rawCategories.sort((a, b) => {
+      if (a.toLowerCase().includes('makan') && a.toLowerCase().includes('berat')) return -1
+      if (b.toLowerCase().includes('makan') && b.toLowerCase().includes('berat')) return 1
+      return a.localeCompare(b, 'id')
+    })
+    return ['Semua', ...rawCategories]
+  }, [menus])
 
-  const filteredMenus = menus.filter(menu => {
-    const matchesCategory = activeCategory === 'Semua' || menu.kategori === activeCategory
-    const matchesSearch =
-      !searchMenu.trim() ||
-      menu.nama.toLowerCase().includes(searchMenu.toLowerCase()) ||
-      menu.kategori.toLowerCase().includes(searchMenu.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
+  // Menentukan menu rekomendasi (misal: menu teratas/paling populer yang tersedia, atau max 3 menu unggulan)
+  const recommendedMenus = useMemo(() => {
+    // Utamakan menu yang tersedia (tidak habis)
+    const available = menus.filter(m => !m.isHabis && (m.sisaPorsi ?? Infinity) > 0)
+    // Jika ada Makanan Berat yang tersedia, masukkan rekomendasi
+    const makananBerat = available.filter(m => m.kategori.toLowerCase().includes('makan'))
+    const others = available.filter(m => !m.kategori.toLowerCase().includes('makan'))
+    const combined = [...makananBerat, ...others]
+    return combined.slice(0, 3)
+  }, [menus])
 
-  const paginatedMenus = filteredMenus.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  )
+  // Pengelompokan menu berdasarkan kategori dengan prioritas Makanan Berat di paling atas
+  const categorizedMenus = useMemo(() => {
+    const query = searchMenu.trim().toLowerCase()
+    const groups: { category: string; items: MenuItem[] }[] = []
+
+    // Ambil daftar kategori yang aktif (jika 'Semua', gunakan semua kategori terurut; jika spesifik, hanya kategori itu)
+    const activeCats = activeCategory === 'Semua' 
+      ? categories.filter(c => c !== 'Semua')
+      : [activeCategory]
+
+    for (const cat of activeCats) {
+      const items = menus.filter(m => {
+        const matchCategory = m.kategori === cat
+        const matchSearch = !query || 
+          m.nama.toLowerCase().includes(query) || 
+          m.kategori.toLowerCase().includes(query)
+        return matchCategory && matchSearch
+      })
+      if (items.length > 0) {
+        groups.push({ category: cat, items })
+      }
+    }
+
+    return groups
+  }, [menus, searchMenu, activeCategory, categories])
+
+  const totalFilteredCount = useMemo(() => {
+    return categorizedMenus.reduce((sum, g) => sum + g.items.length, 0)
+  }, [categorizedMenus])
 
   const cartTotalQty = cart.reduce((sum, item) => sum + item.qty, 0)
   const cartSubtotal = cart.reduce(
@@ -448,10 +483,7 @@ export default function PublicOrderPage({
                     <input
                       type="text"
                       value={searchMenu}
-                      onChange={e => {
-                        setSearchMenu(e.target.value)
-                        setCurrentPage(1)
-                      }}
+                      onChange={e => setSearchMenu(e.target.value)}
                       placeholder="Cari menu masakan, camilan, atau minuman..."
                       className="w-full pl-11 pr-4 py-3 rounded-full bg-[#FFF9EC] text-xs text-slate-700 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FFB800]/60 transition"
                     />
@@ -462,7 +494,6 @@ export default function PublicOrderPage({
                       onClick={() => {
                         setSearchMenu('')
                         setActiveCategory('Semua')
-                        setCurrentPage(1)
                       }}
                       title="Reset filter"
                       className="w-10 h-10 rounded-full bg-[#FDE8E4] hover:bg-[#FAD3CB] text-[#D8431F] transition-colors cursor-pointer flex items-center justify-center flex-shrink-0"
@@ -478,10 +509,7 @@ export default function PublicOrderPage({
                       <button
                         key={kat}
                         type="button"
-                        onClick={() => {
-                          setActiveCategory(kat)
-                          setCurrentPage(1)
-                        }}
+                        onClick={() => setActiveCategory(kat)}
                         className={clsx(
                           'px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex-shrink-0 active:scale-95',
                           activeCategory === kat
@@ -494,12 +522,133 @@ export default function PublicOrderPage({
                     ))}
                   </div>
                   <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap pl-2 flex-shrink-0">
-                    {filteredMenus.length} menu
+                    {totalFilteredCount} menu
                   </span>
                 </div>
               </div>
 
-              {paginatedMenus.length === 0 ? (
+              {/* SECTION 1: REKOMENDASI MENU (Jika tidak sedang mencari atau kategori Semua) */}
+              {!searchMenu.trim() && activeCategory === 'Semua' && recommendedMenus.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-[#FFF6D6] text-[#D98B00] flex items-center justify-center">
+                        <ThumbsUp className="w-3.5 h-3.5" />
+                      </span>
+                      <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+                        Rekomendasi Menu Hari Ini
+                      </h3>
+                    </div>
+                    <span className="text-[11px] font-bold text-[#8A5A00] bg-[#FFF6D6] px-2.5 py-0.5 rounded-full">
+                      Pilihan Favorit
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
+                    {recommendedMenus.map(menu => {
+                      const inCart = cart.find(c => c.menu.id === menu.id)
+                      const inCartCount = inCart?.qty || 0
+                      const isJustAdded = justAddedId === menu.id
+                      const sisa = menu.sisaPorsi ?? Infinity
+                      const isHabis = menu.isHabis || sisa <= 0
+
+                      return (
+                        <div
+                          key={`recom-${menu.id}`}
+                          className={clsx(
+                            'relative rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] p-4 text-left transition-all duration-200 group flex flex-col justify-between border border-[#FFE49A]/60',
+                            isHabis
+                              ? 'bg-[#FFF5F3] opacity-80 cursor-not-allowed'
+                              : isJustAdded
+                              ? 'bg-[#FFFBEF] ring-2 ring-[#FFB800] hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(140,100,30,0.14)]'
+                              : 'bg-gradient-to-b from-[#FFFDF9] to-white hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(140,100,30,0.14)]'
+                          )}
+                        >
+                          <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                            <span className="inline-flex items-center gap-1 bg-[#FFF6D6] text-[#8A5A00] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                              Rekomendasi
+                            </span>
+                            {inCartCount > 0 && (
+                              <span className="inline-flex items-center gap-1 bg-[#FFF6D6] text-[#8A5A00] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
+                                <ShoppingCart className="w-3 h-3" />
+                                {inCartCount}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-3">
+                              <span
+                                className={clsx(
+                                  'w-11 h-11 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 transition-transform duration-200',
+                                  isHabis
+                                    ? 'bg-[#FEECE9] text-slate-400 grayscale'
+                                    : 'bg-[#FFF6D6] group-hover:bg-[#FFB800] group-hover:scale-110'
+                                )}
+                              >
+                                {menu.emoji || '🍽️'}
+                              </span>
+                              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#FFF6D6] text-[#7A5A10] truncate max-w-[110px]">
+                                {menu.kategori}
+                              </span>
+                            </div>
+
+                            <h4
+                              className={clsx(
+                                'font-extrabold text-sm leading-snug line-clamp-2 break-words',
+                                isHabis ? 'text-slate-400' : 'text-slate-900'
+                              )}
+                            >
+                              {menu.nama}
+                            </h4>
+                          </div>
+
+                          <div className="mt-4 flex items-end justify-between gap-1.5">
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className={clsx(
+                                  'text-base sm:text-lg font-extrabold leading-tight truncate',
+                                  isHabis ? 'text-slate-400' : 'text-slate-900'
+                                )}
+                              >
+                                {formatRupiah(menu.hargaJual)}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                                {isHabis ? 'Stok Habis' : 'Tersedia'}
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              disabled={isHabis}
+                              onClick={() => addToCart(menu)}
+                              className={clsx(
+                                'w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 active:scale-90 shadow-sm',
+                                isHabis
+                                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                  : isJustAdded
+                                  ? 'bg-[#D8431F] text-white scale-105 cursor-pointer'
+                                  : 'bg-[#FFB800] text-[#2B1D00] hover:bg-[#D8431F] hover:text-white hover:scale-105 cursor-pointer'
+                              )}
+                            >
+                              {isHabis ? (
+                                <Ban className="w-4 h-4" />
+                              ) : isJustAdded ? (
+                                <Check className="w-4 h-4" />
+                              ) : (
+                                <Plus className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 2: DAFTAR MENU TERPISAH LANGSUNG BERDASARKAN KATEGORI */}
+              {categorizedMenus.length === 0 ? (
                 <div className="bg-white rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] p-8 sm:p-10 text-center space-y-4">
                   <div className="w-14 h-14 rounded-full bg-[#FFF6D6] text-[#D98B00] flex items-center justify-center mx-auto">
                     <ChefHat className="w-7 h-7" />
@@ -516,123 +665,132 @@ export default function PublicOrderPage({
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
-                  {paginatedMenus.map(menu => {
-                    const inCart = cart.find(c => c.menu.id === menu.id)
-                    const inCartCount = inCart?.qty || 0
-                    const isJustAdded = justAddedId === menu.id
-                    const sisa = menu.sisaPorsi ?? Infinity
-                    const isHabis = menu.isHabis || sisa <= 0
-
-                    return (
-                      <div
-                        key={menu.id}
-                        className={clsx(
-                          'relative rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] p-4 text-left transition-all duration-200 group flex flex-col justify-between',
-                          isHabis
-                            ? 'bg-[#FFF5F3] opacity-80 cursor-not-allowed'
-                            : isJustAdded
-                            ? 'bg-[#FFFBEF] ring-2 ring-[#FFB800] hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(140,100,30,0.14)]'
-                            : 'bg-white hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(140,100,30,0.14)]'
-                        )}
-                      >
-                        {/* Chip Status: Habis atau Jumlah di Keranjang */}
-                        {(isHabis || inCartCount > 0) && (
-                          <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                            {isHabis && (
-                              <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full bg-[#D8431F] text-white">
-                                <Ban className="w-3 h-3" />
-                                Habis
-                              </span>
-                            )}
-                            {inCartCount > 0 && (
-                              <span className="inline-flex items-center gap-1 bg-[#FFF6D6] text-[#8A5A00] text-[11px] font-extrabold px-3 py-1 rounded-full">
-                                <ShoppingCart className="w-3 h-3" />
-                                {inCartCount} porsi
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-3">
-                            <span
-                              className={clsx(
-                                'w-11 h-11 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 transition-transform duration-200',
-                                isHabis
-                                  ? 'bg-[#FEECE9] text-slate-400 grayscale'
-                                  : 'bg-[#FFF6D6] group-hover:bg-[#FFB800] group-hover:scale-110'
-                              )}
-                            >
-                              {menu.emoji || '🍽️'}
-                            </span>
-                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#FFF6D6] text-[#7A5A10] truncate max-w-[110px]">
-                              {menu.kategori}
-                            </span>
-                          </div>
-
-                          <h4
-                            className={clsx(
-                              'font-extrabold text-sm leading-snug line-clamp-2 break-words',
-                              isHabis ? 'text-slate-400' : 'text-slate-900'
-                            )}
-                          >
-                            {menu.nama}
-                          </h4>
+                <div className="space-y-6">
+                  {categorizedMenus.map(group => (
+                    <section key={group.category} className="space-y-3">
+                      <div className="flex items-center justify-between px-1 border-b border-[#EBE6DC] pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-4 rounded-full bg-[#FFB800]" />
+                          <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                            {group.category}
+                          </h3>
                         </div>
-
-                        <div className="mt-4 flex items-end justify-between gap-1.5">
-                          <div className="min-w-0 flex-1">
-                            <p
-                              className={clsx(
-                                'text-base sm:text-lg font-extrabold leading-tight truncate',
-                                isHabis ? 'text-slate-400' : 'text-slate-900'
-                              )}
-                            >
-                              {formatRupiah(menu.hargaJual)}
-                            </p>
-                            <p className="text-[10px] text-slate-400 mt-0.5 truncate">
-                              {isHabis ? 'Stok Tidak Tersedia' : 'Klik tombol tambah'}
-                            </p>
-                          </div>
-
-                          {/* Tombol Tambah */}
-                          <button
-                            type="button"
-                            disabled={isHabis}
-                            onClick={() => addToCart(menu)}
-                            className={clsx(
-                              'w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 active:scale-90 shadow-sm',
-                              isHabis
-                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                : isJustAdded
-                                ? 'bg-[#D8431F] text-white scale-105 cursor-pointer'
-                                : 'bg-[#FFB800] text-[#2B1D00] hover:bg-[#D8431F] hover:text-white hover:scale-105 cursor-pointer'
-                            )}
-                          >
-                            {isHabis ? (
-                              <Ban className="w-4 h-4" />
-                            ) : isJustAdded ? (
-                              <Check className="w-4 h-4" />
-                            ) : (
-                              <Plus className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
+                        <span className="text-[11px] font-bold text-slate-400">
+                          {group.items.length} menu
+                        </span>
                       </div>
-                    )
-                  })}
+
+                      <div className="grid grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
+                        {group.items.map(menu => {
+                          const inCart = cart.find(c => c.menu.id === menu.id)
+                          const inCartCount = inCart?.qty || 0
+                          const isJustAdded = justAddedId === menu.id
+                          const sisa = menu.sisaPorsi ?? Infinity
+                          const isHabis = menu.isHabis || sisa <= 0
+
+                          return (
+                            <div
+                              key={menu.id}
+                              className={clsx(
+                                'relative rounded-[28px] shadow-[0_2px_16px_rgba(140,100,30,0.06)] p-4 text-left transition-all duration-200 group flex flex-col justify-between',
+                                isHabis
+                                  ? 'bg-[#FFF5F3] opacity-80 cursor-not-allowed'
+                                  : isJustAdded
+                                  ? 'bg-[#FFFBEF] ring-2 ring-[#FFB800] hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(140,100,30,0.14)]'
+                                  : 'bg-white hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(140,100,30,0.14)]'
+                              )}
+                            >
+                              {/* Chip Status: Habis atau Jumlah di Keranjang */}
+                              {(isHabis || inCartCount > 0) && (
+                                <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                                  {isHabis && (
+                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full bg-[#D8431F] text-white">
+                                      <Ban className="w-3 h-3" />
+                                      Habis
+                                    </span>
+                                  )}
+                                  {inCartCount > 0 && (
+                                    <span className="inline-flex items-center gap-1 bg-[#FFF6D6] text-[#8A5A00] text-[11px] font-extrabold px-3 py-1 rounded-full">
+                                      <ShoppingCart className="w-3 h-3" />
+                                      {inCartCount} porsi
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="min-w-0">
+                                <div className="flex items-start justify-between gap-2 mb-3">
+                                  <span
+                                    className={clsx(
+                                      'w-11 h-11 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 transition-transform duration-200',
+                                      isHabis
+                                        ? 'bg-[#FEECE9] text-slate-400 grayscale'
+                                        : 'bg-[#FFF6D6] group-hover:bg-[#FFB800] group-hover:scale-110'
+                                    )}
+                                  >
+                                    {menu.emoji || '🍽️'}
+                                  </span>
+                                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#FFF6D6] text-[#7A5A10] truncate max-w-[110px]">
+                                    {menu.kategori}
+                                  </span>
+                                </div>
+
+                                <h4
+                                  className={clsx(
+                                    'font-extrabold text-sm leading-snug line-clamp-2 break-words',
+                                    isHabis ? 'text-slate-400' : 'text-slate-900'
+                                  )}
+                                >
+                                  {menu.nama}
+                                </h4>
+                              </div>
+
+                              <div className="mt-4 flex items-end justify-between gap-1.5">
+                                <div className="min-w-0 flex-1">
+                                  <p
+                                    className={clsx(
+                                      'text-base sm:text-lg font-extrabold leading-tight truncate',
+                                      isHabis ? 'text-slate-400' : 'text-slate-900'
+                                    )}
+                                  >
+                                    {formatRupiah(menu.hargaJual)}
+                                  </p>
+                                  <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                                    {isHabis ? 'Stok Tidak Tersedia' : 'Klik tombol tambah'}
+                                  </p>
+                                </div>
+
+                                {/* Tombol Tambah */}
+                                <button
+                                  type="button"
+                                  disabled={isHabis}
+                                  onClick={() => addToCart(menu)}
+                                  className={clsx(
+                                    'w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 active:scale-90 shadow-sm',
+                                    isHabis
+                                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                      : isJustAdded
+                                      ? 'bg-[#D8431F] text-white scale-105 cursor-pointer'
+                                      : 'bg-[#FFB800] text-[#2B1D00] hover:bg-[#D8431F] hover:text-white hover:scale-105 cursor-pointer'
+                                  )}
+                                >
+                                  {isHabis ? (
+                                    <Ban className="w-4 h-4" />
+                                  ) : isJustAdded ? (
+                                    <Check className="w-4 h-4" />
+                                  ) : (
+                                    <Plus className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </section>
+                  ))}
                 </div>
               )}
-
-              <Pagination
-                currentPage={currentPage}
-                totalItems={filteredMenus.length}
-                pageSize={pageSize}
-                onPageChange={p => setCurrentPage(p)}
-                itemLabel="menu"
-                className="pt-2"
-              />
             </div>
 
             {/* Kolom Kanan: Panel Keranjang Pesanan Desktop (Gaya CartPOS) */}
