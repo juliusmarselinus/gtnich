@@ -13,6 +13,7 @@ import {
   Loader2,
   ArrowRight,
   ImageIcon,
+  RotateCw,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -32,6 +33,7 @@ interface ScanResultViewProps {
   onRemoveItem: (index: number) => void
   onAddItem: () => void
   onReset: () => void
+  onRescan?: () => void
   onSaveToPO: () => Promise<void>
   isSaving: boolean
   savedPO: { poId: string; noPO: string } | null
@@ -55,6 +57,7 @@ export default function ScanResultView({
   onRemoveItem,
   onAddItem,
   onReset,
+  onRescan,
   onSaveToPO,
   isSaving,
   savedPO,
@@ -77,13 +80,27 @@ export default function ScanResultView({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onReset}
-          className="text-xs text-[#8C8275] hover:text-[#D8431F] font-bold transition-colors cursor-pointer self-end sm:self-auto"
-        >
-          ✕ Ganti / Upload Nota Lain
-        </button>
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          {onRescan && (
+            <button
+              type="button"
+              onClick={onRescan}
+              title="Scan ulang gambar ini jika hasil sebelumnya kurang akurat"
+              className="px-3.5 py-1.5 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[#7A5A10] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+            >
+              <RotateCw className="w-3.5 h-3.5 text-[#D98B00]" />
+              <span>Scan Ulang Nota Ini</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onReset}
+            className="text-xs text-[#8C8275] hover:text-[#D8431F] font-bold transition-colors cursor-pointer px-2 py-1.5"
+          >
+            ✕ Ganti File
+          </button>
+        </div>
       </div>
 
       {/* Grid: Preview & Konfigurasi Supplier */}
@@ -472,13 +489,25 @@ export default function ScanResultView({
         </div>
       ) : (
         <div className="flex flex-col sm:flex-row gap-3">
+          {onRescan && (
+            <button
+              type="button"
+              onClick={onRescan}
+              disabled={isSaving}
+              className="py-3 px-5 rounded-full bg-[#FFF6D6] hover:bg-[#FFEBB0] text-[#7A5A10] text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98"
+            >
+              <RotateCw className="w-3.5 h-3.5 text-[#D98B00]" />
+              <span>Scan Ulang Gambar Sama</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onReset}
             disabled={isSaving}
             className="flex-1 py-3 rounded-full border border-[#EBE6DC] text-xs font-bold text-[#7A7062] hover:bg-[#F5F2EB] transition-colors cursor-pointer disabled:opacity-50"
           >
-            Abaikan & Scan Lagi
+            Abaikan & Ganti File
           </button>
 
           <button

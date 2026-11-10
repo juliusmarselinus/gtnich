@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
 import { ParsedItem, OCRScanResult, SupplierOption, BahanOption } from '../types'
-import { parseReceiptRawText } from './tesseractParser'
 
 // Mock fallback jika tidak ada teks terbaca sama sekali
 const FALLBACK_ITEMS: ParsedItem[] = [
@@ -42,20 +41,35 @@ export const ocrService = {
     }
   },
 
-  // Scan file nota menggunakan Hybrid Engine (9Router AI Vision dengan Fallback Otomatis Tesseract.js di browser)
+  // Scan file nota menggunakan AI Multimodal Vision (9Router sebagai engine utama)
+  // Menjamin akurasi ekstraksi tinggi tanpa menggunakan Tesseract.js yang sering keliru
   async parseReceiptImage(
     file: File,
     existingBahanList: BahanOption[] = [],
-    onProgress?: (progress: number, status: string) => void
+    onProgress?: (progress: number, status: string) => void,
+    userConfig?: {
+      apiKey?: string
+      routerUrl?: string
+      routerKey?: string
+      routerModel?: string
+    }
   ): Promise<OCRScanResult> {
-    // 1. Coba lewat 9Router AI Vision terlebih dahulu
     try {
-      if (onProgress) onProgress(15, 'Menganalisis nota via AI Vision...')
+      if (onProgress) {
+        onProgress(20, 'Menganalisis dokumen nota via 9Router AI Vision...')
+      }
 
       const formData = new FormData()
       formData.append('file', file)
       const existingNames = existingBahanList.map(b => b.nama)
       formData.append('existingBahan', existingNames.join(', '))
+
+      if (userConfig?.apiKey) formData.append('apiKey', userConfig.apiKey.trim())
+      if (userConfig?.routerUrl) formData.append('routerUrl', userConfig.routerUrl.trim())
+      if (userConfig?.routerKey) formData.append('routerKey', userConfig.routerKey.trim())
+      if (userConfig?.routerModel) formData.append('routerModel', userConfig.routerModel.trim())
+
+      if (onProgress) onProgress(45, 'Membaca tabel rincian bahan, kuantitas & harga...')
 
       const response = await fetch('/dashboard/ocr-nota/api', {
         method: 'POST',
@@ -64,80 +78,46 @@ export const ocrService = {
 
       const resJson = await response.json()
 
-      if (response.ok && resJson.success && resJson.data) {
-        if (onProgress) onProgress(90, 'Menyusun hasil ekstraksi item...')
-        const parsed: OCRScanResult = resJson.data
+      if (!response.ok || !resJson.success || !resJson.data) {
+        throw new Error(
+          resJson?.error || `Gagal menganalisis gambar nota (HTTP ${response.status})`
+        )
+      }
 
-        const items: ParsedItem[] = (parsed.items || []).map(i => {
-          const found = existingBahanList.find(
-            b => b.nama.toLowerCase() === (i.nama || '').toLowerCase()
-          )
-          return {
-            nama: i.nama || 'Item Bahan',
-            qty: Number(i.qty) > 0 ? Number(i.qty) : 1,
-            satuan: (i.satuan || 'pcs').toLowerCase(),
-            harga: Number(i.harga) || 0,
-            matchedBahanId: found?.id,
-          }
-        })
+      if (onProgress) onProgress(90, 'Menyusun hasil ekstraksi item bahan...')
+      const parsed: OCRScanResult = resJson.data
 
-        const total =
-          Number(parsed.totalAkumulasi) ||
-          items.reduce((sum, item) => sum + item.qty * item.harga, 0)
-
-        if (onProgress) onProgress(100, 'Selesai mengekstrak!')
-
+      const items: ParsedItem[] = (parsed.items || []).map(i => {
+        const found = existingBahanList.find(
+          b => b.nama.toLowerCase() === (i.nama || '').toLowerCase()
+        )
         return {
-          supplierName: parsed.supplierName || undefined,
-          tanggalNota: parsed.tanggalNota || new Date().toISOString().split('T')[0],
-          nomorNota: parsed.nomorNota || undefined,
-          items,
-          totalAkumulasi: total,
-          catatan: parsed.catatan || 'Model: 9Router AI Vision',
+          nama: i.nama || 'Item Bahan',
+          qty: Number(i.qty) > 0 ? Number(i.qty) : 1,
+          satuan: (i.satuan || 'pcs').toLowerCase(),
+          harga: Number(i.harga) || 0,
+          matchedBahanId: found?.id,
         }
-      } else {
-        console.warn('AI Vision gagal/timeout, beralih ke engine OCR lokal...', resJson?.error)
-      }
-    } catch (apiErr) {
-      console.warn('AI Vision network error, fallback ke OCR lokal Tesseract:', apiErr)
-    }
+      })
 
-    // 2. Fallback otomatis ke Tesseract.js via Dynamic Import (Hanya dimuat saat dibutuhkan agar bundle awal ringan)
-    try {
-      if (onProgress) onProgress(35, 'AI Router sibuk, memuat modul Pemindai Lokal...')
-
-      const { default: Tesseract } = await import('tesseract.js')
-
-      let rawText = ''
-      try {
-        const result = await Tesseract.recognize(file, 'ind+eng', {
-          logger: m => {
-            if (m.status === 'recognizing text' && onProgress) {
-              const pct = Math.round(40 + m.progress * 50)
-              onProgress(pct, `Membaca teks nota (${Math.round(m.progress * 100)}%)...`)
-            } else if (m.status === 'loading tesseract core' && onProgress) {
-              onProgress(38, 'Menyiapkan modul OCR...')
-            }
-          },
-        })
-        rawText = result?.data?.text || ''
-      } catch (indErr) {
-        console.warn('Gagal memuat tesseract ind, fallback ke eng:', indErr)
-        if (onProgress) onProgress(50, 'Membaca teks dengan mode cepat...')
-        const fallbackRes = await Tesseract.recognize(file, 'eng')
-        rawText = fallbackRes?.data?.text || ''
-      }
-
-      if (onProgress) onProgress(92, 'Menyusun baris item nota...')
-
-      const parsed = parseReceiptRawText(rawText, existingBahanList)
+      const total =
+        Number(parsed.totalAkumulasi) ||
+        items.reduce((sum, item) => sum + item.qty * item.harga, 0)
 
       if (onProgress) onProgress(100, 'Selesai mengekstrak!')
-      return parsed
-    } catch (tessErr: any) {
-      console.error('Tesseract OCR error:', tessErr)
+
+      return {
+        supplierName: parsed.supplierName || undefined,
+        tanggalNota: parsed.tanggalNota || new Date().toISOString().split('T')[0],
+        nomorNota: parsed.nomorNota || undefined,
+        items,
+        totalAkumulasi: total,
+        catatan: parsed.catatan || (resJson.source ? `Sumber OCR: ${resJson.source}` : 'Model: AI Vision'),
+      }
+    } catch (err: any) {
+      console.error('AI Vision OCR Error:', err)
       throw new Error(
-        tessErr.message || 'Gagal memproses gambar nota. Pastikan gambar tidak rusak dan coba lagi.'
+        err.message || 'Gagal memproses gambar nota. Pastikan gambar jelas dan coba lagi.'
       )
     }
   },

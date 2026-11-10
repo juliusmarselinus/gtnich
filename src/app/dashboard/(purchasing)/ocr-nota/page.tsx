@@ -18,6 +18,12 @@ import { useToast } from '@/context/ToastContext'
 
 export default function OCRNotaPage() {
   const {
+    apiKey,
+    saveApiKey,
+    routerUrl,
+    routerKey,
+    routerModel,
+    saveRouterConfig,
     state,
     ocrProgress,
     ocrStatusText,
@@ -36,11 +42,13 @@ export default function OCRNotaPage() {
     savedPO,
     error,
     handleScanFile,
+    handleRescanCurrent,
     handleUpdateItem,
     handleRemoveItem,
     handleAddItem,
     handleReset,
     handleSaveToPO,
+    hasCurrentFile,
   } = useOCRNota()
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -233,6 +241,7 @@ export default function OCRNotaPage() {
             onRemoveItem={handleRemoveItem}
             onAddItem={handleAddItem}
             onReset={handleReset}
+            onRescan={hasCurrentFile ? handleRescanCurrent : undefined}
             onSaveToPO={handleSaveToPOWithToast}
             isSaving={isSaving}
             savedPO={savedPO}

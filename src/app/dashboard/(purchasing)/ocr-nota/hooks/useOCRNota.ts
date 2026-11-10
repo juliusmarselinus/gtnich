@@ -17,6 +17,7 @@ export function useOCRNota() {
   const [state, setState] = useState<'idle' | 'uploading' | 'done'>('idle')
   const [ocrProgress, setOcrProgress] = useState(0)
   const [ocrStatusText, setOcrStatusText] = useState('')
+  const [currentFile, setCurrentFile] = useState<File | null>(null)
   const [fileName, setFileName] = useState('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [scanResult, setScanResult] = useState<OCRScanResult | null>(null)
@@ -33,7 +34,9 @@ export function useOCRNota() {
   useEffect(() => {
     try {
       const stored =
-        localStorage.getItem('gemini_api_key') || localStorage.getItem('dapurtwin_gemini_key')
+        localStorage.getItem('gemini_api_key') ||
+        localStorage.getItem('dapurtwin_gemini_key') ||
+        localStorage.getItem('orderhub_gemini_api_key')
       if (stored) setApiKey(stored)
 
       const storedRouterUrl = localStorage.getItem('ocr_router_url')
@@ -63,10 +66,12 @@ export function useOCRNota() {
   }
 
   const saveApiKey = (key: string) => {
-    setApiKey(key)
+    const trimmed = key.trim()
+    setApiKey(trimmed)
     try {
-      localStorage.setItem('gemini_api_key', key)
-      localStorage.setItem('dapurtwin_gemini_key', key)
+      localStorage.setItem('gemini_api_key', trimmed)
+      localStorage.setItem('dapurtwin_gemini_key', trimmed)
+      localStorage.setItem('orderhub_gemini_api_key', trimmed)
     } catch {
       // ignore
     }
@@ -90,10 +95,11 @@ export function useOCRNota() {
     loadContext()
   }, [loadContext])
 
-  // Process File Upload & OCR via Tesseract.js (Vercel-ready, No API Key Needed)
+  // Process File Upload & OCR
   const handleScanFile = async (file: File) => {
     try {
       setError(null)
+      setCurrentFile(file)
       setFileName(file.name)
       setState('uploading')
       setOcrProgress(5)
@@ -108,10 +114,20 @@ export function useOCRNota() {
         setImagePreview(null)
       }
 
-      const res = await ocrService.parseReceiptImage(file, bahanList, (pct, status) => {
-        setOcrProgress(pct)
-        setOcrStatusText(status)
-      })
+      const res = await ocrService.parseReceiptImage(
+        file,
+        bahanList,
+        (pct, status) => {
+          setOcrProgress(pct)
+          setOcrStatusText(status)
+        },
+        {
+          apiKey,
+          routerUrl,
+          routerKey,
+          routerModel,
+        }
+      )
 
       setScanResult(res)
       setSupplierName(res.supplierName || (suppliers[0]?.nama ?? 'Supplier Umum'))
@@ -128,6 +144,12 @@ export function useOCRNota() {
       setError(err?.message || 'Gagal memindai gambar nota')
       setState('idle')
     }
+  }
+
+  // Pindai ulang gambar yang sama (misal jika hasil ekstraksi pertama kurang pas)
+  const handleRescanCurrent = async () => {
+    if (!currentFile) return
+    await handleScanFile(currentFile)
   }
 
   // Update item baris
@@ -155,6 +177,7 @@ export function useOCRNota() {
   // Reset scan
   const handleReset = () => {
     setState('idle')
+    setCurrentFile(null)
     setFileName('')
     setImagePreview(null)
     setScanResult(null)
@@ -221,10 +244,12 @@ export function useOCRNota() {
     savedPO,
     error,
     handleScanFile,
+    handleRescanCurrent,
     handleUpdateItem,
     handleRemoveItem,
     handleAddItem,
     handleReset,
     handleSaveToPO,
+    hasCurrentFile: Boolean(currentFile),
   }
 }
